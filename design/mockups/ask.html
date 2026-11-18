@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nayboro · New question</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+:root{--green:#1E6B4A;--green-tint:#E3F0E8;--orange:#F59E4C;--orange-logo:#EE8A35;--orange-tint:#FDEBDD;--orange-text:#7A3A0F;--orange-icon:#B4531A;
+  --ground:#F5F7F2;--surface:#FFFFFF;--line:#DDE3DC;--line-soft:#E6EBE5;--ink:#17201B;--muted:#56635B;
+  --display:'Bricolage Grotesque',Inter,system-ui,sans-serif;--body:Inter,system-ui,sans-serif}
+*{box-sizing:border-box;scrollbar-width:none}
+*::-webkit-scrollbar{display:none}
+html,body{margin:0;height:100%;background:var(--ground);color:var(--ink);font-family:var(--body)}
+button,input,textarea{font:inherit;color:inherit}
+a{color:var(--green)}
+[hidden]{display:none !important}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.app{position:relative;max-width:440px;margin:0 auto;height:100dvh;display:flex;flex-direction:column;background:var(--ground);overflow:hidden}
+@media (min-width:600px){body{padding:24px 0}.app{height:calc(100dvh - 48px);border-radius:32px;border:1px solid var(--line-soft);box-shadow:0 10px 40px rgba(23,32,27,.08)}}
+.logo{display:inline-flex;align-items:center;gap:7px;font-family:var(--display);font-weight:800;font-size:20px;letter-spacing:-.4px;color:var(--ink)}
+.bar{display:flex;align-items:center;justify-content:space-between}
+.me-btn{width:40px;height:40px;border:0;border-radius:13px;background:var(--orange);color:var(--ink);font-family:var(--display);font-weight:800;font-size:14px;cursor:pointer}
+.head{padding:18px 20px 8px;display:flex;flex-direction:column;gap:12px}
+h1{margin:0;font-family:var(--display);font-size:34px;line-height:1.02;font-weight:800;letter-spacing:-.5px}
+.sub{font-size:14px;color:var(--muted)}
+.scroll{flex:1;overflow-y:auto;padding:6px 20px 20px;display:flex;flex-direction:column;gap:14px}
+.cap{font-size:12px;font-weight:700;letter-spacing:1px;color:var(--muted)}
+.card{background:var(--surface);border:1px solid var(--line-soft);border-radius:20px;padding:14px}
+.chips{display:flex;gap:8px;overflow-x:auto;margin:0 -20px;padding:0 20px 2px}
+.chip{flex:none;height:42px;padding:0 16px;border-radius:999px;border:2px solid var(--line-soft);background:var(--surface);font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
+.chip[aria-pressed="true"]{background:var(--green);border-color:var(--green);color:#fff}
+.av{width:48px;height:48px;flex:none;border-radius:16px;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:800;font-size:15px}
+.av.sm{width:34px;height:34px;border-radius:12px;font-size:12px}
+.av.g{background:#E3F0E8;color:#1E6B4A}.av.b{background:#DCE7F7;color:#28426B}.av.p{background:#F7DDE4;color:#7A2E44}.av.y{background:#F7E7C6;color:#6B4A0E}.av.n{background:#E6EBE5;color:#3B463F}
+.tag{font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;background:var(--green-tint);color:var(--green);white-space:nowrap}
+.tag.o{background:var(--orange-tint);color:var(--orange-text)}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;height:56px;border-radius:18px;border:0;background:var(--green);color:#fff;font-size:17px;font-weight:700;cursor:pointer;text-decoration:none;width:100%}
+.btn:disabled{background:var(--line);color:var(--muted);cursor:default}
+.btn-out{display:inline-flex;align-items:center;justify-content:center;height:44px;padding:0 18px;border-radius:14px;border:2px solid var(--green);background:var(--surface);color:var(--green);font-size:14px;font-weight:700;cursor:pointer;text-decoration:none;white-space:nowrap;flex:none}
+.btn-soft{display:inline-flex;align-items:center;justify-content:center;height:44px;padding:0 16px;border-radius:14px;border:0;background:var(--green-tint);color:var(--green);font-size:14px;font-weight:700;cursor:pointer;text-decoration:none;white-space:nowrap;flex:none}
+.link{border:0;background:transparent;padding:0;min-height:44px;color:var(--green);font-size:14px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center}
+.icon-btn{width:44px;height:44px;flex:none;border-radius:14px;border:1px solid var(--line);background:var(--surface);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;color:var(--ink);text-decoration:none}
+.nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:8px 8px 20px;background:var(--surface);border-top:1px solid var(--line-soft)}
+.nav a{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 0;text-decoration:none;color:var(--muted);font-size:12px;font-weight:600}
+.nav a span.pill{display:flex;align-items:center;justify-content:center;width:56px;height:30px;border-radius:999px}
+.nav a[aria-current="page"]{color:var(--green);font-weight:700}
+.nav a[aria-current="page"] span.pill{background:var(--green-tint)}
+.nav .badge{position:absolute;top:2px;left:54%;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:var(--orange);color:var(--ink);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.scrim{position:absolute;inset:0;background:rgba(23,32,27,.35);display:flex;align-items:flex-end;z-index:5}
+.sheet{width:100%;background:var(--surface);border-radius:28px 28px 0 0;padding:10px 20px 24px;display:flex;flex-direction:column;gap:12px;max-height:88%;overflow-y:auto}
+.grab{width:40px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 4px}
+.sheet h3{margin:0;font-family:var(--display);font-size:22px;font-weight:800}
+.menu-item{display:flex;align-items:center;min-height:52px;padding:0 14px;border-radius:14px;border:0;background:var(--ground);font-size:16px;font-weight:600;cursor:pointer;text-align:left;text-decoration:none;color:var(--ink)}
+.toast{position:absolute;left:20px;right:20px;bottom:96px;background:var(--green);color:#fff;border-radius:16px;padding:12px 14px;font-size:14px;font-weight:600;z-index:6}
+textarea.box{width:100%;min-height:110px;resize:none;border-radius:16px;border:2px solid var(--line);background:var(--surface);padding:12px 14px;font-size:16px;line-height:1.5;outline:none}
+textarea.box:focus,.input:focus{border-color:var(--green)}
+.input{height:50px;width:100%;border-radius:14px;border:2px solid var(--line);background:var(--surface);padding:0 14px;font-size:16px;outline:none}
+.hint{font-size:12px;line-height:1.45;color:var(--muted)}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+
+.top{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 10px}
+.compose{background:var(--surface);border:1px solid var(--line-soft);border-radius:24px;overflow:hidden}
+.as{display:flex;align-items:center;gap:10px;padding:14px 16px 0}
+.anon{flex:none;display:flex;align-items:center;gap:6px;height:36px;padding:0 10px;border-radius:999px;border:1px solid var(--line);background:#fff;color:#3B463F;font-size:12px;font-weight:700;cursor:pointer}
+.anon[aria-pressed="true"]{background:#3B463F;border-color:#3B463F;color:#fff}
+#q{display:block;width:100%;height:96px;resize:none;border:0;outline:none;background:transparent;padding:12px 16px 4px;font-family:var(--display);font-size:22px;line-height:1.25;font-weight:700}
+#details{display:block;width:100%;height:110px;resize:none;border:0;outline:none;background:transparent;padding:0;font-size:15px;line-height:1.5}
+.note{margin:10px 16px 0;background:var(--ground);border-radius:12px;padding:8px 10px;font-size:12px;line-height:1.45;color:#3B463F}
+.opt{width:100%;display:flex;align-items:center;gap:12px;min-height:60px;padding:10px 14px;border-radius:16px;border:2px solid var(--line-soft);background:var(--surface);cursor:pointer;text-align:left}
+.opt[aria-pressed="true"]{border-color:var(--green);background:var(--green-tint)}
+.dot{width:22px;height:22px;flex:none;border-radius:50%;border:2px solid #7D8981;background:#fff;display:flex;align-items:center;justify-content:center}
+.opt[aria-pressed="true"] .dot{border-color:var(--green)}
+.opt[aria-pressed="true"] .dot::after{content:"";width:10px;height:10px;border-radius:50%;background:var(--green)}
+.tchip{min-height:44px;padding:0 16px;border-radius:999px;border:2px solid var(--line-soft);background:#fff;font-size:14px;font-weight:600;cursor:pointer}
+.tchip[aria-pressed="true"]{background:var(--orange);border-color:var(--orange)}
+.discard{margin:0 20px 8px;display:flex;align-items:center;gap:8px;background:var(--orange-tint);color:#3E2A1C;border-radius:16px;padding:8px 8px 8px 14px;font-size:14px;font-weight:600}
+.foot{padding:12px 20px 24px;background:var(--surface);border-top:1px solid var(--line-soft);display:flex;flex-direction:column;gap:8px}
+</style>
+</head>
+<body>
+<div class="app">
+
+<div class="top"><button class="icon-btn" id="close" aria-label="Close"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M7 7l10 10M17 7L7 17"/></svg></button><b style="font-size:15px">New question</b><span style="width:44px"></span></div>
+<div class="discard" id="discard" hidden><span style="flex:1">Discard this question?</span><button class="btn-soft" id="keep" style="height:40px;background:#fff">Keep</button><a class="btn-soft" href="explore.html" style="height:40px;background:var(--orange);color:var(--ink)">Discard</a></div>
+<main class="scroll" style="gap:18px">
+  <div class="compose">
+    <div class="as"><span class="av sm" id="asAv" style="width:36px;height:36px"></span><span style="flex:1;display:flex;flex-direction:column;gap:1px"><b style="font-size:14px" id="asName"></b><span class="hint" id="asSub"></span></span>
+      <button class="anon" id="anon" aria-pressed="false" aria-label="Post anonymously"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10c0-1.7 2.5-3 9-3s9 1.3 9 3c0 3-2 5-4.5 5-1.8 0-2.7-1.3-4.5-1.3S9.3 15 7.5 15C5 15 3 13 3 10z"/></svg><span id="anonLabel">Anonymous</span></button></div>
+    <div class="note" id="anonNote" hidden>Others won't see who you are. Nayboro can still see it, to keep the community safe. Replies to you stay named.</div>
+    <label class="sr" for="q">Your question</label>
+    <textarea id="q" maxlength="150" placeholder="What do you want to know?"></textarea>
+    <div class="row" style="padding:8px 16px 12px"><span class="hint">Name a place or a time to get faster answers</span><span class="hint" style="font-weight:600"><span id="count">0</span>/150</span></div>
+    <div style="border-top:1px dashed var(--line);padding:4px 16px 10px">
+      <button class="link" id="addDetails"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>&nbsp;Add details</button>
+      <div id="detailsWrap" hidden><label for="details" class="hint" style="display:block;font-weight:700;padding:8px 0 4px">Details</label><textarea id="details" maxlength="800" placeholder="What have you tried? Any must-haves?"></textarea></div>
+    </div>
+  </div>
+  <span class="hint" style="margin-top:-8px;padding:0 6px">Ask anything about life here. No buying, selling or ads.</span>
+
+  <div class="card" style="display:flex;flex-direction:column;gap:10px;padding:12px 14px">
+    <div class="row"><span style="display:flex;align-items:center;gap:10px"><b style="font-size:14px">Topic</b><span class="tag o" id="topicTag" style="font-size:14px;padding:7px 12px"></span></span><button class="link" id="topicToggle"></button></div>
+    <span class="hint" id="topicHint"></span>
+    <div id="topicList" hidden style="display:flex;flex-wrap:wrap;gap:8px;padding-top:8px;border-top:1px dashed var(--line)"></div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:8px">
+    <b style="font-size:14px">Who should see it?</b>
+    <div id="scopes" style="display:flex;flex-direction:column;gap:8px"></div>
+    <div id="cityWrap" hidden style="display:flex;flex-direction:column;gap:6px"><label for="city" style="font-size:13px;font-weight:700">Which city?</label><input class="input" id="city" type="text" placeholder="e.g. Chicago or Bangalore"></div>
+  </div>
+</main>
+<div class="foot"><button class="btn" id="post" disabled>Post question</button><span class="hint" id="reach" style="text-align:center"></span></div>
+
+</div>
+<script>
+(function(){
+var $ = function(id){ return document.getElementById(id); };
+function esc(t){ return String(t).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+function toast(m){ var t=$('toast'); if(!t) return; t.textContent=m; t.hidden=false; clearTimeout(t._h); t._h=setTimeout(function(){ t.hidden=true; },2600); }
+function openSheet(id){ $(id).hidden=false; }
+function closeSheet(id){ $(id).hidden=true; }
+document.addEventListener('click', function(e){
+  if(e.target.classList && e.target.classList.contains('scrim')) e.target.hidden = true;
+  var c = e.target.closest && e.target.closest('[data-close]'); if(c) $(c.getAttribute('data-close')).hidden = true;
+  var o = e.target.closest && e.target.closest('[data-open]'); if(o) $(o.getAttribute('data-open')).hidden = false;
+});
+document.addEventListener('keydown', function(e){ if(e.key==='Escape') Array.prototype.forEach.call(document.querySelectorAll('.scrim'), function(s){ s.hidden=true; }); });
+
+// Real build: ME comes from the signed-in profile. "roots" is the level the person chose to show.
+var ME = { name:'Neeraj', initial:'N', roots:'Jaipur', now:'Garland', metro:'Dallas-Fort Worth' };
+var TOPICS = ['Groceries','Schools','Food','Sports','Immigration','Housing','Travel','Life here','Something else'];
+// Starter keyword list for auto-suggesting a topic. Build it out from the seeded questions.
+var WORDS = [['Sports',['cricket','tennis','badminton','pickleball','run','gym','yoga']],['Groceries',['grocery','groceries','methi','curry leaves','vegetable','atta','store']],['Schools',['school','esl','teacher','daycare','tuition']],['Food',['tiffin','restaurant','food','dal','thali','sweets','catering','jalebi']],['Immigration',['visa','h1b','h-1b','green card','oci','passport','consulate']],['Housing',['rent','apartment','roommate','lease','house','hoa']],['Travel',['flight','flying','travel','companion','airport']],['Life here',['friends','lonely','homesick','winter','meet people']]];
+var SCOPES = [['near','Around '+ME.now,'People in '+ME.now+' and close by'],['metro','All of DFW','Plano, Frisco, Richardson and more'],['other','Another city','Moving soon? Ask people who already live there']];
+var S = { anon:false, manual:null, list:false, scope:'near' };
+
+function guess(t){ t=t.toLowerCase(); for(var i=0;i<WORDS.length;i++) for(var j=0;j<WORDS[i][1].length;j++) if(t.indexOf(WORDS[i][1][j])>=0) return WORDS[i][0]; return null; }
+function render(){
+  var text=$('q').value, g=guess(text), topic=S.manual||g, ready=text.trim().length>=10 && (S.scope!=='other' || $('city').value.trim());
+  $('asAv').className = 'av sm ' + (S.anon?'n':''); $('asAv').style.background = S.anon?'':'var(--orange)';
+  $('asAv').innerHTML = S.anon ? '<svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10c0-1.7 2.5-3 9-3s9 1.3 9 3c0 3-2 5-4.5 5-1.8 0-2.7-1.3-4.5-1.3S9.3 15 7.5 15C5 15 3 13 3 10z"/></svg>' : ME.initial;
+  $('asName').textContent = S.anon ? 'Anonymous' : ME.name;
+  $('asSub').textContent = S.anon ? ME.now+' area · name and hometown hidden' : ME.roots+' → '+ME.now+' · posting as you';
+  $('anon').setAttribute('aria-pressed', String(S.anon)); $('anonLabel').textContent = S.anon?'On':'Anonymous'; $('anonNote').hidden=!S.anon;
+  $('count').textContent = text.length;
+  $('topicTag').textContent = topic || 'General';
+  $('topicTag').className = 'tag' + (topic?' o':''); if(!topic){ $('topicTag').style.background='var(--ground)'; $('topicTag').style.color='var(--muted)'; } else { $('topicTag').style.background=''; $('topicTag').style.color=''; }
+  $('topicToggle').textContent = S.list ? 'Done' : (topic?'Change':'Add');
+  $('topicHint').textContent = (!S.manual && g) ? 'Suggested from your question. Tap Change if it looks wrong.' : (topic ? 'You picked this topic.' : 'Optional. We will file it under General if you skip it.');
+  $('topicList').hidden = !S.list;
+  $('topicList').innerHTML = TOPICS.map(function(t){ return '<button class="tchip" data-topic="'+t+'" aria-pressed="'+(topic===t)+'">'+t+'</button>'; }).join('');
+  $('scopes').innerHTML = SCOPES.map(function(s){ return '<button class="opt" data-scope="'+s[0]+'" aria-pressed="'+(S.scope===s[0])+'"><span class="dot"></span><span><b style="display:block;font-size:15px">'+s[1]+'</b><span class="hint">'+s[2]+'</span></span></button>'; }).join('');
+  $('cityWrap').hidden = S.scope!=='other';
+  $('post').disabled = !ready;
+  $('reach').textContent = text.trim().length<10 ? 'Write at least 10 characters to post.' : S.scope==='near' ? 'Shows in Explore for people around '+ME.now+'.' : S.scope==='metro' ? 'Shows in Explore across '+ME.metro+'.' : 'Shows in Explore for people in the city you pick.';
+}
+$('q').addEventListener('input', render); $('city').addEventListener('input', render);
+$('anon').onclick = function(){ S.anon=!S.anon; render(); };
+$('addDetails').onclick = function(){ $('addDetails').hidden=true; $('detailsWrap').hidden=false; $('details').focus(); };
+$('topicToggle').onclick = function(){ S.list=!S.list; render(); };
+$('close').onclick = function(){ if($('q').value.trim()) $('discard').hidden=false; else location.href='explore.html'; };
+$('keep').onclick = function(){ $('discard').hidden=true; };
+document.addEventListener('click', function(e){
+  var t=e.target.closest('[data-topic],[data-scope]'); if(!t) return;
+  if(t.dataset.topic){ S.manual=t.dataset.topic; S.list=false; } else { S.scope=t.dataset.scope; }
+  render(); if(S.scope==='other' && t.dataset.scope) $('city').focus();
+});
+$('post').onclick = function(){
+  // Real build: save { text, details, topic (or "General"), scope, city, anonymous } then show it at the top of Explore.
+  location.href = 'explore.html';
+};
+render();
+
+})();
+</script>
+</body>
+</html>

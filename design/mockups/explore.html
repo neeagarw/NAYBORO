@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nayboro · Explore</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+:root{--green:#1E6B4A;--green-tint:#E3F0E8;--orange:#F59E4C;--orange-logo:#EE8A35;--orange-tint:#FDEBDD;--orange-text:#7A3A0F;--orange-icon:#B4531A;
+  --ground:#F5F7F2;--surface:#FFFFFF;--line:#DDE3DC;--line-soft:#E6EBE5;--ink:#17201B;--muted:#56635B;
+  --display:'Bricolage Grotesque',Inter,system-ui,sans-serif;--body:Inter,system-ui,sans-serif}
+*{box-sizing:border-box;scrollbar-width:none}
+*::-webkit-scrollbar{display:none}
+html,body{margin:0;height:100%;background:var(--ground);color:var(--ink);font-family:var(--body)}
+button,input,textarea{font:inherit;color:inherit}
+a{color:var(--green)}
+[hidden]{display:none !important}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.app{position:relative;max-width:440px;margin:0 auto;height:100dvh;display:flex;flex-direction:column;background:var(--ground);overflow:hidden}
+@media (min-width:600px){body{padding:24px 0}.app{height:calc(100dvh - 48px);border-radius:32px;border:1px solid var(--line-soft);box-shadow:0 10px 40px rgba(23,32,27,.08)}}
+.logo{display:inline-flex;align-items:center;gap:7px;font-family:var(--display);font-weight:800;font-size:20px;letter-spacing:-.4px;color:var(--ink)}
+.bar{display:flex;align-items:center;justify-content:space-between}
+.me-btn{width:40px;height:40px;border:0;border-radius:13px;background:var(--orange);color:var(--ink);font-family:var(--display);font-weight:800;font-size:14px;cursor:pointer}
+.head{padding:18px 20px 8px;display:flex;flex-direction:column;gap:12px}
+h1{margin:0;font-family:var(--display);font-size:34px;line-height:1.02;font-weight:800;letter-spacing:-.5px}
+.sub{font-size:14px;color:var(--muted)}
+.scroll{flex:1;overflow-y:auto;padding:6px 20px 20px;display:flex;flex-direction:column;gap:14px}
+.cap{font-size:12px;font-weight:700;letter-spacing:1px;color:var(--muted)}
+.card{background:var(--surface);border:1px solid var(--line-soft);border-radius:20px;padding:14px}
+.chips{display:flex;gap:8px;overflow-x:auto;margin:0 -20px;padding:0 20px 2px}
+.chip{flex:none;height:42px;padding:0 16px;border-radius:999px;border:2px solid var(--line-soft);background:var(--surface);font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
+.chip[aria-pressed="true"]{background:var(--green);border-color:var(--green);color:#fff}
+.av{width:48px;height:48px;flex:none;border-radius:16px;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:800;font-size:15px}
+.av.sm{width:34px;height:34px;border-radius:12px;font-size:12px}
+.av.g{background:#E3F0E8;color:#1E6B4A}.av.b{background:#DCE7F7;color:#28426B}.av.p{background:#F7DDE4;color:#7A2E44}.av.y{background:#F7E7C6;color:#6B4A0E}.av.n{background:#E6EBE5;color:#3B463F}
+.tag{font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;background:var(--green-tint);color:var(--green);white-space:nowrap}
+.tag.o{background:var(--orange-tint);color:var(--orange-text)}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;height:56px;border-radius:18px;border:0;background:var(--green);color:#fff;font-size:17px;font-weight:700;cursor:pointer;text-decoration:none;width:100%}
+.btn:disabled{background:var(--line);color:var(--muted);cursor:default}
+.btn-out{display:inline-flex;align-items:center;justify-content:center;height:44px;padding:0 18px;border-radius:14px;border:2px solid var(--green);background:var(--surface);color:var(--green);font-size:14px;font-weight:700;cursor:pointer;text-decoration:none;white-space:nowrap;flex:none}
+.btn-soft{display:inline-flex;align-items:center;justify-content:center;height:44px;padding:0 16px;border-radius:14px;border:0;background:var(--green-tint);color:var(--green);font-size:14px;font-weight:700;cursor:pointer;text-decoration:none;white-space:nowrap;flex:none}
+.link{border:0;background:transparent;padding:0;min-height:44px;color:var(--green);font-size:14px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center}
+.icon-btn{width:44px;height:44px;flex:none;border-radius:14px;border:1px solid var(--line);background:var(--surface);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;color:var(--ink);text-decoration:none}
+.nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:8px 8px 20px;background:var(--surface);border-top:1px solid var(--line-soft)}
+.nav a{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 0;text-decoration:none;color:var(--muted);font-size:12px;font-weight:600}
+.nav a span.pill{display:flex;align-items:center;justify-content:center;width:56px;height:30px;border-radius:999px}
+.nav a[aria-current="page"]{color:var(--green);font-weight:700}
+.nav a[aria-current="page"] span.pill{background:var(--green-tint)}
+.nav .badge{position:absolute;top:2px;left:54%;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:var(--orange);color:var(--ink);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.scrim{position:absolute;inset:0;background:rgba(23,32,27,.35);display:flex;align-items:flex-end;z-index:5}
+.sheet{width:100%;background:var(--surface);border-radius:28px 28px 0 0;padding:10px 20px 24px;display:flex;flex-direction:column;gap:12px;max-height:88%;overflow-y:auto}
+.grab{width:40px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 4px}
+.sheet h3{margin:0;font-family:var(--display);font-size:22px;font-weight:800}
+.menu-item{display:flex;align-items:center;min-height:52px;padding:0 14px;border-radius:14px;border:0;background:var(--ground);font-size:16px;font-weight:600;cursor:pointer;text-align:left;text-decoration:none;color:var(--ink)}
+.toast{position:absolute;left:20px;right:20px;bottom:96px;background:var(--green);color:#fff;border-radius:16px;padding:12px 14px;font-size:14px;font-weight:600;z-index:6}
+textarea.box{width:100%;min-height:110px;resize:none;border-radius:16px;border:2px solid var(--line);background:var(--surface);padding:12px 14px;font-size:16px;line-height:1.5;outline:none}
+textarea.box:focus,.input:focus{border-color:var(--green)}
+.input{height:50px;width:100%;border-radius:14px;border:2px solid var(--line);background:var(--surface);padding:0 14px;font-size:16px;outline:none}
+.hint{font-size:12px;line-height:1.45;color:var(--muted)}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+
+.tabs{display:flex;gap:22px;border-bottom:1px solid var(--line)}
+.tab{height:42px;border:0;border-bottom:3px solid transparent;background:transparent;padding:0 2px;font-size:15px;font-weight:600;color:var(--muted);cursor:pointer}
+.tab[aria-pressed="true"]{border-bottom-color:var(--green);font-weight:700;color:var(--ink)}
+.chip.sm{height:40px;border-width:1px;border-color:var(--line)}
+.chip.sm[aria-pressed="true"]{background:var(--ink);border-color:var(--ink)}
+.chip .n{min-width:20px;height:20px;padding:0 5px;border-radius:999px;background:var(--orange);color:var(--ink);font-size:12px;display:flex;align-items:center;justify-content:center}
+.q{border-radius:22px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.q .meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.q h2{margin:0;font-size:18px;line-height:1.35}
+.ans{display:flex;gap:10px;background:var(--ground);border-radius:16px;padding:12px}
+.ans .t{display:flex;flex-direction:column;gap:4px;min-width:0;font-size:14px;line-height:1.45}
+.fab{position:absolute;right:20px;bottom:92px;height:56px;padding:0 22px 0 18px;border-radius:999px;background:var(--green);color:#fff;text-decoration:none;font-size:16px;font-weight:700;display:flex;align-items:center;gap:8px;box-shadow:0 8px 20px rgba(30,107,74,.35);z-index:2}
+.ev{border-radius:22px;display:flex;flex-direction:column;gap:12px}
+.date{width:56px;flex:none;align-self:flex-start;border-radius:16px;overflow:hidden;text-align:center;border:1px solid var(--line-soft)}
+.date b{display:block;background:var(--orange-logo);font-size:11px;letter-spacing:1px;padding:4px 0}
+.date i{display:block;font-style:normal;font-family:var(--display);font-size:24px;font-weight:800;padding:4px 0 0}
+.date small{display:block;font-size:11px;font-weight:700;color:var(--muted);padding:0 0 6px}
+.ev h3{margin:0;font-size:17px;line-height:1.3}
+.ev .l{display:flex;align-items:center;gap:5px;font-size:13px;color:var(--muted)}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.int{display:flex;align-items:center;justify-content:center;height:44px;border-radius:14px;border:2px solid var(--green);background:#fff;color:var(--green);font-size:14px;font-weight:700;cursor:pointer}
+.int[aria-pressed="true"]{background:var(--green);color:#fff}
+.gh{margin:6px 0 0;font-family:var(--display);font-size:19px;font-weight:800}
+.tell{display:flex;align-items:center;gap:12px;background:var(--green-tint);border-radius:18px;padding:14px;font-size:13px;line-height:1.45}
+</style>
+</head>
+<body>
+<div class="app">
+
+<div class="head"><div class="bar"><span class="logo"><svg role="img" aria-label="Nayboro" width="30" height="25" viewBox="0 0 120 100"><path fill-rule="evenodd" fill="#EE8A35" d="M10 96 Q6 96 6 92 V46 Q6 44 7.5 42.5 L28 21 Q31 18 34 21 L54.5 42.5 Q56 44 56 46 V92 Q56 96 52 96 Z M22 96 V78 A9 9 0 0 1 40 78 V96 Z"/><path fill-rule="evenodd" fill="#1E6B4A" d="M68 96 Q64 96 64 92 V38 Q64 36 65.5 34.5 L86 11 Q89 8 92 11 L112.5 34.5 Q114 36 114 38 V92 Q114 96 110 96 Z M80 96 V74 A9 9 0 0 1 98 74 V96 Z"/></svg>nayboro</span><button class="me-btn" data-open="meSheet" aria-label="Your account">N</button></div>
+  <div><h1>Explore</h1><span class="sub" style="display:inline-flex;align-items:center;gap:4px"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>Around Garland</span></div>
+  <div class="tabs"><button class="tab" data-tab="q">Questions</button><button class="tab" data-tab="e">Events</button></div>
+  <div class="chips" id="chips"></div>
+</div>
+<main class="scroll" id="main" style="padding-bottom:110px"></main>
+<a class="fab" id="fab" href="ask.html"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Ask a question</a>
+<nav class="nav" aria-label="Main"><a href="explore.html" aria-current="page"><span class="pill"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg></span>Explore</a><a href="people.html"><span class="pill"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5"/><circle cx="17" cy="9" r="2.5"/><path d="M17.5 14.5c2 .3 3.4 1.9 4 4.5"/></svg></span>People</a><a href="chats.html"><span class="pill"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/></svg></span><span class="badge">3</span>Chats</a></nav>
+<div class="scrim" id="ansSheet" hidden><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="ansTitle"><div class="grab"></div>
+  <h3 id="ansTitle">Your answer</h3><span class="sub" id="ansQ"></span>
+  <label class="sr" for="ansText">Answer</label><textarea class="box" id="ansText" maxlength="600" placeholder="Share what you know"></textarea>
+  <span class="hint">Answers always show your name, so help stays trusted.</span>
+  <button class="btn" id="ansPost" disabled>Post answer</button><button class="link" data-close="ansSheet" style="justify-content:center">Cancel</button>
+</div></div>
+<div class="scrim" id="meSheet" hidden><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="meTitle"><div class="grab"></div><h3 id="meTitle">Neeraj S.</h3><span class="sub">Jaipur → Garland</span><a class="menu-item" href="profile-setup.html">Edit profile</a><a class="menu-item" href="contact.html">Help and feedback</a><a class="menu-item" href="welcome.html">Log out</a><button class="link" data-close="meSheet" style="justify-content:center">Cancel</button></div></div><div class="toast" id="toast" role="status" hidden></div>
+</div>
+<script>
+(function(){
+var $ = function(id){ return document.getElementById(id); };
+function esc(t){ return String(t).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+function toast(m){ var t=$('toast'); if(!t) return; t.textContent=m; t.hidden=false; clearTimeout(t._h); t._h=setTimeout(function(){ t.hidden=true; },2600); }
+function openSheet(id){ $(id).hidden=false; }
+function closeSheet(id){ $(id).hidden=true; }
+document.addEventListener('click', function(e){
+  if(e.target.classList && e.target.classList.contains('scrim')) e.target.hidden = true;
+  var c = e.target.closest && e.target.closest('[data-close]'); if(c) $(c.getAttribute('data-close')).hidden = true;
+  var o = e.target.closest && e.target.closest('[data-open]'); if(o) $(o.getAttribute('data-open')).hidden = false;
+});
+document.addEventListener('keydown', function(e){ if(e.key==='Escape') Array.prototype.forEach.call(document.querySelectorAll('.scrim'), function(s){ s.hidden=true; }); });
+
+// ---- sample data. Real build: load from the server. ----
+// Feed privacy rule: cards show name + area only. A roots tag ("From Rajasthan") appears only when
+// the reader shares those roots, and never at a finer level than the writer chose to show.
+var TAG = { Groceries:'#E3F0E8|#1E6B4A', Schools:'#DCE7F7|#28426B', Food:'#F7DDE4|#7A2E44', Immigration:'#E6E1F5|#4A3A7A', Travel:'#FDEBDD|#7A3A0F', Sports:'#E3F0E8|#1E6B4A', Housing:'#F7E7C6|#6B4A0E', 'Life here':'#E6EBE5|#3B463F' };
+var QS = [
+  { id:1, topic:'Groceries', who:'Sneha D.', area:'Plano', when:'2h ago', text:'Where can I get fresh methi and curry leaves near Garland?', answers:[
+    { i:'NJ', c:'y', name:'Nidhi J.', city:'Garland', text:'The Indian grocery on Belt Line gets deliveries Tuesday and Friday. Go in the morning.', helpful:6 },
+    { i:'MP', c:'g', name:'Meera P.', city:'Plano', text:'The farmers market on Saturdays sometimes has curry leaf plants too.', helpful:2 } ] },
+  { id:2, topic:'Immigration', who:'Arjun M.', area:'Irving', when:'3h ago', text:'OCI renewal: did you go through the outsourcing centre or mail it in? Which was smoother?', answers:[
+    { i:'KS', c:'y', name:'Kavya S.', city:'Frisco', roots:'From Jaipur', text:'Mailed mine last spring. Check the photo size twice, that is what got my first try sent back.', helpful:11 },
+    { i:'RT', c:'b', name:'Ravi T.', city:'Garland', text:'Mail was fine for us too. Keep copies of everything you send.', helpful:4 } ] },
+  { id:3, topic:'Immigration', anon:true, who:'Anonymous', area:'Garland area', when:'4h ago', text:'Laid off on H-1B last month. How long did it take others to find a new sponsor?', answers:[
+    { i:'VB', c:'g', name:'Vikram B.', city:'Garland', roots:'From Rajasthan', text:'Took me about seven weeks. Happy to share the recruiters who helped, message me.', helpful:15 } ] },
+  { id:4, topic:'Schools', who:'Rohit G.', area:'Richardson', when:'Yesterday', text:'Which Richardson elementary schools have good ESL support?', answers:[] },
+  { id:5, topic:'Travel', who:'Simran K.', area:'Plano', when:'5h ago', text:'Anyone flying DFW to Delhi around Dec 20? My parents are travelling alone and would love company.', answers:[
+    { i:'AK', c:'b', name:'Aman K.', city:'Garland', text:'We are on the Dec 21 flight. Happy to help them at the airport if dates work.', helpful:3 } ] },
+  { id:6, topic:'Food', who:'Meera P.', area:'Plano', when:'Yesterday', text:'Any good tiffin service in Plano?', answers:[] },
+  { id:7, topic:'Sports', who:'Vikram B.', area:'Garland', when:'Yesterday', text:'Sunday cricket at Holford Park needs 2 more players. Any takers?', answers:[
+    { i:'AM', c:'g', name:'Arjun M.', city:'Irving', roots:'From Rajasthan', text:'Count me in! What time do you start?', helpful:2 } ] },
+  { id:8, topic:'Life here', anon:true, who:'Anonymous', area:'Plano area', when:'Yesterday', text:'First winter here and finding it hard to make friends. How did you meet people?', answers:[] },
+  { id:9, topic:'Housing', who:'Ravi T.', area:'Garland', when:'2 days ago', text:'Family-friendly apartments near Firewheel? Moving in January.', answers:[] },
+  { id:10, topic:'Food', who:'Priya S.', area:'Garland', when:'3 days ago', text:'Where do you get fresh jalebi on weekends?', answers:[
+    { i:'SK', c:'p', name:'Simran K.', city:'Plano', text:'The sweet shop next to the Plano temple makes them fresh on Saturday mornings.', helpful:8 } ] }
+];
+// Events are added by the Nayboro team (seeded) and link out to the organiser. We list, we don't host.
+var EVS = [
+  { id:1, g:'This weekend', mon:'NOV', day:21, dow:'SAT', title:'Saturday morning cricket meetup', time:'8:00 to 11:00 AM', place:'Holford Park, Garland', price:'Free', kind:'Sports', social:'3 from Rajasthan interested', host:'Garland Weekend Cricket', url:'#' },
+  { id:2, g:'This weekend', mon:'NOV', day:21, dow:'SAT', title:'Rajasthani food pop-up', time:'12:00 to 4:00 PM', place:'Richardson', price:'$15', kind:'Food', social:'Rohit G. and 11 others interested', host:'DFW Desi Kitchens', url:'#' },
+  { id:3, g:'This weekend', mon:'NOV', day:22, dow:'SUN', title:'Family craft afternoon', time:'2:00 to 4:00 PM', place:'Plano', price:'Free', kind:'Family', social:'8 near you interested', host:'Plano Community Library', url:'#' },
+  { id:4, g:'Coming up', mon:'NOV', day:26, dow:'THU', title:'Thanksgiving potluck for newcomers', time:'1:00 PM', place:'Irving', price:'Free', kind:'Food', social:'14 interested · bring one dish', host:'Irving Newcomers Circle', url:'#' },
+  { id:5, g:'Coming up', mon:'DEC', day:5, dow:'SAT', title:'Winter Mela', time:'5:00 to 10:00 PM', place:'Frisco', price:'$10', kind:'Festival', social:'6 from Rajasthan interested', host:'Frisco Cultural Association', url:'#' },
+  { id:6, g:'Coming up', mon:'DEC', day:6, dow:'SUN', title:'Badminton doubles social', time:'9:00 AM', place:'Plano', price:'Free', kind:'Sports', social:'5 who play badminton interested', host:'Plano Shuttle Club', url:'#' }
+];
+var S = { tab: new URLSearchParams(location.search).get('tab')==='events' ? 'e' : 'q', qChip:'All', eChip:'All', open:{}, liked:[2], answering:null };
+
+function tagHTML(t){ var p=TAG[t].split('|'); return '<span class="tag" style="background:'+p[0]+';color:'+p[1]+'">'+esc(t)+'</span>'; }
+function ansHTML(a){
+  return '<div class="ans"><span class="av sm '+a.c+'">'+esc(a.i)+'</span><div class="t"><span style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:13px"><b>'+esc(a.name)+'</b><span style="color:var(--muted)">· lives in '+esc(a.city)+'</span>'+(a.roots?'<span class="tag" style="font-size:11px;padding:2px 7px">'+esc(a.roots)+'</span>':'')+'</span><span>'+esc(a.text)+'</span>'+(a.helpful?'<span class="hint">'+a.helpful+' found this helpful</span>':'')+'</div></div>';
+}
+function qHTML(q){
+  var n=q.answers.length, open=S.open[q.id];
+  var shown = n ? (open ? q.answers : q.answers.slice(0,1)) : [];
+  var left = n===0 ? '<span class="sub" style="font-size:13px">No answers yet</span>'
+           : n===1 ? '<span></span>'
+           : '<button class="link" data-toggle="'+q.id+'">'+(open?'Show less':'See all '+n+' answers')+'</button>';
+  return '<article class="card q"><div class="meta">'+tagHTML(q.topic)+'<span style="display:inline-flex;align-items:center;gap:5px">'+(q.anon?'<span class="av n" style="width:20px;height:20px;border-radius:50%"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10c0-1.7 2.5-3 9-3s9 1.3 9 3c0 3-2 5-4.5 5-1.8 0-2.7-1.3-4.5-1.3S9.3 15 7.5 15C5 15 3 13 3 10z"/></svg></span>':'')+esc(q.who)+' · '+esc(q.area)+' · '+esc(q.when)+'</span></div>'+
+    '<h2>'+esc(q.text)+'</h2>'+shown.map(ansHTML).join('')+'<div class="row">'+left+'<button class="btn-out" data-answer="'+q.id+'">Answer</button></div></article>';
+}
+function evHTML(e){
+  var on = S.liked.indexOf(e.id)>=0;
+  return '<article class="card ev"><div style="display:flex;gap:12px"><div class="date" aria-hidden="true"><b>'+e.mon+'</b><i>'+e.day+'</i><small>'+e.dow+'</small></div>'+
+    '<div style="flex:1;display:flex;flex-direction:column;gap:5px;min-width:0"><h3>'+esc(e.title)+'</h3><span class="l">'+esc(e.time)+'</span><span class="l"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>'+esc(e.place)+'</span>'+
+    '<span style="display:flex;gap:6px;padding-top:2px"><span class="tag'+(e.price==='Free'?'':' o')+'">'+esc(e.price)+'</span><span class="tag" style="background:#DCE7F7;color:#28426B">'+esc(e.kind)+'</span></span></div></div>'+
+    '<span style="font-size:13px;color:#3B463F">'+esc(e.social)+'</span>'+
+    '<div class="two"><button class="int" data-like="'+e.id+'" aria-pressed="'+on+'">'+(on?'Interested':"I'm interested")+'</button><a class="btn-soft" style="background:var(--ground);color:var(--ink)" href="'+e.url+'">Details</a></div>'+
+    '<span class="hint">Hosted by '+esc(e.host)+'</span></article>';
+}
+function render(){
+  Array.prototype.forEach.call(document.querySelectorAll('.tab'), function(t){ t.setAttribute('aria-pressed', String(t.dataset.tab===S.tab)); });
+  $('fab').hidden = S.tab!=='q';
+  var h='', chips;
+  if(S.tab==='q'){
+    var open = QS.filter(function(q){ return !q.answers.length; }).length;
+    chips = ['All','Unanswered'].concat(Object.keys(TAG)).map(function(n){ return '<button class="chip sm" data-qchip="'+n+'" aria-pressed="'+(S.qChip===n)+'">'+n+(n==='Unanswered'&&open?'<span class="n">'+open+'</span>':'')+'</button>'; });
+    var list = QS.filter(function(q){ return S.qChip==='All' || (S.qChip==='Unanswered' ? !q.answers.length : q.topic===S.qChip); });
+    h = list.map(qHTML).join('') || '<p class="sub" style="text-align:center;padding:30px 10px">Nothing here yet. Ask the first question on this topic.</p>';
+  } else {
+    chips = ['All','This weekend','Free','Food','Sports','Family','Festival','Interested'].map(function(n){ return '<button class="chip sm" data-echip="'+n+'" aria-pressed="'+(S.eChip===n)+'">'+(n==='Interested'?'Interested · '+S.liked.length:n)+'</button>'; });
+    var c=S.eChip, evs = EVS.filter(function(e){ return c==='All' || (c==='This weekend'?e.g===c : c==='Free'?e.price==='Free' : c==='Interested'?S.liked.indexOf(e.id)>=0 : e.kind===c); });
+    ['This weekend','Coming up'].forEach(function(g){ var part=evs.filter(function(e){ return e.g===g; }); if(part.length) h += '<h2 class="gh">'+g+'</h2>'+part.map(evHTML).join(''); });
+    if(!evs.length) h = '<p class="sub" style="text-align:center;padding:30px 10px">No events here this week. New ones are added every few days.</p>';
+    h += '<div class="tell"><span style="flex:1"><b>Know an event we should list?</b> Local organisers run these. We update the list every few days.</span><a class="btn-soft" style="background:#fff" href="contact.html?topic=event">Tell us</a></div>';
+  }
+  $('chips').innerHTML = chips.join('');
+  $('main').innerHTML = h;
+}
+document.addEventListener('click', function(e){
+  var t = e.target.closest('[data-tab],[data-qchip],[data-echip],[data-toggle],[data-answer],[data-like]'); if(!t) return;
+  var d=t.dataset;
+  if(d.tab){ S.tab=d.tab; $('main').scrollTop=0; }
+  else if(d.qchip){ S.qChip=d.qchip; }
+  else if(d.echip){ S.eChip=d.echip; }
+  else if(d.toggle){ S.open[d.toggle]=!S.open[d.toggle]; }
+  else if(d.like){ var i=S.liked.indexOf(+d.like); if(i>=0) S.liked.splice(i,1); else S.liked.push(+d.like); }
+  else if(d.answer){ S.answering=+d.answer; $('ansQ').textContent=QS.filter(function(q){ return q.id===S.answering; })[0].text; $('ansText').value=''; $('ansPost').disabled=true; openSheet('ansSheet'); $('ansText').focus(); return; }
+  render();
+});
+$('ansText').addEventListener('input', function(){ $('ansPost').disabled = $('ansText').value.trim().length<3; });
+$('ansPost').onclick = function(){
+  var q = QS.filter(function(x){ return x.id===S.answering; })[0];
+  q.answers.push({ i:'N', c:'y', name:'Neeraj S.', city:'Garland', text:$('ansText').value.trim(), helpful:0 });
+  S.open[q.id]=true; closeSheet('ansSheet'); render(); toast('Answer posted');
+};
+render();
+
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nayboro · Welcome</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+:root{--green:#1E6B4A;--green-tint:#E3F0E8;--orange:#F59E4C;--orange-logo:#EE8A35;--orange-tint:#FDEBDD;--orange-text:#7A3A0F;--orange-icon:#B4531A;
+  --ground:#F5F7F2;--surface:#FFFFFF;--line:#DDE3DC;--line-soft:#E6EBE5;--ink:#17201B;--muted:#56635B;
+  --display:'Bricolage Grotesque',Inter,system-ui,sans-serif;--body:Inter,system-ui,sans-serif}
+*{box-sizing:border-box;scrollbar-width:none}
+*::-webkit-scrollbar{display:none}
+html,body{margin:0;height:100%;background:var(--ground);color:var(--ink);font-family:var(--body)}
+button,input,textarea{font:inherit;color:inherit}
+a{color:var(--green)}
+[hidden]{display:none !important}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.app{position:relative;max-width:440px;margin:0 auto;height:100dvh;display:flex;flex-direction:column;background:var(--ground);overflow:hidden}
+@media (min-width:600px){body{padding:24px 0}.app{height:calc(100dvh - 48px);border-radius:32px;border:1px solid var(--line-soft);box-shadow:0 10px 40px rgba(23,32,27,.08)}}
+.logo{display:inline-flex;align-items:center;gap:7px;font-family:var(--display);font-weight:800;font-size:20px;letter-spacing:-.4px;color:var(--ink)}
+.bar{display:flex;align-items:center;justify-content:space-between}
+.me-btn{width:40px;height:40px;border:0;border-radius:13px;background:var(--orange);color:var(--ink);font-family:var(--display);font-weight:800;font-size:14px;cursor:pointer}
+.head{padding:18px 20px 8px;display:flex;flex-direction:column;gap:12px}
+h1{margin:0;font-family:var(--display);font-size:34px;line-height:1.02;font-weight:800;letter-spacing:-.5px}
+.sub{font-size:14px;color:var(--muted)}
+.scroll{flex:1;overflow-y:auto;padding:6px 20px 20px;display:flex;flex-direction:column;gap:14px}
+.cap{font-size:12px;font-weight:700;letter-spacing:1px;color:var(--muted)}
+.card{background:var(--surface);border:1px solid var(--line-soft);border-radius:20px;padding:14px}
+.chips{display:flex;gap:8px;overflow-x:auto;margin:0 -20px;padding:0 20px 2px}
+.chip{flex:none;height:42px;padding:0 16px;border-radius:999px;border:2px solid var(--line-soft);background:var(--surface);font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
+.chip[aria-pressed="true"]{background:var(--green);border-color:var(--green);color:#fff}
+.av{width:48px;height:48px;flex:none;border-radius:16px;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:800;font-size:15px}
+.av.sm{width:34px;height:34px;border-radius:12px;font-size:12px}
+.av.g{background:#E3F0E8;color:#1E6B4A}.av.b{background:#DCE7F7;color:#28426B}.av.p{background:#F7DDE4;color:#7A2E44}.av.y{background:#F7E7C6;color:#6B4A0E}.av.n{background:#E6EBE5;color:#3B463F}
+.tag{font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;background:var(--green-tint);color:var(--green);white-space:nowrap}
+.tag.o{background:var(--orange-tint);color:var(--orange-text)}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;height:56px;border-radius:18px;border:0;background:var(--green);color:#fff;font-size:17px;font-weight:700;cursor:pointer;text-decoration:none;width:100%}
+.btn:disabled{background:var(--line);color:var(--muted);cursor:default}
+.btn-out{display:inline-flex;align-items:center;justify-content:center;height:44px;padding:0 18px;border-radius:14px;border:2px solid var(--green);background:var(--surface);color:var(--green);font-size:14px;font-weight:700;cursor:pointer;text-decoration:none;white-space:nowrap;flex:none}
+.btn-soft{display:inline-flex;align-items:center;justify-content:center;height:44px;padding:0 16px;border-radius:14px;border:0;background:var(--green-tint);color:var(--green);font-size:14px;font-weight:700;cursor:pointer;text-decoration:none;white-space:nowrap;flex:none}
+.link{border:0;background:transparent;padding:0;min-height:44px;color:var(--green);font-size:14px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center}
+.icon-btn{width:44px;height:44px;flex:none;border-radius:14px;border:1px solid var(--line);background:var(--surface);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;color:var(--ink);text-decoration:none}
+.nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:8px 8px 20px;background:var(--surface);border-top:1px solid var(--line-soft)}
+.nav a{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 0;text-decoration:none;color:var(--muted);font-size:12px;font-weight:600}
+.nav a span.pill{display:flex;align-items:center;justify-content:center;width:56px;height:30px;border-radius:999px}
+.nav a[aria-current="page"]{color:var(--green);font-weight:700}
+.nav a[aria-current="page"] span.pill{background:var(--green-tint)}
+.nav .badge{position:absolute;top:2px;left:54%;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:var(--orange);color:var(--ink);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.scrim{position:absolute;inset:0;background:rgba(23,32,27,.35);display:flex;align-items:flex-end;z-index:5}
+.sheet{width:100%;background:var(--surface);border-radius:28px 28px 0 0;padding:10px 20px 24px;display:flex;flex-direction:column;gap:12px;max-height:88%;overflow-y:auto}
+.grab{width:40px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 4px}
+.sheet h3{margin:0;font-family:var(--display);font-size:22px;font-weight:800}
+.menu-item{display:flex;align-items:center;min-height:52px;padding:0 14px;border-radius:14px;border:0;background:var(--ground);font-size:16px;font-weight:600;cursor:pointer;text-align:left;text-decoration:none;color:var(--ink)}
+.toast{position:absolute;left:20px;right:20px;bottom:96px;background:var(--green);color:#fff;border-radius:16px;padding:12px 14px;font-size:14px;font-weight:600;z-index:6}
+textarea.box{width:100%;min-height:110px;resize:none;border-radius:16px;border:2px solid var(--line);background:var(--surface);padding:12px 14px;font-size:16px;line-height:1.5;outline:none}
+textarea.box:focus,.input:focus{border-color:var(--green)}
+.input{height:50px;width:100%;border-radius:14px;border:2px solid var(--line);background:var(--surface);padding:0 14px;font-size:16px;outline:none}
+.hint{font-size:12px;line-height:1.45;color:var(--muted)}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+
+.wrap{flex:1;display:flex;flex-direction:column;padding:20px 20px 20px;overflow-y:auto}
+.hero{position:relative;height:290px;flex:none;margin-top:12px;border-radius:30px;background:var(--green);overflow:hidden}
+.blob{position:absolute;border-radius:50%;background:#2A7D58}
+.pill{position:absolute;display:flex;align-items:center;gap:10px;background:#fff;border-radius:999px;padding:7px 16px 7px 7px;box-shadow:0 10px 22px rgba(10,40,26,.3)}
+.pill .av{width:40px;height:40px;border-radius:50%;font-size:13px}
+.pill b{display:block;font-size:15px}.pill small{font-size:12px;color:var(--muted)}
+.float{position:absolute;background:var(--orange);color:var(--ink);font-size:13px;font-weight:700;padding:8px 14px;border-radius:999px}
+h1{font-size:40px;line-height:1;letter-spacing:-1px;margin-top:24px}
+h1 em{font-style:normal;color:var(--green)}
+ul{list-style:none;margin:18px 0 20px;padding:0;display:flex;flex-direction:column;gap:12px}
+li{display:flex;gap:12px;align-items:flex-start;font-size:15px;line-height:1.4}
+li span{width:24px;height:24px;flex:none;border-radius:50%;background:var(--orange);display:flex;align-items:center;justify-content:center}
+.fine{margin-top:12px;text-align:center;font-size:12px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="app">
+
+<div class="wrap">
+  <div class="bar"><span class="logo"><svg role="img" aria-label="Nayboro" width="36" height="30" viewBox="0 0 120 100"><path fill-rule="evenodd" fill="#EE8A35" d="M10 96 Q6 96 6 92 V46 Q6 44 7.5 42.5 L28 21 Q31 18 34 21 L54.5 42.5 Q56 44 56 46 V92 Q56 96 52 96 Z M22 96 V78 A9 9 0 0 1 40 78 V96 Z"/><path fill-rule="evenodd" fill="#1E6B4A" d="M68 96 Q64 96 64 92 V38 Q64 36 65.5 34.5 L86 11 Q89 8 92 11 L112.5 34.5 Q114 36 114 38 V92 Q114 96 110 96 Z M80 96 V74 A9 9 0 0 1 98 74 V96 Z"/></svg>nayboro</span><a class="link" href="people.html">Log in</a></div>
+  <div class="hero" aria-hidden="true">
+    <div class="blob" style="right:-40px;top:-40px;width:160px;height:160px"></div>
+    <div class="blob" style="left:-30px;bottom:-50px;width:140px;height:140px"></div>
+    <div class="pill" style="left:16px;top:22px"><span class="av y">PS</span><span><b>Priya</b><small>Jaipur → Richardson</small></span></div>
+    <span class="float" style="right:16px;top:74px;transform:rotate(4deg)">Both from Rajasthan</span>
+    <div class="pill" style="right:16px;top:118px"><span class="av g">VB</span><span><b>Vikram</b><small>Bikaner → Garland</small></span></div>
+    <div class="pill" style="left:30px;top:198px"><span class="av b">MP</span><span><b>Meera</b><small>Pune → Plano</small></span></div>
+    <span class="float" style="right:22px;top:222px;transform:rotate(-4deg)">Both play tennis</span>
+  </div>
+  <h1>Find <em>your people</em>, wherever you are.</h1>
+  <ul>
+    <li><span><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>Meet people from your hometown who live nearby</li>
+    <li><span><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>Get answers from people who have been there</li>
+    <li><span><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>Find events and things to do together</li>
+  </ul>
+  <div style="flex:1"></div>
+  <a class="btn" href="profile-setup.html">Get started<svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+  <span class="fine">Free · 18+ · Your exact location is never shared</span>
+</div>
+
+</div>
+<script>
+(function(){
+var $ = function(id){ return document.getElementById(id); };
+function esc(t){ return String(t).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+function toast(m){ var t=$('toast'); if(!t) return; t.textContent=m; t.hidden=false; clearTimeout(t._h); t._h=setTimeout(function(){ t.hidden=true; },2600); }
+function openSheet(id){ $(id).hidden=false; }
+function closeSheet(id){ $(id).hidden=true; }
+document.addEventListener('click', function(e){
+  if(e.target.classList && e.target.classList.contains('scrim')) e.target.hidden = true;
+  var c = e.target.closest && e.target.closest('[data-close]'); if(c) $(c.getAttribute('data-close')).hidden = true;
+  var o = e.target.closest && e.target.closest('[data-open]'); if(o) $(o.getAttribute('data-open')).hidden = false;
+});
+document.addEventListener('keydown', function(e){ if(e.key==='Escape') Array.prototype.forEach.call(document.querySelectorAll('.scrim'), function(s){ s.hidden=true; }); });
+
+})();
+</script>
+</body>
+</html>

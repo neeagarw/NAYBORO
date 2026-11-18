@@ -1,0 +1,508 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nayboro · Set up your profile</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+  :root{
+    --green:#1E6B4A; --green-dark:#164F37; --green-tint:#E3F0E8;
+    --orange:#F59E4C; --orange-logo:#EE8A35; --orange-tint:#FDEBDD; --orange-text:#7A3A0F;
+    --ground:#F5F7F2; --surface:#FFFFFF; --line:#DDE3DC; --line-soft:#E6EBE5;
+    --ink:#17201B; --muted:#56635B;
+    --display:'Bricolage Grotesque',Inter,system-ui,sans-serif;
+    --body:Inter,system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;scrollbar-width:none}
+  *::-webkit-scrollbar{display:none}
+  html,body{margin:0;height:100%;background:var(--ground);color:var(--ink);font-family:var(--body)}
+  button,input,textarea{font:inherit;color:inherit}
+  a{color:var(--green)}
+  .app{max-width:440px;margin:0 auto;min-height:100%;height:100dvh;display:flex;flex-direction:column;background:var(--ground)}
+  @media (min-width:600px){ body{padding:24px 0} .app{height:calc(100dvh - 48px);border-radius:32px;border:1px solid var(--line-soft);overflow:hidden;box-shadow:0 10px 40px rgba(23,32,27,.08)} }
+
+  /* top bar */
+  .top{display:flex;align-items:center;gap:14px;padding:18px 20px 6px}
+  .icon-btn{width:44px;height:44px;flex:none;border-radius:14px;border:1px solid var(--line);background:var(--surface);display:flex;align-items:center;justify-content:center;cursor:pointer}
+  .icon-btn[hidden]{display:none}
+  .progress{flex:1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+  .progress div{display:flex;flex-direction:column;gap:6px}
+  .progress i{height:6px;border-radius:3px;background:var(--line)}
+  .progress span{font-size:12px;font-weight:500;color:var(--muted)}
+  .progress .done i,.progress .now i{background:var(--green)}
+  .progress .now span{color:var(--green);font-weight:700}
+
+  .body{flex:1;overflow-y:auto;padding:18px 20px 20px;display:flex;flex-direction:column;gap:20px}
+  .foot{padding:12px 20px 24px;border-top:1px solid var(--line-soft);background:var(--ground);display:flex;flex-direction:column;gap:8px}
+  h1{margin:0;font-family:var(--display);font-size:34px;line-height:1.05;font-weight:800;letter-spacing:-.5px}
+  .lead{margin:6px 0 0;font-size:15px;line-height:1.5;color:var(--muted)}
+  .label{font-size:13px;font-weight:700}
+  .hint{font-size:12px;line-height:1.45;color:var(--muted)}
+  .card{background:var(--surface);border:1px solid var(--line-soft);border-radius:20px;padding:16px}
+
+  .btn{display:flex;align-items:center;justify-content:center;gap:8px;height:56px;border-radius:18px;border:0;background:var(--green);color:#fff;font-size:17px;font-weight:700;cursor:pointer;text-decoration:none}
+  .btn:disabled{background:var(--line);color:var(--muted);cursor:not-allowed}
+  .btn-link{height:44px;border:0;background:transparent;color:var(--green);font-size:15px;font-weight:700;cursor:pointer}
+  .add-link{align-self:flex-start;display:flex;align-items:center;gap:6px;min-height:44px;border:0;background:transparent;padding:0;color:var(--green);font-size:14px;font-weight:700;cursor:pointer}
+
+  .field{display:flex;align-items:center;gap:10px;height:52px;padding:0 16px;border-radius:16px;background:var(--surface);border:2px solid var(--line);color:var(--muted)}
+  .field:focus-within{border-color:var(--green)}
+  .field.big{height:58px;border-radius:18px;font-size:17px}
+  .field input{flex:1;border:0;outline:none;background:transparent;font-size:16px;color:var(--ink);min-width:0}
+  .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+  /* hometown list */
+  .results{background:var(--surface);border:1px solid var(--line-soft);border-radius:18px;padding:6px;display:flex;flex-direction:column;gap:2px}
+  .opt{width:100%;display:flex;align-items:center;gap:14px;min-height:60px;padding:10px 14px;border:0;border-radius:14px;background:transparent;cursor:pointer;text-align:left}
+  .opt[aria-pressed="true"]{background:var(--green-tint)}
+  .dot{width:22px;height:22px;flex:none;border-radius:50%;border:2px solid #7D8981;display:flex;align-items:center;justify-content:center}
+  .opt[aria-pressed="true"] .dot{border-color:var(--green)}
+  .opt[aria-pressed="true"] .dot::after{content:"";width:10px;height:10px;border-radius:50%;background:var(--green)}
+  .opt b{display:block;font-size:16px}
+  .opt small{font-size:13px;color:var(--muted)}
+  .empty{padding:14px;font-size:14px;color:var(--muted)}
+
+  .roots{display:flex;flex-wrap:wrap;gap:8px}
+  .root-chip{display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 6px 0 14px;border-radius:999px;background:var(--green-tint);color:var(--green);font-size:14px;font-weight:700}
+  .root-chip small{font-weight:600;color:var(--muted)}
+  .root-chip button{width:30px;height:30px;border:0;border-radius:50%;background:#fff;color:var(--green);cursor:pointer;display:flex;align-items:center;justify-content:center}
+
+  .levels{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+  .level{display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:12px;min-width:0;border-radius:16px;border:2px solid var(--line);background:var(--surface);cursor:pointer;text-align:left}
+  .level[aria-pressed="true"]{border-color:var(--green);background:var(--green-tint)}
+  .level b{font-size:15px;overflow-wrap:anywhere}
+  .level small{font-size:12px;color:var(--muted)}
+  .preview{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px dashed var(--line);border-radius:14px;padding:10px 12px;font-size:13px;color:var(--muted)}
+  .preview strong{color:var(--ink)}
+
+  /* interests */
+  .group{display:flex;flex-direction:column;gap:12px}
+  .group-head{display:flex;align-items:center;justify-content:space-between}
+  .group-head span:first-child{font-family:var(--display);font-size:17px;font-weight:700}
+  .pill-count{font-size:12px;font-weight:700;color:var(--orange-text);background:var(--orange-tint);padding:4px 10px;border-radius:999px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 16px;border-radius:999px;border:2px solid var(--ground);background:var(--ground);font-size:15px;font-weight:600;cursor:pointer}
+  .chip[aria-pressed="true"]{background:var(--green);border-color:var(--green);color:#fff}
+  .more{min-height:44px;padding:0 10px;border:0;background:transparent;color:var(--green);font-size:14px;font-weight:700;cursor:pointer}
+  .meter{display:flex;align-items:center;gap:10px}
+  .meter i{display:inline-block;width:22px;height:8px;border-radius:4px;background:var(--line);margin-right:4px}
+  .meter i.on{background:var(--orange)}
+  .meter span{font-size:13px;font-weight:600;color:var(--green)}
+
+  /* now */
+  .ticket{background:var(--green);border-radius:24px;padding:18px;color:#fff;display:flex;flex-direction:column;gap:16px}
+  .ticket .cap{font-size:12px;font-weight:700;letter-spacing:1px;color:#CDE6D8}
+  .who{display:flex;align-items:center;gap:12px}
+  .avatar{width:48px;height:48px;flex:none;border-radius:16px;background:var(--orange);color:var(--ink);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:800;font-size:18px;overflow:hidden}
+  .avatar img{width:100%;height:100%;object-fit:cover}
+  .route{background:#fff;border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;color:var(--ink)}
+  .route small{display:block;font-size:11px;font-weight:700;letter-spacing:.8px;color:var(--muted)}
+  .route b{font-size:17px}
+  .route .line{flex:1;display:flex;align-items:center;gap:4px;color:#B4531A}
+  .route .line i{flex:1;border-top:2px dashed var(--orange)}
+  .never{display:flex;flex-direction:column;gap:12px}
+  .cap-label{font-size:12px;font-weight:700;letter-spacing:1px;color:var(--muted)}
+  .never div{display:flex;align-items:center;gap:12px;font-size:15px}
+  .never div > span{width:36px;height:36px;flex:none;border-radius:12px;background:var(--orange-tint);color:#B4531A;display:flex;align-items:center;justify-content:center}
+  .city-list{display:flex;flex-wrap:wrap;gap:8px}
+  .found{display:flex;align-items:center;gap:10px;background:var(--green-tint);border-radius:16px;padding:12px 14px;font-size:15px;font-weight:600;color:var(--green)}
+
+  /* about */
+  .photo{display:flex;align-items:center;gap:16px}
+  .photo-box{width:88px;height:88px;flex:none;border-radius:26px;background:var(--orange-tint);color:#B4531A;display:flex;align-items:center;justify-content:center;overflow:hidden;border:2px dashed #E9C9AE}
+  .photo-box img{width:100%;height:100%;object-fit:cover}
+  .photo label{display:inline-flex;align-items:center;gap:6px;height:44px;padding:0 16px;border-radius:14px;background:var(--surface);border:2px solid var(--green);color:var(--green);font-weight:700;font-size:14px;cursor:pointer}
+  .photo input{position:absolute;opacity:0;width:1px;height:1px}
+  .textfield{height:52px;border-radius:16px;border:2px solid var(--line);background:var(--surface);padding:0 16px;font-size:16px;outline:none;width:100%}
+  .textfield:focus,textarea:focus{border-color:var(--green)}
+  textarea{width:100%;min-height:110px;resize:none;border-radius:16px;border:2px solid var(--line);background:var(--surface);padding:14px 16px;font-size:16px;line-height:1.5;outline:none}
+  .starters{display:flex;flex-wrap:wrap;gap:8px}
+  .starter{height:36px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-size:13px;font-weight:600;cursor:pointer}
+  .check{display:flex;align-items:flex-start;gap:12px;font-size:14px;line-height:1.45;cursor:pointer}
+  .check input{width:22px;height:22px;margin:0;accent-color:var(--green);flex:none}
+  .row-between{display:flex;align-items:baseline;justify-content:space-between}
+
+  /* done */
+  .done{align-items:center;text-align:center;justify-content:center}
+  .profile-card{width:100%;text-align:left;background:var(--surface);border:1px solid var(--line-soft);border-radius:24px;padding:18px;display:flex;flex-direction:column;gap:12px}
+  .tags{display:flex;flex-wrap:wrap;gap:6px}
+  .tag{font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;background:var(--orange-tint);color:var(--orange-text)}
+  .tag.g{background:var(--green-tint);color:var(--green)}
+  .logo{display:flex;align-items:center;gap:8px;font-family:var(--display);font-weight:800;font-size:22px;letter-spacing:-.4px}
+  .how{background:var(--surface);border:1px solid var(--line-soft);border-radius:14px;padding:0 14px}
+  .how summary{min-height:44px;display:flex;align-items:center;font-size:14px;font-weight:700;color:var(--green);cursor:pointer;list-style:none}
+  .how summary::-webkit-details-marker{display:none}
+  .how summary::after{content:"+";margin-left:auto;font-size:18px}
+  .how[open] summary::after{content:"\2013"}
+  .how ul{margin:0 0 12px;padding-left:18px;display:flex;flex-direction:column;gap:6px;font-size:13px;line-height:1.45;color:var(--muted)}
+  [hidden]{display:none !important}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="top" id="top">
+    <button class="icon-btn" id="back" aria-label="Back"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+    <div class="progress" id="progress" aria-label="Setup progress">
+      <div><i></i><span>Roots</span></div>
+      <div><i></i><span>Interests</span></div>
+      <div><i></i><span>Now</span></div>
+      <div><i></i><span>You</span></div>
+    </div>
+  </div>
+
+  <!-- STEP 1: ROOTS -->
+  <section class="body" data-step="0" aria-labelledby="h-roots">
+    <div class="logo"><svg aria-hidden="true" width="34" height="28" viewBox="0 0 120 100"><path fill-rule="evenodd" fill="#EE8A35" d="M10 96 Q6 96 6 92 V46 Q6 44 7.5 42.5 L28 21 Q31 18 34 21 L54.5 42.5 Q56 44 56 46 V92 Q56 96 52 96 Z M22 96 V78 A9 9 0 0 1 40 78 V96 Z"/><path fill-rule="evenodd" fill="#1E6B4A" d="M68 96 Q64 96 64 92 V38 Q64 36 65.5 34.5 L86 11 Q89 8 92 11 L112.5 34.5 Q114 36 114 38 V92 Q114 96 110 96 Z M80 96 V74 A9 9 0 0 1 98 74 V96 Z"/></svg>nayboro</div>
+    <div>
+      <h1 id="h-roots">Where are your roots?</h1>
+      <p class="lead">We use your hometown to find people from the same place who live near you.</p>
+    </div>
+
+    <div class="roots" id="rootChips" aria-live="polite"></div>
+
+    <div style="display:flex;flex-direction:column;gap:8px" id="rootSearchWrap">
+      <label class="label" for="rootSearch" id="rootSearchLabel">Hometown</label>
+      <div class="field">
+        <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <input id="rootSearch" type="text" autocomplete="off" placeholder="Start typing a city or town">
+      </div>
+      <div class="results" id="rootResults"></div>
+    </div>
+    <button class="add-link" id="addRoot" hidden><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Grew up in more than one place? Add another</button>
+
+    <div id="levelWrap" hidden style="display:flex;flex-direction:column;gap:10px">
+      <span class="label">Show on your profile as</span>
+      <div class="levels" id="levels"></div>
+      <div class="preview" id="levelPreview"></div>
+    </div>
+  </section>
+
+  <!-- STEP 2: INTERESTS -->
+  <section class="body" data-step="1" aria-labelledby="h-int" hidden>
+    <div>
+      <h1 id="h-int">What are you into?</h1>
+      <p class="lead">Pick three or more things you'd like to do with people nearby.</p>
+    </div>
+    <div id="groups" style="display:flex;flex-direction:column;gap:14px"></div>
+  </section>
+
+  <!-- STEP 3: NOW -->
+  <section class="body" data-step="2" aria-labelledby="h-now" hidden>
+    <div>
+      <h1 id="h-now">Where do you live now?</h1>
+      <p class="lead">We only need your city, so we can show you people and questions close by.</p>
+    </div>
+
+    <div class="ticket">
+      <span class="cap">WHAT OTHERS SEE</span>
+      <div class="who">
+        <div class="avatar" data-avatar>?</div>
+        <div><div style="font-size:18px;font-weight:700" data-name>You</div><div style="font-size:13px;color:#CDE6D8" id="ticketInterests"></div></div>
+      </div>
+      <div class="route">
+        <div><small>FROM</small><b data-from>Your roots</b></div>
+        <div class="line" aria-hidden="true"><i></i><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+        <div style="text-align:right"><small>NOW IN</small><b id="nowCity">?</b></div>
+      </div>
+    </div>
+
+    <div class="found" id="foundCity" hidden></div>
+
+    <div id="typeCityWrap" hidden style="display:flex;flex-direction:column;gap:8px">
+      <label class="label" for="citySearch">Your city or ZIP</label>
+      <div class="field">
+        <input id="citySearch" type="text" autocomplete="off" placeholder="e.g. Garland or 75040">
+      </div>
+      <div class="city-list" id="cityList"></div>
+    </div>
+
+    <div class="card never">
+      <span class="cap-label">NEVER SHOWN TO ANYONE</span>
+      <div><span><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg></span>Your street or address</div>
+      <div><span><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg></span>How far you are from someone</div>
+      <div><span><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg></span>Where you are right now</div>
+    </div>
+    <p class="hint" style="margin:0">We check your location once to find your city. It is not tracked in the background. Moving? Change your city any time.</p>
+  </section>
+
+  <!-- STEP 4: ABOUT YOU -->
+  <section class="body" data-step="3" aria-labelledby="h-you" hidden>
+    <div>
+      <h1 id="h-you">A little about you</h1>
+      <p class="lead">This is what people see when you say hi. Keep it friendly and short.</p>
+    </div>
+
+    <div class="photo">
+      <div class="photo-box" id="photoBox"><svg aria-hidden="true" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4.2-6 8-6s7 2 8 6"/></svg></div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <label for="photoInput" id="photoBtn"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Add a photo</label>
+        <input id="photoInput" type="file" accept="image/*">
+        <span class="hint">People with a clear face photo get many more replies.</span>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <label class="label" for="firstName">First name</label>
+      <input class="textfield" id="firstName" type="text" autocomplete="given-name" maxlength="30">
+      <label class="label" for="lastName" style="margin-top:6px">Last name</label>
+      <input class="textfield" id="lastName" type="text" autocomplete="family-name" maxlength="30">
+      <span class="hint" id="nameShown">Others see your first name and last initial.</span>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div class="row-between"><label class="label" for="intro">Short intro <span style="font-weight:500;color:var(--muted)">(optional)</span></label><span class="hint"><span id="introCount">0</span>/160</span></div>
+      <div class="starters" aria-label="Intro ideas">
+        <button class="starter" type="button" data-start="Moved here from ">Moved here from...</button>
+        <button class="starter" type="button" data-start="Looking for ">Looking for...</button>
+        <button class="starter" type="button" data-start="Ask me about ">Ask me about...</button>
+      </div>
+      <textarea id="intro" maxlength="160" placeholder="e.g. Weekend tennis, always up for chai. New to Garland."></textarea>
+      <span class="hint">Please don't share your address, phone number or details about children.</span>
+    </div>
+
+    <label class="check"><input type="checkbox" id="adult"> <span>I'm 18 or older and I agree to keep Nayboro kind and respectful.</span></label>
+  </section>
+
+  <!-- DONE -->
+  <section class="body done" data-step="4" aria-labelledby="h-done" hidden>
+    <svg aria-hidden="true" width="72" height="60" viewBox="0 0 120 100"><path fill-rule="evenodd" fill="#EE8A35" d="M10 96 Q6 96 6 92 V46 Q6 44 7.5 42.5 L28 21 Q31 18 34 21 L54.5 42.5 Q56 44 56 46 V92 Q56 96 52 96 Z M22 96 V78 A9 9 0 0 1 40 78 V96 Z"/><path fill-rule="evenodd" fill="#1E6B4A" d="M68 96 Q64 96 64 92 V38 Q64 36 65.5 34.5 L86 11 Q89 8 92 11 L112.5 34.5 Q114 36 114 38 V92 Q114 96 110 96 Z M80 96 V74 A9 9 0 0 1 98 74 V96 Z"/></svg>
+    <div>
+      <h1 id="h-done">You're in, <span data-first>friend</span>!</h1>
+      <p class="lead" id="doneLead">Here's how your profile looks to others.</p>
+    </div>
+    <div class="profile-card">
+      <div class="who">
+        <div class="avatar" data-avatar>?</div>
+        <div><div style="font-size:18px;font-weight:700" data-name>You</div><div style="font-size:13px;color:var(--muted)"><span data-from></span> → <span data-now></span></div></div>
+      </div>
+      <div class="tags" id="doneTags"></div>
+      <p style="margin:0;font-size:15px;line-height:1.5" id="doneIntro"></p>
+    </div>
+  </section>
+
+  <div class="foot" id="foot">
+    <div class="meter" id="meter" hidden><span id="meterBars"></span><span id="meterText"></span></div>
+    <button class="btn" id="next">Continue</button>
+    <button class="btn-link" id="alt" hidden></button>
+  </div>
+</div>
+
+<script>
+(function(){
+  // ---------- data (replace with real lookups) ----------
+  var PLACES = [
+    ['Jaipur','Rajasthan','India'],['Jaisalmer','Rajasthan','India'],['Jaigaon','West Bengal','India'],['Jodhpur','Rajasthan','India'],
+    ['Udaipur','Rajasthan','India'],['Bikaner','Rajasthan','India'],['Ajmer','Rajasthan','India'],['Kota','Rajasthan','India'],
+    ['Delhi','Delhi','India'],['Mumbai','Maharashtra','India'],['Pune','Maharashtra','India'],['Nagpur','Maharashtra','India'],
+    ['Bengaluru','Karnataka','India'],['Mysuru','Karnataka','India'],['Hyderabad','Telangana','India'],['Chennai','Tamil Nadu','India'],
+    ['Kochi','Kerala','India'],['Kolkata','West Bengal','India'],['Ahmedabad','Gujarat','India'],['Surat','Gujarat','India'],
+    ['Lucknow','Uttar Pradesh','India'],['Kanpur','Uttar Pradesh','India'],['Amritsar','Punjab','India'],['Chandigarh','Chandigarh','India'],
+    ['Indore','Madhya Pradesh','India'],['Bhopal','Madhya Pradesh','India'],['Patna','Bihar','India'],['Guwahati','Assam','India'],
+    ['Bhubaneswar','Odisha','India'],['Kathmandu','Bagmati','Nepal'],['Dhaka','Dhaka','Bangladesh'],['Colombo','Western Province','Sri Lanka'],
+    ['Manila','Metro Manila','Philippines'],['Lagos','Lagos','Nigeria'],['Nairobi','Nairobi','Kenya'],['Mexico City','CDMX','Mexico']
+  ];
+  var NOW_CITIES = [['Garland','TX','75040'],['Plano','TX','75023'],['Richardson','TX','75080'],['Frisco','TX','75034'],['Irving','TX','75038'],['Dallas','TX','75201'],['Allen','TX','75002'],['McKinney','TX','75069'],['Carrollton','TX','75006'],['Rowlett','TX','75088']];
+  var INTERESTS = [
+    {title:'Sport and fitness', items:['Tennis','Cricket','Badminton','Pickleball','Running','Yoga','Gym buddies','Cycling','Volleyball','Hiking','Swimming','Table tennis','Football','Basketball']},
+    {title:'Food and drink', items:['Chai meetups','Cooking','Potlucks','Eating out','Baking','Recipe swaps','Coffee']},
+    {title:'Family and home', items:['Playdates','School carpool','Family outings','Parent meetups','Gardening','Pets']},
+    {title:'Culture and hobbies', items:['Festivals','Board games','Book club','Music','Photography','Dance','Movies','Travel','Volunteering']},
+    {title:'Life and work', items:['Career chats','Immigration questions','Investing','Startups','Language exchange','Morning walks','Travel buddies']},
+  ];
+  var VISIBLE = 5;
+
+  // ---------- state ----------
+  var S = { step:0, roots:[], adding:false, level:'city', interests:['Tennis','Cricket','Chai meetups'], expanded:{}, query:'', now:null, typing:false, photo:null, first:'', last:'', intro:'', adult:false };
+
+  var $ = function(id){ return document.getElementById(id); };
+  function el(tag, attrs, html){ var e=document.createElement(tag); for(var k in attrs||{}) e.setAttribute(k, attrs[k]); if(html!=null) e.innerHTML=html; return e; }
+  function esc(t){ return String(t).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+
+  function shownRoot(){
+    var p = S.roots[0]; if(!p) return 'Your roots';
+    if(S.level==='city') return p[0];
+    if(S.level==='state') return p[1];
+    return p[2];
+  }
+  function displayName(){
+    if(!S.first.trim()) return 'You';
+    return S.first.trim() + (S.last.trim() ? ' ' + S.last.trim()[0].toUpperCase() + '.' : '');
+  }
+
+  // ---------- step 1: roots ----------
+  function renderRoots(){
+    var chips = $('rootChips'); chips.innerHTML='';
+    S.roots.forEach(function(p, i){
+      var c = el('span',{class:'root-chip'}, esc(p[0]) + ' <small>' + esc(p[1]) + '</small>');
+      var x = el('button',{type:'button','aria-label':'Remove '+p[0]}, '<svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M7 7l10 10M17 7L7 17"/></svg>');
+      x.onclick = function(){ S.roots.splice(i,1); S.adding = S.roots.length===0; render(); };
+      c.appendChild(x); chips.appendChild(c);
+    });
+    chips.hidden = S.roots.length===0;
+    var searching = S.roots.length===0 || S.adding;
+    $('rootSearchWrap').hidden = !searching;
+    $('rootSearchLabel').textContent = S.roots.length ? 'Another place you call home' : 'Hometown';
+    $('addRoot').hidden = searching || S.roots.length>=3;
+    $('levelWrap').hidden = S.roots.length===0;
+
+    var res = $('rootResults'); res.innerHTML='';
+    var q = S.query.trim().toLowerCase();
+    if(searching){
+      if(!q){ res.innerHTML = '<div class="empty">Type at least one letter. Pick the place you feel you are from.</div>'; }
+      else {
+        var list = PLACES.filter(function(p){ return p[0].toLowerCase().indexOf(q)===0 && !S.roots.some(function(r){return r[0]===p[0];}); }).slice(0,5);
+        if(!list.length) res.innerHTML = '<div class="empty">No match yet. Try a nearby bigger city.</div>';
+        list.forEach(function(p){
+          var b = el('button',{type:'button',class:'opt','aria-pressed':'false'}, '<span class="dot"></span><span><b>'+esc(p[0])+'</b><small>'+esc(p[1])+', '+esc(p[2])+'</small></span>');
+          b.onclick = function(){ S.roots.push(p); S.adding=false; S.query=''; $('rootSearch').value=''; render(); };
+          res.appendChild(b);
+        });
+      }
+    }
+
+    if(S.roots[0]){
+      var p = S.roots[0];
+      var opts = [['city',p[0],'Shows your city'],['state',p[1],'Hides your city'],['country',p[2],'Country only']];
+      var lv = $('levels'); lv.innerHTML='';
+      opts.forEach(function(o){
+        var b = el('button',{type:'button',class:'level','aria-pressed':String(S.level===o[0])}, '<b>'+esc(o[1])+'</b><small>'+o[2]+'</small>');
+        b.onclick = function(){ S.level=o[0]; render(); };
+        lv.appendChild(b);
+      });
+      $('levelPreview').innerHTML = 'Others will see: <strong>' + esc(displayName()) + ' · ' + esc(shownRoot()) + ' → ' + esc(S.now ? S.now[0] : 'your city') + '</strong>';
+    }
+  }
+  $('rootSearch').addEventListener('input', function(e){ S.query=e.target.value; renderRoots(); });
+  $('addRoot').onclick = function(){ S.adding=true; render(); $('rootSearch').focus(); };
+
+  // ---------- step 2: interests ----------
+  function renderInterests(){
+    var g = $('groups'); g.innerHTML='';
+    var q = '';
+    INTERESTS.forEach(function(grp){
+      var items = grp.items.filter(function(i){ return !q || i.toLowerCase().indexOf(q)>=0; });
+      if(!items.length) return;
+      var open = q || S.expanded[grp.title];
+      var shown = open ? items : items.slice(0,VISIBLE);
+      var picked = grp.items.filter(function(i){ return S.interests.indexOf(i)>=0; }).length;
+      var card = el('div',{class:'card group'});
+      card.appendChild(el('div',{class:'group-head'}, '<span>'+esc(grp.title)+'</span><span class="pill-count">'+(picked?picked+' picked':'None yet')+'</span>'));
+      var chips = el('div',{class:'chips'});
+      shown.forEach(function(i){
+        var on = S.interests.indexOf(i)>=0;
+        var b = el('button',{type:'button',class:'chip','aria-pressed':String(on)}, (on?'<svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>':'') + esc(i));
+        b.onclick = function(){ var k=S.interests.indexOf(i); if(k>=0) S.interests.splice(k,1); else S.interests.push(i); render(); };
+        chips.appendChild(b);
+      });
+      if(!open && items.length>VISIBLE){
+        var m = el('button',{type:'button',class:'more'}, 'Show '+(items.length-VISIBLE)+' more');
+        m.onclick = function(){ S.expanded[grp.title]=true; render(); };
+        chips.appendChild(m);
+      }
+      card.appendChild(chips); g.appendChild(card);
+    });
+  }
+
+  // ---------- step 3: now ----------
+  function renderNow(){
+    $('nowCity').textContent = S.now ? S.now[0] : '?';
+    $('ticketInterests').textContent = S.interests.slice(0,3).join(' · ');
+    var f = $('foundCity');
+    f.hidden = !S.now;
+    if(S.now) f.innerHTML = '<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>You\'re in ' + esc(S.now[0]) + ', ' + esc(S.now[1]);
+    $('typeCityWrap').hidden = !S.typing;
+    var list = $('cityList'); list.innerHTML='';
+    var q = ($('citySearch').value||'').trim().toLowerCase();
+    NOW_CITIES.filter(function(c){ return !q || c[0].toLowerCase().indexOf(q)===0 || c[2].indexOf(q)===0; }).slice(0,6).forEach(function(c){
+      var b = el('button',{type:'button',class:'chip','aria-pressed':String(!!S.now && S.now[0]===c[0])}, esc(c[0])+', '+c[1]);
+      b.onclick = function(){ S.now=c; render(); };
+      list.appendChild(b);
+    });
+  }
+  $('citySearch').addEventListener('input', renderNow);
+  function findCity(){
+    // Real build: ask for location once, reverse-geocode to a city, then forget the coordinates.
+    var btn = $('next'); btn.disabled = true; btn.textContent = 'Finding your city...';
+    setTimeout(function(){ S.now = NOW_CITIES[0]; S.typing=false; render(); }, 700);
+  }
+
+  // ---------- step 4: about ----------
+  $('photoInput').addEventListener('change', function(e){
+    var f = e.target.files && e.target.files[0]; if(!f) return;
+    var r = new FileReader();
+    r.onload = function(){ S.photo = r.result; render(); };
+    r.readAsDataURL(f);
+  });
+  $('firstName').addEventListener('input', function(e){ S.first=e.target.value; renderShared(); renderButtons(); });
+  $('lastName').addEventListener('input', function(e){ S.last=e.target.value; renderShared(); });
+  $('intro').addEventListener('input', function(e){ S.intro=e.target.value; $('introCount').textContent=S.intro.length; });
+  $('adult').addEventListener('change', function(e){ S.adult=e.target.checked; renderButtons(); });
+  Array.prototype.forEach.call(document.querySelectorAll('.starter'), function(b){
+    b.onclick = function(){ var t=$('intro'); if(!t.value) t.value=b.getAttribute('data-start'); else t.value += ' ' + b.getAttribute('data-start'); S.intro=t.value.slice(0,160); t.value=S.intro; $('introCount').textContent=S.intro.length; t.focus(); };
+  });
+
+  // ---------- shared ----------
+  function renderShared(){
+    Array.prototype.forEach.call(document.querySelectorAll('[data-avatar]'), function(a){
+      a.innerHTML = S.photo ? '<img alt="" src="'+S.photo+'">' : esc((S.first.trim()[0]||'?').toUpperCase());
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-name]'), function(n){ n.textContent = displayName(); });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-from]'), function(n){ n.textContent = shownRoot(); });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-now]'), function(n){ n.textContent = S.now ? S.now[0] : ''; });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-first]'), function(n){ n.textContent = S.first.trim() || 'friend'; });
+    $('nameShown').textContent = S.first.trim() ? 'Others see you as ' + displayName() + '.' : 'Others see your first name and last initial.';
+    $('photoBox').innerHTML = S.photo ? '<img alt="Your photo" src="'+S.photo+'">' : $('photoBox').innerHTML;
+    if(S.photo) $('photoBtn').lastChild.textContent = 'Change photo';
+  }
+
+  function renderButtons(){
+    var next = $('next'), alt = $('alt'), meter = $('meter');
+    next.disabled = false; alt.hidden = true; meter.hidden = true;
+    if(S.step===0){ next.textContent='Continue'; next.disabled = S.roots.length===0; }
+    if(S.step===1){
+      var n=S.interests.length; meter.hidden=false;
+      $('meterBars').innerHTML = [0,1,2].map(function(i){ return '<i class="'+(i<n?'on':'')+'"></i>'; }).join('');
+      $('meterText').textContent = n>=3 ? n+' picked. You can change these later.' : 'Pick '+(3-n)+' more to continue';
+      next.textContent='Continue'; next.disabled = n<3;
+    }
+    if(S.step===2){
+      if(S.now){ next.textContent='Continue'; }
+      else { next.innerHTML='<svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>Find my city'; }
+      alt.hidden = false; alt.textContent = S.typing ? 'Use my location instead' : (S.now ? 'Not right? Type a city or ZIP' : 'Type a city or ZIP instead');
+    }
+    if(S.step===3){ next.textContent='Finish'; next.disabled = !(S.first.trim() && S.adult); }
+    if(S.step===4){ next.textContent='Start exploring'; }
+  }
+
+  function render(){
+    Array.prototype.forEach.call(document.querySelectorAll('[data-step]'), function(s){ s.hidden = +s.getAttribute('data-step') !== S.step; });
+    var bars = $('progress').children;
+    for(var i=0;i<bars.length;i++){ bars[i].className = i<S.step ? 'done' : (i===S.step ? 'now' : ''); }
+    $('top').hidden = S.step===4;
+    $('back').hidden = S.step===0;
+    renderRoots(); renderInterests(); renderNow(); renderShared(); renderButtons();
+    if(S.step===4){
+      var tags = $('doneTags'); tags.innerHTML='';
+      tags.appendChild(el('span',{class:'tag g'}, 'From '+esc(shownRoot())));
+      S.interests.slice(0,4).forEach(function(i){ tags.appendChild(el('span',{class:'tag'}, esc(i))); });
+      $('doneIntro').textContent = S.intro || 'Add a short intro any time from your profile.';
+      $('doneIntro').style.color = S.intro ? '' : 'var(--muted)';
+    }
+  }
+
+  $('next').onclick = function(){
+    if(S.step===2 && !S.now){ findCity(); return; }
+    if(S.step===4){ location.href = 'people.html'; return; }
+    S.step++; render(); document.querySelector('[data-step="'+S.step+'"]').scrollTop=0;
+  };
+  $('alt').onclick = function(){ S.typing = !S.typing; if(S.typing) S.now = S.now; render(); if(S.typing) $('citySearch').focus(); };
+  $('back').onclick = function(){ if(S.step>0){ S.step--; render(); } };
+
+  render();
+})();
+</script>
+</body>
+</html>

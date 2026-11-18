@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nayboro · Contact us</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+  :root{
+    --green:#1E6B4A; --green-tint:#E3F0E8; --orange:#F59E4C; --orange-tint:#FDEBDD; --orange-text:#7A3A0F;
+    --ground:#F5F7F2; --surface:#FFFFFF; --line:#DDE3DC; --line-soft:#E6EBE5; --ink:#17201B; --muted:#56635B;
+    --display:'Bricolage Grotesque',Inter,system-ui,sans-serif; --body:Inter,system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;scrollbar-width:none}
+  *::-webkit-scrollbar{display:none}
+  html,body{margin:0;height:100%;background:var(--ground);color:var(--ink);font-family:var(--body)}
+  button,input,textarea{font:inherit;color:inherit}
+  a{color:var(--green)}
+  .app{max-width:440px;margin:0 auto;height:100dvh;display:flex;flex-direction:column;background:var(--ground);overflow:hidden}
+  @media (min-width:600px){ body{padding:24px 0} .app{height:calc(100dvh - 48px);border-radius:32px;border:1px solid var(--line-soft);box-shadow:0 10px 40px rgba(23,32,27,.08)} }
+
+  .top{padding:16px 20px 4px}
+  .icon-btn{width:44px;height:44px;border-radius:14px;border:1px solid var(--line);background:var(--surface);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
+  .scroll{flex:1;overflow-y:auto;padding:12px 20px 28px;display:flex;flex-direction:column;gap:22px}
+  h1{margin:0;font-family:var(--display);font-size:34px;line-height:1.05;font-weight:800;letter-spacing:-.5px}
+  .lead{margin:8px 0 0;font-size:15px;line-height:1.5;color:var(--muted)}
+  .label{font-size:14px;font-weight:700}
+  .hint{font-size:13px;color:var(--muted);line-height:1.45}
+  .stack{display:flex;flex-direction:column;gap:8px}
+
+  .topics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;border:0;margin:0;padding:0}
+  .topic{display:flex;align-items:center;gap:10px;min-height:56px;padding:8px 12px;border-radius:16px;border:2px solid var(--line-soft);background:var(--surface);font-size:15px;font-weight:700;text-align:left;cursor:pointer}
+  .topic .ico{width:34px;height:34px;flex:none;border-radius:11px;background:var(--ground);color:var(--green);display:flex;align-items:center;justify-content:center}
+  .topic[aria-pressed="true"]{background:var(--green);border-color:var(--green);color:#fff}
+  .topic[aria-pressed="true"] .ico{background:rgba(255,255,255,.18);color:#fff}
+  .topic.wide{grid-column:span 2}
+
+  .safety-note{display:flex;gap:10px;align-items:flex-start;background:var(--orange-tint);border-radius:16px;padding:12px 14px;font-size:14px;line-height:1.45;color:#3E2A1C}
+
+  textarea{width:100%;min-height:132px;resize:none;border-radius:18px;border:2px solid var(--line);background:var(--surface);padding:14px 16px;font-size:16px;line-height:1.5;outline:none}
+  .input{height:52px;border-radius:16px;border:2px solid var(--line);background:var(--surface);padding:0 16px;font-size:16px;outline:none;width:100%}
+  textarea:focus,.input:focus{border-color:var(--green)}
+  .error{font-size:13px;color:#9A2B1F;font-weight:600}
+
+  .btn{display:flex;align-items:center;justify-content:center;gap:8px;height:64px;border-radius:20px;border:0;background:var(--green);color:#fff;font-size:18px;font-weight:700;cursor:pointer;width:100%}
+  .btn:disabled{background:var(--line);color:var(--muted);cursor:default}
+
+  .ways{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .way{display:flex;flex-direction:column;gap:10px;padding:14px 12px;border-radius:18px;background:var(--surface);border:1px solid var(--line-soft);text-decoration:none;color:var(--ink)}
+  .way .ico{width:36px;height:36px;border-radius:12px;display:flex;align-items:center;justify-content:center}
+  .way b{font-size:14px}
+  .way span{font-size:12px;color:var(--muted);line-height:1.4}
+  .cap{font-size:12px;font-weight:700;letter-spacing:1px;color:var(--muted)}
+  .sos{text-align:center;padding:12px;border-radius:16px;background:var(--orange-tint);color:var(--orange-text);font-size:14px;font-weight:700}
+
+  .done{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:14px;padding:30px 28px}
+  .done .check{width:72px;height:72px;border-radius:24px;background:var(--green-tint);color:var(--green);display:flex;align-items:center;justify-content:center}
+  .done h2{margin:0;font-family:var(--display);font-size:28px;font-weight:800}
+  .done p{margin:0;font-size:15px;line-height:1.5;color:var(--muted)}
+  .ghost{height:48px;border:0;background:transparent;color:var(--green);font-size:15px;font-weight:700;cursor:pointer}
+  [hidden]{display:none !important}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top">
+    <button class="icon-btn" aria-label="Back" onclick="if(history.length>1) history.back(); else location.href='people.html'"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+  </div>
+
+  <form class="scroll" id="form" novalidate>
+    <div>
+      <h1>Contact us</h1>
+      <p class="lead">Tell us what's going on. A real person on our team reads every message.</p>
+    </div>
+
+    <div class="stack">
+      <span class="label" id="topicLabel">What's it about?</span>
+      <div class="topics" role="group" aria-labelledby="topicLabel" id="topics">
+        <button type="button" class="topic" data-topic="account"><span class="ico"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4.2-6 8-6s7 2 8 6"/></svg></span>My account</button>
+        <button type="button" class="topic" data-topic="safety"><span class="ico"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.5-3 7.8-7 9-4-1.2-7-4.5-7-9V6z"/></svg></span>Safety</button>
+        <button type="button" class="topic" data-topic="event"><span class="ico"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg></span>Suggest an event</button>
+        <button type="button" class="topic" data-topic="broken"><span class="ico"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17v.5"/></svg></span>Something broke</button>
+        <button type="button" class="topic" data-topic="idea"><span class="ico"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.4 1 1.1 1 1.8V16h5v-.3c0-.7.4-1.4 1-1.8A6 6 0 0 0 12 3z"/></svg></span>An idea</button>
+        <button type="button" class="topic" data-topic="other"><span class="ico"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></span>Something else</button>
+      </div>
+    </div>
+
+    <div class="safety-note" id="safetyNote" hidden>
+      <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none;color:#B4531A"><path d="M12 3l7 3v6c0 4.5-3 7.8-7 9-4-1.2-7-4.5-7-9V6z"/></svg>
+      <span>About a specific person? The fastest way is to open their profile or chat, tap ⋯ and choose <b>Report</b>. In danger? Call 911 first.</span>
+    </div>
+
+    <div class="stack">
+      <div style="display:flex;justify-content:space-between;align-items:baseline">
+        <label class="label" for="message">Your message</label>
+        <span class="hint"><span id="count">0</span> of 1000</span>
+      </div>
+      <textarea id="message" maxlength="1000"></textarea>
+    </div>
+
+    <div class="stack">
+      <label class="label" for="email">Reply to</label>
+      <input class="input" id="email" type="email" autocomplete="email" placeholder="you@example.com">
+      <span class="hint">We only use this to answer you.</span>
+      <span class="error" id="emailError" hidden>Please check this email address.</span>
+    </div>
+
+    <button type="submit" class="btn" id="send" disabled>Send message<svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+
+    <div class="sos">In immediate danger? Call 911 first.</div>
+  </form>
+
+  <section class="done" id="done" hidden aria-live="polite">
+    <span class="check"><svg aria-hidden="true" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
+    <h2>Thanks, we got it</h2>
+    <p>Someone on our team will read your message and reply to <b id="doneEmail"></b>.</p>
+    <a class="btn" href="people.html" style="text-decoration:none">Back to Nayboro</a>
+    <button class="ghost" type="button" id="another">Send another message</button>
+  </section>
+</div>
+
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var PLACEHOLDERS = {
+    account:'What happened with your account, and what were you trying to do?',
+    safety:'Tell us what happened. Include names, dates or screenshots if you can.',
+    event:'What is the event? Add the name, date, place and a link to the organiser.',
+    broken:'What broke, and what were you trying to do? Which phone or browser?',
+    idea:'What would make Nayboro better for you?',
+    other:'What would you like to tell us?'
+  };
+  var topic = null;
+
+  function pick(t){
+    topic = t;
+    Array.prototype.forEach.call(document.querySelectorAll('.topic'), function(b){ b.setAttribute('aria-pressed', String(b.dataset.topic===t)); });
+    $('message').placeholder = PLACEHOLDERS[t];
+    $('safetyNote').hidden = t !== 'safety';
+    check();
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('.topic'), function(b){ b.onclick = function(){ pick(b.dataset.topic); }; });
+
+  function validEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+  function check(){
+    $('count').textContent = $('message').value.length;
+    $('send').disabled = !(topic && $('message').value.trim().length >= 5 && $('email').value.trim());
+  }
+  $('message').addEventListener('input', check);
+  $('email').addEventListener('input', function(){ $('emailError').hidden = true; check(); });
+
+  $('form').addEventListener('submit', function(e){
+    e.preventDefault();
+    var email = $('email').value.trim();
+    if(!validEmail(email)){ $('emailError').hidden = false; $('email').focus(); return; }
+    // Real build: save { topic, message, email, userId } and notify the team.
+    $('doneEmail').textContent = email;
+    $('form').hidden = true; $('done').hidden = false;
+  });
+  $('another').onclick = function(){
+    $('message').value=''; check();
+    $('done').hidden = true; $('form').hidden = false;
+  };
+
+  // Open with a topic preselected, e.g. contact.html?topic=event (from "Tell us" on Events)
+  var q = new URLSearchParams(location.search).get('topic');
+  pick(PLACEHOLDERS[q] ? q : 'account');
+  // Real build: prefill the signed-in user's email.
+  $('email').value = 'neeraj@example.com'; check();
+})();
+</script>
+</body>
+</html>

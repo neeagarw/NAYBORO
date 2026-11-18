@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nayboro · Chat with Aman K.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+  :root{
+    --green:#1E6B4A; --green-tint:#E3F0E8; --orange:#F59E4C; --orange-logo:#EE8A35; --orange-tint:#FDEBDD; --orange-text:#7A3A0F;
+    --blue-tint:#DCE7F7; --blue-text:#28426B;
+    --ground:#F5F7F2; --surface:#FFFFFF; --line:#DDE3DC; --line-soft:#E6EBE5; --ink:#17201B; --muted:#56635B;
+    --display:'Bricolage Grotesque',Inter,system-ui,sans-serif; --body:Inter,system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;scrollbar-width:none}
+  *::-webkit-scrollbar{display:none}
+  html,body{margin:0;height:100%;background:var(--ground);color:var(--ink);font-family:var(--body)}
+  button,input,textarea{font:inherit;color:inherit}
+  .app{position:relative;max-width:440px;margin:0 auto;height:100dvh;display:flex;flex-direction:column;background:var(--ground);overflow:hidden}
+  @media (min-width:600px){ body{padding:24px 0} .app{height:calc(100dvh - 48px);border-radius:32px;border:1px solid var(--line-soft);box-shadow:0 10px 40px rgba(23,32,27,.08)} }
+  .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+  header{display:flex;align-items:center;gap:10px;padding:14px 14px 12px;background:var(--surface);border-bottom:1px solid var(--line-soft)}
+  .icon{width:44px;height:44px;flex:none;border:0;border-radius:14px;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;color:var(--ink)}
+  .av{width:44px;height:44px;flex:none;border-radius:14px;background:var(--blue-tint);color:var(--blue-text);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:800;font-size:15px}
+  .who{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;text-decoration:none;color:inherit}
+  .who b{font-size:17px}
+  .who span{font-size:13px;color:var(--muted)}
+
+  .thread{flex:1;overflow-y:auto;padding:14px 16px 16px;display:flex;flex-direction:column;gap:6px}
+  .context{align-self:center;font-size:12px;font-weight:600;color:var(--green);background:var(--green-tint);padding:6px 12px;border-radius:999px;margin-bottom:4px}
+  .day{align-self:center;font-size:12px;font-weight:600;color:var(--muted);padding:8px 0 4px}
+  .msg{max-width:78%;padding:11px 14px;font-size:15px;line-height:1.45;word-wrap:break-word}
+  .them{align-self:flex-start;background:var(--surface);border:1px solid var(--line-soft);border-radius:20px 20px 20px 6px}
+  .me{align-self:flex-end;background:var(--green);color:#fff;border-radius:20px 20px 6px 20px}
+  .time{font-size:11px;color:var(--muted);padding:0 6px 6px}
+  .time.r{align-self:flex-end}
+  .time.l{align-self:flex-start}
+
+  .link{height:44px;border:0;background:transparent;color:var(--green);font-size:14px;font-weight:700;cursor:pointer}
+
+  .tip{display:flex;align-items:center;gap:10px;background:var(--green-tint);border-radius:16px;padding:6px 6px 6px 12px;margin-top:6px;color:var(--green)}
+  .tip span{flex:1;font-size:13px;color:var(--ink)}
+  .tip a{font-size:13px;font-weight:700;color:var(--green);white-space:nowrap}
+
+  .composer{display:flex;align-items:flex-end;gap:8px;padding:10px 12px 20px;background:var(--surface);border-top:1px solid var(--line-soft)}
+  .composer textarea{flex:1;min-width:0;min-height:48px;max-height:120px;resize:none;border-radius:16px;border:1px solid var(--line);background:var(--ground);padding:12px 14px;font-size:16px;line-height:1.4;outline:none}
+  .composer textarea:focus{border-color:var(--green)}
+  .send{width:48px;height:48px;flex:none;border:0;border-radius:16px;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
+  .send:disabled{background:var(--line);color:var(--muted);cursor:default}
+
+  .scrim{position:absolute;inset:0;background:rgba(23,32,27,.35);display:flex;align-items:flex-end;z-index:5}
+  .sheet{width:100%;background:var(--surface);border-radius:28px 28px 0 0;padding:10px 20px 24px;display:flex;flex-direction:column;gap:14px;max-height:88%;overflow-y:auto}
+  .grab{width:40px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 4px}
+  .sheet h3{margin:0;font-family:var(--display);font-size:22px;font-weight:800}
+  .btn{height:54px;border-radius:18px;border:0;background:var(--green);color:#fff;font-size:16px;font-weight:700;cursor:pointer}
+  .menu-item{display:flex;align-items:center;gap:12px;min-height:52px;padding:0 14px;border-radius:14px;border:0;background:var(--ground);font-size:16px;font-weight:600;cursor:pointer;text-align:left}
+  .menu-item.warn{color:#9A2B1F;background:#FBE9E6}
+  .toast{position:absolute;left:20px;right:20px;bottom:96px;background:var(--green);color:#fff;border-radius:16px;padding:12px 14px;font-size:14px;font-weight:600;z-index:6}
+  .tips{margin:0;padding:0;list-style:none;counter-reset:t;display:flex;flex-direction:column;gap:10px}
+  .tips li{counter-increment:t;display:grid;grid-template-columns:32px 1fr;column-gap:12px;row-gap:2px;background:var(--ground);border-radius:16px;padding:12px}
+  .tips li::before{content:counter(t);grid-row:span 2;width:32px;height:32px;border-radius:10px;background:var(--green-tint);color:var(--green);font-weight:800;display:flex;align-items:center;justify-content:center}
+  .tips b{font-size:15px}
+  .tips span{font-size:13px;line-height:1.45;color:var(--muted)}
+  .sos{background:var(--orange-tint);color:#3E2A1C;border-radius:14px;padding:12px;font-size:13px;line-height:1.45}
+  [hidden]{display:none !important}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <button class="icon" aria-label="Back to chats" onclick="location.href='chats.html'"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+    <span class="av" aria-hidden="true">AK</span>
+    <a class="who" href="profile.html"><b>Aman K.</b><span>Lives in Garland · Plays tennis</span></a>
+    <button class="icon" id="moreBtn" aria-label="More options for this chat"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></button>
+  </header>
+
+  <main class="thread" id="thread" aria-live="polite">
+    <span class="context">You both play tennis in Garland</span>
+    <span class="day">Today</span>
+    <div class="msg them">Hey Neeraj! Good to meet another tennis player in Garland.</div>
+    <span class="time l">9:58 AM</span>
+    <div class="msg me">Likewise! I usually play weekend mornings.</div>
+    <span class="time r">10:05 AM</span>
+    <div class="msg them">The Firewheel courts are usually free early. Tennis next Saturday at 8?</div>
+    <span class="time l">10:42 AM</span>
+    <div class="tip" id="tip">
+      <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.5-3 7.8-7 9-4-1.2-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg>
+      <span>Keep personal details private until you trust someone.</span>
+      <a href="#" id="tipsLink">Safety tips</a>
+      <button class="icon" id="tipClose" aria-label="Hide safety tip" style="width:36px;height:36px"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M7 7l10 10M17 7L7 17"/></svg></button>
+    </div>
+  </main>
+
+  <div class="composer">
+    <label class="sr" for="msgInput">Message</label>
+    <textarea id="msgInput" rows="1" placeholder="Write a message"></textarea>
+    <button class="send" id="sendBtn" aria-label="Send" disabled><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+  </div>
+
+  <!-- safety tips -->
+  <div class="scrim" id="tipsSheet" hidden>
+    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="tipsTitle">
+      <div class="grab"></div>
+      <h3 id="tipsTitle">Chatting safely</h3>
+      <ol class="tips"><li><b>Keep personal details private</b><span>Your address, phone number and workplace can wait until you trust someone.</span></li><li><b>Never send money or codes</b><span>No one should ask for money, gift cards, bank details or verification codes.</span></li><li><b>Watch for pressure</b><span>Rushing you, guilt-tripping or pushing to move to WhatsApp fast are red flags.</span></li><li><b>Be careful with links and files</b><span>Don't open unknown links or share photos of your passport, visa or ID.</span></li><li><b>You don't owe a reply</b><span>It's fine to stop chatting, mute or block at any time.</span></li><li><b>Report anything off</b><span>Harassment, scams or fake profiles: report them from the ⋯ menu.</span></li></ol>
+      <div class="sos">If someone threatens you, call 911 first. Then report them so our team can act.</div>
+      <button class="btn" id="tipsDone">Got it</button>
+    </div>
+  </div>
+
+  <!-- menu -->
+  <div class="scrim" id="moreSheet" hidden>
+    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="moreTitle">
+      <div class="grab"></div>
+      <h3 id="moreTitle">Aman K.</h3>
+      <a class="menu-item" href="profile.html" style="text-decoration:none;color:inherit">View profile</a>
+      <button class="menu-item" data-toast="Chat muted. You won't get notifications.">Mute chat</button>
+      <button class="menu-item warn" data-toast="Thanks. Our team will review this.">Report Aman</button>
+      <button class="menu-item warn" data-toast="Aman is blocked. He can't message you.">Block Aman</button>
+      <button class="link" id="moreCancel">Cancel</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" hidden></div>
+</div>
+
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  function esc(t){ return String(t).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+  function toast(m){ var t=$('toast'); t.textContent=m; t.hidden=false; clearTimeout(t._h); t._h=setTimeout(function(){ t.hidden=true; },2600); }
+  function nowTime(){ return new Date().toLocaleTimeString([], {hour:'numeric', minute:'2-digit'}); }
+  function scrollDown(){ var th=$('thread'); th.scrollTop = th.scrollHeight; }
+
+  // ---------- messages ----------
+  var input=$('msgInput');
+  function grow(){ input.style.height='auto'; input.style.height=Math.min(input.scrollHeight,120)+'px'; $('sendBtn').disabled = !input.value.trim(); }
+  input.addEventListener('input', grow);
+  input.addEventListener('keydown', function(e){ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); send(); } });
+  $('sendBtn').onclick = send;
+  function send(){
+    var v=input.value.trim(); if(!v) return;
+    var th=$('thread'), tip=$('tip');
+    var m=document.createElement('div'); m.className='msg me'; m.textContent=v;
+    var t=document.createElement('span'); t.className='time r'; t.textContent=nowTime();
+    th.insertBefore(m, tip); th.insertBefore(t, tip);
+    input.value=''; grow(); scrollDown();
+  }
+
+  // ---------- misc ----------
+  function openTips(e){ if(e) e.preventDefault(); $('tipsSheet').hidden=false; }
+  $('tipsLink').onclick = openTips;
+  $('tipsDone').onclick = function(){ $('tipsSheet').hidden=true; };
+  $('tipsSheet').addEventListener('click', function(e){ if(e.target.id==='tipsSheet') $('tipsSheet').hidden=true; });
+  $('tipClose').onclick = function(){ $('tip').hidden=true; };
+  $('moreBtn').onclick = function(){ $('moreSheet').hidden=false; };
+  $('moreCancel').onclick = function(){ $('moreSheet').hidden=true; };
+  $('moreSheet').addEventListener('click', function(e){ if(e.target.id==='moreSheet') $('moreSheet').hidden=true; });
+  Array.prototype.forEach.call(document.querySelectorAll('[data-toast]'), function(b){ b.onclick=function(){ $('moreSheet').hidden=true; toast(b.dataset.toast); }; });
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape'){ $('moreSheet').hidden=true; $('tipsSheet').hidden=true; } });
+
+  scrollDown();
+})();
+</script>
+</body>
+</html>

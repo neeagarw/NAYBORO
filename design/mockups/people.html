@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nayboro · People</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+:root{--green:#1E6B4A;--green-tint:#E3F0E8;--orange:#F59E4C;--orange-logo:#EE8A35;--orange-tint:#FDEBDD;--orange-text:#7A3A0F;--orange-icon:#B4531A;
+  --ground:#F5F7F2;--surface:#FFFFFF;--line:#DDE3DC;--line-soft:#E6EBE5;--ink:#17201B;--muted:#56635B;
+  --display:'Bricolage Grotesque',Inter,system-ui,sans-serif;--body:Inter,system-ui,sans-serif}
+*{box-sizing:border-box;scrollbar-width:none}
+*::-webkit-scrollbar{display:none}
+html,body{margin:0;height:100%;background:var(--ground);color:var(--ink);font-family:var(--body)}
+button,input,textarea{font:inherit;color:inherit}
+a{color:var(--green)}
+[hidden]{display:none !important}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.app{position:relative;max-width:440px;margin:0 auto;height:100dvh;display:flex;flex-direction:column;background:var(--ground);overflow:hidden}
+@media (min-width:600px){body{padding:24px 0}.app{height:calc(100dvh - 48px);border-radius:32px;border:1px solid var(--line-soft);box-shadow:0 10px 40px rgba(23,32,27,.08)}}
+.logo{display:inline-flex;align-items:center;gap:7px;font-family:var(--display);font-weight:800;font-size:20px;letter-spacing:-.4px;color:var(--ink)}
+.bar{display:flex;align-items:center;justify-content:space-between}
+.me-btn{width:40px;height:40px;border:0;border-radius:13px;background:var(--orange);color:var(--ink);font-family:var(--display);font-weight:800;font-size:14px;cursor:pointer}
+.head{padding:18px 20px 8px;display:flex;flex-direction:column;gap:12px}
+h1{margin:0;font-family:var(--display);font-size:34px;line-height:1.02;font-weight:800;letter-spacing:-.5px}
+.sub{font-size:14px;color:var(--muted)}
+.scroll{flex:1;overflow-y:auto;padding:6px 20px 20px;display:flex;flex-direction:column;gap:14px}
+.cap{font-size:12px;font-weight:700;letter-spacing:1px;color:var(--muted)}
+.card{background:var(--surface);border:1px solid var(--line-soft);border-radius:20px;padding:14px}
+.chips{display:flex;gap:8px;overflow-x:auto;margin:0 -20px;padding:0 20px 2px}
+.chip{flex:none;height:42px;padding:0 16px;border-radius:999px;border:2px solid var(--line-soft);background:var(--surface);font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
+.chip[aria-pressed="true"]{background:var(--green);border-color:var(--green);color:#fff}
+.av{width:48px;height:48px;flex:none;border-radius:16px;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:800;font-size:15px}
+.av.sm{width:34px;height:34px;border-radius:12px;font-size:12px}
+.av.g{background:#E3F0E8;color:#1E6B4A}.av.b{background:#DCE7F7;color:#28426B}.av.p{background:#F7DDE4;color:#7A2E44}.av.y{background:#F7E7C6;color:#6B4A0E}.av.n{background:#E6EBE5;color:#3B463F}
+.tag{font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;background:var(--green-tint);color:var(--green);white-space:nowrap}
+.tag.o{background:var(--orange-tint);color:var(--orange-text)}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;height:56px;border-radius:18px;border:0;background:var(--green);color:#fff;font-size:17px;font-weight:700;cursor:pointer;text-decoration:none;width:100%}
+.btn:disabled{background:var(--line);color:var(--muted);cursor:default}
+.btn-out{display:inline-flex;align-items:center;justify-content:center;height:44px;padding:0 18px;border-radius:14px;border:2px solid var(--green);background:var(--surface);color:var(--green);font-size:14px;font-weight:700;cursor:pointer;text-decoration:none;white-space:nowrap;flex:none}
+.btn-soft{display:inline-flex;align-items:center;justify-content:center;height:44px;padding:0 16px;border-radius:14px;border:0;background:var(--green-tint);color:var(--green);font-size:14px;font-weight:700;cursor:pointer;text-decoration:none;white-space:nowrap;flex:none}
+.link{border:0;background:transparent;padding:0;min-height:44px;color:var(--green);font-size:14px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center}
+.icon-btn{width:44px;height:44px;flex:none;border-radius:14px;border:1px solid var(--line);background:var(--surface);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;color:var(--ink);text-decoration:none}
+.nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:8px 8px 20px;background:var(--surface);border-top:1px solid var(--line-soft)}
+.nav a{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 0;text-decoration:none;color:var(--muted);font-size:12px;font-weight:600}
+.nav a span.pill{display:flex;align-items:center;justify-content:center;width:56px;height:30px;border-radius:999px}
+.nav a[aria-current="page"]{color:var(--green);font-weight:700}
+.nav a[aria-current="page"] span.pill{background:var(--green-tint)}
+.nav .badge{position:absolute;top:2px;left:54%;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:var(--orange);color:var(--ink);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.scrim{position:absolute;inset:0;background:rgba(23,32,27,.35);display:flex;align-items:flex-end;z-index:5}
+.sheet{width:100%;background:var(--surface);border-radius:28px 28px 0 0;padding:10px 20px 24px;display:flex;flex-direction:column;gap:12px;max-height:88%;overflow-y:auto}
+.grab{width:40px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 4px}
+.sheet h3{margin:0;font-family:var(--display);font-size:22px;font-weight:800}
+.menu-item{display:flex;align-items:center;min-height:52px;padding:0 14px;border-radius:14px;border:0;background:var(--ground);font-size:16px;font-weight:600;cursor:pointer;text-align:left;text-decoration:none;color:var(--ink)}
+.toast{position:absolute;left:20px;right:20px;bottom:96px;background:var(--green);color:#fff;border-radius:16px;padding:12px 14px;font-size:14px;font-weight:600;z-index:6}
+textarea.box{width:100%;min-height:110px;resize:none;border-radius:16px;border:2px solid var(--line);background:var(--surface);padding:12px 14px;font-size:16px;line-height:1.5;outline:none}
+textarea.box:focus,.input:focus{border-color:var(--green)}
+.input{height:50px;width:100%;border-radius:14px;border:2px solid var(--line);background:var(--surface);padding:0 14px;font-size:16px;outline:none}
+.hint{font-size:12px;line-height:1.45;color:var(--muted)}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+
+.hello{background:var(--orange-tint);border-radius:22px;padding:6px 16px 16px;display:flex;flex-direction:column;gap:10px}
+.hello .row b{font-size:13px;color:var(--orange-text)}
+.hello .who{display:flex;gap:12px;align-items:flex-start}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.two button,.two a{height:44px;border-radius:14px;border:0;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;text-decoration:none}
+.rail{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;margin:0 -20px;padding:2px 20px 6px}
+.sug{position:relative;flex:none;width:208px;scroll-snap-align:start;background:var(--surface);border:1px solid var(--line-soft);border-radius:20px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.sug a.top{display:flex;flex-direction:column;gap:8px;text-decoration:none;color:var(--ink)}
+.sug .q{font-size:13px;line-height:1.4;color:#3B463F;height:36px;overflow:hidden}
+.sug .hide{position:absolute;top:6px;right:6px;width:36px;height:36px;border:0;border-radius:12px;background:transparent;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center}
+.sug .go{height:40px;border-radius:12px;background:var(--green);color:#fff;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;text-decoration:none}
+.invite{flex:none;width:180px;scroll-snap-align:start;background:var(--orange-tint);border-radius:20px;padding:14px;display:flex;flex-direction:column;gap:10px;justify-content:space-between}
+.invite b{font-family:var(--display);font-size:17px;line-height:1.2}
+.prow{display:flex;align-items:center;gap:12px}
+.prow a.info{flex:1;min-width:0;display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--ink)}
+.prow .t{display:flex;flex-direction:column;gap:3px;min-width:0}
+.new{font-size:11px;font-weight:800;letter-spacing:.6px;color:var(--orange-text);background:var(--orange-tint);padding:2px 7px;border-radius:999px}
+.undo{background:var(--surface);border:1px dashed #C3CCC5;border-radius:14px;padding:4px 6px 4px 12px}
+</style>
+</head>
+<body>
+<div class="app">
+
+<div class="head"><div class="bar"><span class="logo"><svg role="img" aria-label="Nayboro" width="30" height="25" viewBox="0 0 120 100"><path fill-rule="evenodd" fill="#EE8A35" d="M10 96 Q6 96 6 92 V46 Q6 44 7.5 42.5 L28 21 Q31 18 34 21 L54.5 42.5 Q56 44 56 46 V92 Q56 96 52 96 Z M22 96 V78 A9 9 0 0 1 40 78 V96 Z"/><path fill-rule="evenodd" fill="#1E6B4A" d="M68 96 Q64 96 64 92 V38 Q64 36 65.5 34.5 L86 11 Q89 8 92 11 L112.5 34.5 Q114 36 114 38 V92 Q114 96 110 96 Z M80 96 V74 A9 9 0 0 1 98 74 V96 Z"/></svg>nayboro</span><button class="me-btn" data-open="meSheet" aria-label="Your account">N</button></div>
+  <div><h1>People</h1><span class="sub" id="sub"></span></div>
+  <div class="chips" id="chips"></div>
+</div>
+<main class="scroll" id="main"></main>
+<nav class="nav" aria-label="Main"><a href="explore.html"><span class="pill"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg></span>Explore</a><a href="people.html" aria-current="page"><span class="pill"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5"/><circle cx="17" cy="9" r="2.5"/><path d="M17.5 14.5c2 .3 3.4 1.9 4 4.5"/></svg></span>People</a><a href="chats.html"><span class="pill"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/></svg></span><span class="badge">3</span>Chats</a></nav><div class="scrim" id="meSheet" hidden><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="meTitle"><div class="grab"></div><h3 id="meTitle">Neeraj S.</h3><span class="sub">Jaipur → Garland</span><a class="menu-item" href="profile-setup.html">Edit profile</a><a class="menu-item" href="contact.html">Help and feedback</a><a class="menu-item" href="welcome.html">Log out</a><button class="link" data-close="meSheet" style="justify-content:center">Cancel</button></div></div><div class="toast" id="toast" role="status" hidden></div>
+</div>
+<script>
+(function(){
+var $ = function(id){ return document.getElementById(id); };
+function esc(t){ return String(t).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+function toast(m){ var t=$('toast'); if(!t) return; t.textContent=m; t.hidden=false; clearTimeout(t._h); t._h=setTimeout(function(){ t.hidden=true; },2600); }
+function openSheet(id){ $(id).hidden=false; }
+function closeSheet(id){ $(id).hidden=true; }
+document.addEventListener('click', function(e){
+  if(e.target.classList && e.target.classList.contains('scrim')) e.target.hidden = true;
+  var c = e.target.closest && e.target.closest('[data-close]'); if(c) $(c.getAttribute('data-close')).hidden = true;
+  var o = e.target.closest && e.target.closest('[data-open]'); if(o) $(o.getAttribute('data-open')).hidden = false;
+});
+document.addEventListener('keydown', function(e){ if(e.key==='Escape') Array.prototype.forEach.call(document.querySelectorAll('.scrim'), function(s){ s.hidden=true; }); });
+
+// ---- sample data. Real build: load from the server. ----
+// "from" is each person's hometown at the level THEY chose to show (city, state or country). Never show more.
+var ME = { city:'Jaipur', state:'Rajasthan', metro:'DFW', now:'Garland' };
+var COUNTS = { city:10, state:9 };   // city count is metro-wide. If a count is 0, the chip is not shown at all.
+var HELLOS = [{ i:'VB', c:'g', name:'Vikram B.', from:'Bikaner', text:'Need one more for Sunday cricket. You in?' }];
+var MORE_HELLOS = 2;
+var SUGS = [
+  { i:'RG', c:'b', name:'Rohit G.', from:'Jodhpur', now:'Richardson', common:'2 in common', quote:'Weekend tennis, always looking for a doubles partner.' },
+  { i:'KS', c:'y', name:'Kavya S.', from:'Jaipur', now:'Frisco', common:'Also from Jaipur', quote:'Chai and long walks, new to Frisco.' },
+  { i:'AK', c:'b', name:'Aman K.', from:'Delhi', now:'Garland', common:'Plays tennis', quote:'Firewheel courts most Saturdays.' },
+  { i:'SK', c:'y', name:'Simran K.', from:'Punjab', now:'Plano', common:'Loves cooking', quote:'Up for potlucks and recipe swaps.' }
+];
+var PEOPLE = [
+  { i:'KS', c:'y', name:'Kavya S.', from:'Jaipur', now:'Frisco', why:'From Jaipur · Chai meetups', tags:['city','new'], isNew:true },
+  { i:'AR', c:'p', name:'Ananya R.', from:'Udaipur', now:'Frisco', why:'Rajasthan · Badminton', tags:['state','new'], isNew:true },
+  { i:'AM', c:'g', name:'Arjun M.', from:'Jaipur', now:'Irving', why:'From Jaipur · Cricket', tags:['city','Cricket','new'], isNew:true },
+  { i:'NT', c:'p', name:'Nisha T.', from:'Jaipur', now:'Allen', why:'From Jaipur · Tennis', tags:['city','Tennis'] },
+  { i:'RG', c:'b', name:'Rohit G.', from:'Jodhpur', now:'Richardson', why:'Rajasthan · Tennis', tags:['state','Tennis'] },
+  { i:'VB', c:'g', name:'Vikram B.', from:'Bikaner', now:'Garland', why:'Rajasthan · Cricket', tags:['state','Cricket'] },
+  { i:'AK', c:'b', name:'Aman K.', from:'Delhi', now:'Garland', why:'Plays tennis in Garland', tags:['Tennis'] },
+  { i:'PS', c:'p', name:'Priya S.', from:'Pune', now:'Garland', why:'Plays cricket in Garland', tags:['Cricket'] }
+];
+var S = { chip:'foryou', hello:'pending', hidden:[], last:null };
+
+function chipList(){
+  var n = PEOPLE.filter(function(p){ return p.isNew; }).length;
+  var list = [['foryou','For you']];
+  if(n) list.push(['new','New · '+n]);
+  if(COUNTS.city) list.push(['city', ME.city+' · '+COUNTS.city]);
+  if(COUNTS.state) list.push(['state', ME.state+' · '+COUNTS.state]);
+  list.push(['Tennis','Tennis'],['Cricket','Cricket']);
+  return list;
+}
+function row(p){
+  return '<div class="card prow"><a class="info" href="profile.html"><span class="av '+p.c+'">'+p.i+'</span><span class="t">'+
+    '<span style="display:flex;align-items:center;gap:8px"><b style="font-size:16px">'+esc(p.name)+'</b>'+(p.isNew?'<span class="new">NEW</span>':'')+'</span>'+
+    '<span class="sub" style="font-size:13px">'+esc(p.from)+' → '+esc(p.now)+'</span>'+
+    '<span style="font-size:13px;font-weight:600;color:var(--green)">'+esc(p.why)+'</span></span></a>'+
+    '<a class="btn-soft" href="profile.html">Say hi</a></div>';
+}
+function render(){
+  $('sub').textContent = 'Near '+ME.now + (COUNTS.city ? ' · '+COUNTS.city+' from '+ME.city+' around '+ME.metro : '');
+  $('chips').innerHTML = chipList().map(function(c){ return '<button class="chip" data-chip="'+c[0]+'" aria-pressed="'+(S.chip===c[0])+'">'+esc(c[1])+'</button>'; }).join('');
+  var h = '';
+  if(S.chip==='foryou'){
+    if(S.hello!=='hidden' && HELLOS.length){
+      var x = HELLOS[0];
+      h += '<section class="hello"><div class="row"><b>Said hi to you</b>'+(MORE_HELLOS?'<a class="link" style="color:var(--orange-text);font-size:13px" href="chats.html" aria-label="See '+MORE_HELLOS+' more people who said hi">+'+MORE_HELLOS+' more ›</a>':'<span style="height:44px"></span>')+'</div>'+
+        '<div class="who"><span class="av '+x.c+'" style="width:44px;height:44px;border-radius:14px">'+x.i+'</span><span style="display:flex;flex-direction:column;gap:3px"><span style="font-size:15px;font-weight:700">'+esc(x.name)+' <span style="font-weight:500;color:#5E4330">· '+esc(x.from)+'</span></span><span style="font-size:14px;line-height:1.4">"'+esc(x.text)+'"</span></span></div>'+
+        (S.hello==='pending'
+          ? '<div class="two"><button data-act="notnow" style="background:#fff;color:var(--orange-text)">Not now</button><button data-act="accept" style="background:var(--green);color:#fff">Accept</button></div>'
+          : '<a class="btn" style="height:44px;border-radius:14px;font-size:14px" href="chat.html">Open chat</a>')+'</section>';
+    }
+    var sugs = SUGS.filter(function(g){ return S.hidden.indexOf(g.name)<0; });
+    h += '<section style="display:flex;flex-direction:column;gap:10px"><div class="row"><span class="cap">SUGGESTED FOR YOU</span><span class="hint">'+sugs.length+' picked for you · swipe</span></div><div class="rail">'+
+      sugs.map(function(g){ return '<div class="sug"><button class="hide" data-hide="'+esc(g.name)+'" aria-label="Hide this suggestion"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M7 7l10 10M17 7L7 17"/></svg></button>'+
+        '<a class="top" href="profile.html"><span class="av '+g.c+'" style="width:44px;height:44px;border-radius:14px">'+g.i+'</span><span><b style="display:block;font-size:16px">'+esc(g.name)+'</b><span class="hint">'+esc(g.from)+' → '+esc(g.now)+'</span></span></a>'+
+        '<span class="tag" style="align-self:flex-start">'+esc(g.common)+'</span><span class="q">"'+esc(g.quote)+'"</span><a class="go" href="profile.html">Say hi</a></div>'; }).join('')+
+      '<div class="invite"><span class="av" style="width:40px;height:40px;border-radius:14px;background:var(--orange-logo)"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span><b>Know someone from '+esc(ME.city)+' here?</b><span class="hint" style="color:#5E4330">Invite them. Your list grows with every friend.</span><button class="btn-soft" style="background:#fff;color:var(--orange-text)" data-act="invite">Invite</button></div>'+
+      '</div>'+(S.last?'<div class="row undo"><span class="hint" style="font-size:13px">Hidden. We\'ll suggest fewer like that.</span><button class="link" data-act="undo" style="font-size:13px;padding:0 10px">Undo</button></div>':'')+'</section>';
+  }
+  var titles = { foryou:'MORE PEOPLE NEAR YOU', 'new':'JUST JOINED', city:'FROM '+ME.city.toUpperCase()+', AROUND '+ME.metro, state:'FROM '+ME.state.toUpperCase()+', NEAR '+ME.now.toUpperCase(), Tennis:'PLAY TENNIS NEAR YOU', Cricket:'PLAY CRICKET NEAR YOU' };
+  var inSug = SUGS.map(function(g){ return g.name; });
+  var list = S.chip==='foryou' ? PEOPLE.filter(function(p){ return inSug.indexOf(p.name)<0; }).slice(0,5) : PEOPLE.filter(function(p){ return p.tags.indexOf(S.chip)>=0; });
+  h += '<span class="cap">'+titles[S.chip]+'</span>' + list.map(row).join('');
+  $('main').innerHTML = h;
+}
+document.addEventListener('click', function(e){
+  var t = e.target.closest('[data-chip],[data-act],[data-hide]'); if(!t) return;
+  if(t.dataset.chip){ S.chip = t.dataset.chip; $('main').scrollTop = 0; }
+  else if(t.dataset.hide){ S.hidden.push(t.dataset.hide); S.last = t.dataset.hide; }
+  else if(t.dataset.act==='undo'){ S.hidden = S.hidden.filter(function(n){ return n!==S.last; }); S.last = null; }
+  else if(t.dataset.act==='accept'){ S.hello = 'accepted'; }
+  else if(t.dataset.act==='notnow'){ S.hello = 'hidden'; }
+  else if(t.dataset.act==='invite'){ toast('Invite link copied'); return; }
+  render();
+});
+render();
+
+})();
+</script>
+</body>
+</html>

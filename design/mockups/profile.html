@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nayboro · Rohit G.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+  :root{
+    --green:#1E6B4A; --green-tint:#E3F0E8; --orange:#F59E4C; --orange-tint:#FDEBDD; --orange-text:#7A3A0F; --orange-icon:#B4531A;
+    --blue-tint:#DCE7F7; --blue-text:#28426B;
+    --ground:#F5F7F2; --surface:#FFFFFF; --line:#DDE3DC; --line-soft:#E6EBE5; --ink:#17201B; --muted:#56635B;
+    --display:'Bricolage Grotesque',Inter,system-ui,sans-serif; --body:Inter,system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;scrollbar-width:none}
+  *::-webkit-scrollbar{display:none}
+  html,body{margin:0;height:100%;background:var(--ground);color:var(--ink);font-family:var(--body)}
+  button,input,textarea{font:inherit;color:inherit}
+  .app{position:relative;max-width:440px;margin:0 auto;height:100dvh;display:flex;flex-direction:column;background:var(--ground);overflow:hidden}
+  @media (min-width:600px){ body{padding:24px 0} .app{height:calc(100dvh - 48px);border-radius:32px;border:1px solid var(--line-soft);box-shadow:0 10px 40px rgba(23,32,27,.08)} }
+
+  .top{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 8px}
+  .icon-btn{width:44px;height:44px;border-radius:14px;border:1px solid var(--line);background:var(--surface);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
+  .scroll{flex:1;overflow-y:auto;padding:4px 20px 24px;display:flex;flex-direction:column;gap:14px}
+  .card{background:var(--surface);border:1px solid var(--line-soft);border-radius:24px;padding:18px}
+  .cap{font-size:12px;font-weight:700;letter-spacing:1px;color:var(--muted)}
+
+  /* header */
+  .head{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:22px 18px}
+  .photo{width:104px;height:104px;border-radius:32px;background:var(--blue-tint);color:var(--blue-text);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:10px;font-weight:700;letter-spacing:.8px}
+  h1{margin:4px 0 0;font-family:var(--display);font-size:30px;line-height:1;font-weight:800}
+  .route{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:600}
+  .route i{width:28px;border-top:2px dashed var(--orange)}
+  .badges{display:flex;flex-wrap:wrap;justify-content:center;gap:6px}
+  .badge{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:5px 10px;border-radius:999px}
+  .badge.g{color:var(--green);background:var(--green-tint)}
+  .badge.n{color:var(--muted);background:var(--ground)}
+  .badge.o{color:var(--orange-text);background:var(--orange-tint)}
+  .nophoto{font-size:12px;color:var(--muted);margin-top:-4px}
+
+  /* common */
+  .common{background:var(--green-tint);border-radius:24px;padding:16px;display:flex;flex-direction:column;gap:10px}
+  .common .cap{color:var(--green)}
+  .tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .tile{background:var(--surface);border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:8px}
+  .tile .ico{width:34px;height:34px;border-radius:11px;background:var(--orange-tint);color:var(--orange-icon);display:flex;align-items:center;justify-content:center}
+  .tile b{font-size:14px;line-height:1.3}
+  .wide{background:var(--surface);border-radius:16px;padding:12px;display:flex;align-items:center;gap:12px}
+  .date{width:42px;flex:none;border-radius:12px;overflow:hidden;text-align:center;border:1px solid var(--line-soft)}
+  .date div:first-child{background:#EE8A35;font-size:9px;font-weight:800;letter-spacing:1px;padding:2px 0}
+  .date div:last-child{font-family:var(--display);font-size:16px;font-weight:800;padding:2px 0 3px}
+  .wide span{font-size:14px;line-height:1.35}
+
+  .about p{margin:8px 0 0;font-size:15px;line-height:1.55}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .chip{font-size:14px;font-weight:600;background:var(--ground);padding:8px 14px;border-radius:999px}
+  .chip.shared{background:var(--green-tint);color:var(--green)}
+
+  .asked{border:2px solid var(--orange)}
+  .asked .cap{color:var(--orange-text)}
+  .asked h2{margin:8px 0 10px;font-size:16px;line-height:1.35}
+  .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .muted{font-size:13px;color:var(--muted)}
+  .btn-sm{height:44px;padding:0 18px;border-radius:14px;border:2px solid var(--green);background:var(--surface);color:var(--green);font-size:14px;font-weight:700;cursor:pointer}
+
+  /* footer */
+  .foot{padding:12px 20px 24px;background:var(--surface);border-top:1px solid var(--line-soft);display:flex;flex-direction:column;gap:8px}
+  .btn{display:flex;align-items:center;justify-content:center;gap:8px;height:56px;border-radius:18px;border:0;background:var(--green);color:#fff;font-size:17px;font-weight:700;cursor:pointer;width:100%}
+  .btn.sent{background:var(--green-tint);color:var(--green);cursor:default}
+  .note{text-align:center;font-size:12px;color:var(--muted)}
+
+  /* sheets */
+  .scrim{position:absolute;inset:0;background:rgba(23,32,27,.35);display:flex;align-items:flex-end;z-index:5}
+  .sheet{width:100%;background:var(--surface);border-radius:28px 28px 0 0;padding:10px 20px 24px;display:flex;flex-direction:column;gap:14px;max-height:85%;overflow-y:auto}
+  .grab{width:40px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 4px}
+  .sheet h3{margin:0;font-family:var(--display);font-size:22px;font-weight:800}
+  .starters{display:flex;flex-direction:column;gap:8px}
+  .starter{text-align:left;min-height:48px;padding:10px 14px;border-radius:14px;border:2px solid var(--line-soft);background:var(--ground);font-size:15px;cursor:pointer}
+  .starter[aria-pressed="true"]{border-color:var(--green);background:var(--green-tint)}
+  textarea{width:100%;min-height:90px;resize:none;border-radius:16px;border:2px solid var(--line);background:var(--surface);padding:12px 14px;font-size:16px;line-height:1.5;outline:none}
+  textarea:focus{border-color:var(--green)}
+  .menu-item{display:flex;align-items:center;gap:12px;min-height:52px;padding:0 14px;border-radius:14px;border:0;background:var(--ground);font-size:16px;font-weight:600;cursor:pointer;text-align:left}
+  .menu-item.warn{color:#9A2B1F;background:#FBE9E6}
+  .ghost{height:48px;border:0;background:transparent;color:var(--green);font-size:15px;font-weight:700;cursor:pointer}
+  .toast{position:absolute;left:20px;right:20px;bottom:110px;background:var(--green);color:#fff;border-radius:16px;padding:12px 14px;font-size:14px;font-weight:600;z-index:6}
+  [hidden]{display:none !important}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="top">
+    <button class="icon-btn" aria-label="Back" onclick="if(history.length>1) history.back(); else location.href='people.html'"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+    <button class="icon-btn" id="moreBtn" aria-label="More options for Rohit"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></button>
+  </div>
+
+  <main class="scroll">
+    <section class="card head" aria-labelledby="name">
+      <div class="photo" role="img" aria-label="Rohit's photo">
+        <svg aria-hidden="true" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4.2-6 8-6s7 2 8 6"/></svg>PHOTO
+      </div>
+      <span class="nophoto">Rohit hasn't added a photo yet</span>
+      <h1 id="name">Rohit G.</h1>
+      <div class="route"><span id="home">Jodhpur</span><i aria-hidden="true"></i><span>Richardson</span></div>
+      <div class="badges">
+        <span class="badge g"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.5-3 7.8-7 9-4-1.2-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg>Phone verified</span>
+        <span class="badge n">New</span>
+      </div>
+    </section>
+
+    <section class="common" aria-label="What you have in common">
+      <span class="cap">YOU TWO HAVE IN COMMON</span>
+      <div class="tiles">
+        <div class="tile"><span class="ico"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg></span><b>Both from Rajasthan</b></div>
+        <div class="tile"><span class="ico"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M5.5 6.5c3 2.5 3 8.5 0 11M18.5 6.5c-3 2.5-3 8.5 0 11"/></svg></span><b>Both play tennis</b></div>
+      </div>
+      <div class="wide">
+        <div class="date" aria-hidden="true"><div>NOV</div><div>21</div></div>
+        <span>Both interested in <b>Saturday morning cricket meetup</b></span>
+      </div>
+    </section>
+
+    <section class="card about" aria-labelledby="aboutCap">
+      <span class="cap" id="aboutCap">ABOUT</span>
+      <p>Weekend tennis at Breckinridge Park, always looking for a doubles partner. Moved from Jodhpur for work and still hunting for the best dal baati in DFW.</p>
+    </section>
+
+    <section class="card" aria-labelledby="intoCap">
+      <span class="cap" id="intoCap">INTO</span>
+      <div class="chips">
+        <span class="chip shared">Tennis</span>
+        <span class="chip">Festivals</span>
+        <span class="chip">Cooking</span>
+        <span class="chip">Board games</span>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="langCap">
+      <span class="cap" id="langCap">SPEAKS</span>
+      <div class="chips">
+        <span class="chip shared">Hindi</span>
+        <span class="chip shared">Marwari</span>
+        <span class="chip">English</span>
+      </div>
+    </section>
+  </main>
+
+  <div class="foot">
+    <button class="btn" id="hiBtn"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/></svg><span id="hiLabel">Say hi to Rohit</span></button>
+    <span class="note" id="hiNote">Chat opens only if he accepts.</span>
+  </div>
+
+  <!-- Say hi sheet -->
+  <div class="scrim" id="hiSheet" hidden>
+    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="hiTitle">
+      <div class="grab"></div>
+      <h3 id="hiTitle">Say hi to Rohit</h3>
+      <span class="muted">Pick a starter or write your own. A short, specific hello gets the most replies.</span>
+      <div class="starters" id="starters">
+        <button class="starter" aria-pressed="false">Up for doubles this weekend?</button>
+        <button class="starter" aria-pressed="false">Hi from a fellow Rajasthani in Garland!</button>
+        <button class="starter" aria-pressed="false">Are you going to the cricket meetup on Saturday?</button>
+      </div>
+      <label class="sr" for="hiText" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Your message</label>
+      <textarea id="hiText" maxlength="200" placeholder="Write a short hello"></textarea>
+      <button class="btn" id="sendHi" disabled>Send hello</button>
+      <button class="ghost" id="cancelHi">Cancel</button>
+    </div>
+  </div>
+
+  <!-- More menu -->
+  <div class="scrim" id="moreSheet" hidden>
+    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="moreTitle">
+      <div class="grab"></div>
+      <h3 id="moreTitle">Rohit G.</h3>
+      <button class="menu-item warn" data-toast="Thanks. Our team will review this."><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4h11l-1.5 4L16 12H5"/></svg>Report Rohit</button>
+      <button class="menu-item warn" data-toast="Rohit is blocked. He can't see you or message you."><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg>Block Rohit</button>
+      <button class="ghost" id="cancelMore">Cancel</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" hidden></div>
+</div>
+
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var sent = false;
+  // How Rohit chose to show his hometown in setup: 'city', 'state' or 'country'.
+  // Never show more than this, on the profile or in "in common" tiles.
+  var ROHIT = { city: 'Jodhpur', state: 'Rajasthan', country: 'India', showAs: 'city' };
+  $('home').textContent = ROHIT[ROHIT.showAs];
+
+  function open(id){ $(id).hidden = false; }
+  function close(id){ $(id).hidden = true; }
+  function toast(msg){ var t=$('toast'); t.textContent=msg; t.hidden=false; clearTimeout(t._h); t._h=setTimeout(function(){ t.hidden=true; }, 2600); }
+
+  // Say hi
+  $('hiBtn').onclick = function(){ if(!sent){ open('hiSheet'); $('hiText').focus(); } };
+  $('cancelHi').onclick = function(){ close('hiSheet'); };
+  $('hiSheet').addEventListener('click', function(e){ if(e.target.id==='hiSheet') close('hiSheet'); });
+  var starters = document.querySelectorAll('.starter');
+  Array.prototype.forEach.call(starters, function(b){
+    b.onclick = function(){
+      Array.prototype.forEach.call(starters, function(x){ x.setAttribute('aria-pressed','false'); });
+      b.setAttribute('aria-pressed','true');
+      $('hiText').value = b.textContent; update();
+    };
+  });
+  function update(){ $('sendHi').disabled = $('hiText').value.trim().length < 2; }
+  $('hiText').addEventListener('input', update);
+  $('sendHi').onclick = function(){
+    // Real build: create a hello request; the chat opens only when Rohit accepts.
+    sent = true; close('hiSheet');
+    $('hiBtn').classList.add('sent');
+    $('hiBtn').setAttribute('aria-disabled','true');
+    $('hiLabel').textContent = 'Hello sent';
+    $('hiNote').textContent = "We'll let you know when Rohit replies.";
+    toast('Hello sent to Rohit');
+  };
+
+  // More menu
+  $('moreBtn').onclick = function(){ open('moreSheet'); };
+  $('cancelMore').onclick = function(){ close('moreSheet'); };
+  $('moreSheet').addEventListener('click', function(e){ if(e.target.id==='moreSheet') close('moreSheet'); });
+  Array.prototype.forEach.call(document.querySelectorAll('[data-toast]'), function(b){
+    b.onclick = function(){ close('moreSheet'); toast(b.getAttribute('data-toast')); };
+  });
+
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape'){ close('hiSheet'); close('moreSheet'); } });
+})();
+</script>
+</body>
+</html>
