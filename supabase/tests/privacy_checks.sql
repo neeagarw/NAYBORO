@@ -58,3 +58,27 @@ insert into hellos (from_id,to_id,message) values ('33333333-3333-3333-3333-3333
 reset role;
 insert into auth.users values ('44444444-4444-4444-4444-444444444444');
 insert into profiles (id,first_name,is_adult,onboarded_at) values ('44444444-4444-4444-4444-444444444444','K',false,now());
+
+-- ───────── setup flow (save_profile + photos) ─────────
+reset role;
+insert into auth.users values ('55555555-5555-5555-5555-555555555555');
+set role authenticated;
+select set_config('request.jwt.claim.sub','55555555-5555-5555-5555-555555555555',false);
+\echo '14. save_profile with only 2 interests (expect error):'
+select save_profile('Kavya','Sharma',null,null,4,'city',array[1]::bigint[],array[1,2]::bigint[],true);
+\echo '15. save_profile without the 18+ box (expect error):'
+select save_profile('Kavya','Sharma',null,null,4,'city',array[1]::bigint[],array[1,2,3]::bigint[],false);
+\echo '16. save_profile valid (Jaipur + Kolkata, 3 interests, Frisco):'
+select save_profile('Kavya','Sharma','Chai and long walks','55555555-5555-5555-5555-555555555555/a.jpg',4,'city',array[1,9]::bigint[],array[1,2,16]::bigint[],true);
+select first_name, onboarded_at is not null as onboarded, (select count(*) from profile_roots) roots, (select count(*) from profile_interests where profile_id=auth.uid()) ints from profiles;
+\echo '17. Re-save (edit profile) keeps onboarded and photo, replaces roots:'
+select save_profile('Kavya','S',null,null,4,'state',array[1]::bigint[],array[1,2,3,4]::bigint[],true);
+select last_name, photo_path, root_level, (select count(*) from profile_roots) roots from profiles;
+\echo '18. Photo path in someone else''s folder (expect error):'
+select save_profile('Kavya','S',null,'11111111-1111-1111-1111-111111111111/x.jpg',4,'city',array[1]::bigint[],array[1,2,3]::bigint[],true);
+\echo '19. Upload into own avatar folder ok, other folder blocked:'
+insert into storage.objects (bucket_id,name) values ('avatars','55555555-5555-5555-5555-555555555555/a.jpg');
+insert into storage.objects (bucket_id,name) values ('avatars','11111111-1111-1111-1111-111111111111/evil.jpg');
+\echo '20. Others see Kavya at state level (Rajasthan):'
+select set_config('request.jwt.claim.sub','11111111-1111-1111-1111-111111111111',false);
+select display_name, area_name, shown_root from public_profiles where display_name like 'Kavya%';

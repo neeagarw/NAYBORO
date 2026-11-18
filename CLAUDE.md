@@ -39,9 +39,17 @@ This Next.js version has breaking changes: read `node_modules/next/dist/docs/` b
 - Phone-first: wrap screens in `.app-frame` (max 440px, framed on desktop). Tap targets at least 44px.
 - Bottom nav has three tabs: Explore, People, Chats. The account menu opens from the orange initial button.
 
+## Next.js + Supabase gotchas in this repo (learned the hard way)
+- Cache Components is on. Anything that reads cookies, headers or searchParams must sit inside `<Suspense>` (see `src/app/(app)/layout.tsx`).
+- Server: `createClient()` from `@/lib/supabase/server` already calls `connection()`; always use it.
+- Browser: call `getClient()` from `@/lib/supabase/client` only inside event handlers and effects, never during render.
+- Don't call `router.refresh()` right after `router.push()`: it re-shows the old screen. After sign-in use a full page load.
+- Next.js keeps the last screen of each route alive. Reset state on purpose (a `key`, or close sheets when navigating away).
+
 ## Working style
 - Plan before large changes. Small commits after each working step.
 - Write a Supabase migration for every schema change, with RLS policies in the same file.
 - Add a case to `supabase/tests/privacy_checks.sql` for every new privacy rule.
 - Run `npm run build` and `npm run lint` and fix errors before saying a task is done.
+- For any flow change, extend and run `e2e/run.sh` (local Postgres + PostgREST + Chrome, no Supabase account needed).
 - Never commit `.env.local` or any key.

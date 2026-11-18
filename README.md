@@ -19,6 +19,7 @@ To check the privacy rules against any local Postgres: `supabase/tests/run.sh`.
 
 ## Where things are
 - `CLAUDE.md`: product rules and working style for Claude Code. Read this first.
+- `docs/SETUP.md`: connect your real Supabase project and Vercel (start here to go live).
 - `docs/SPEC.md`: screens → routes, data model, build order, open questions.
 - `design/mockups/`: the 10 HTML mockups (source of truth). `design/screenshots/`: reference images.
 - `supabase/`: migration, seed and privacy tests.

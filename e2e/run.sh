@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Local end-to-end test with no Supabase account needed.
+# Needs: a Postgres you can reach as superuser (PGHOST/PGPORT/PGUSER), the postgrest binary on PATH,
+# Python 3 with playwright, and Chrome/Chromium (set CHROME=/path/to/chrome if not found).
+set -euo pipefail
+cd "$(dirname "$0")/.."
+mkdir -p e2e/out
+psql -q -c "drop database if exists e2e" -c "create database e2e"
+psql -q -d e2e -v ON_ERROR_STOP=1 -f supabase/tests/00_supabase_stub.sql -f supabase/migrations/*_init.sql -f supabase/migrations/*_setup_flow.sql -f supabase/seed.sql
+psql -q -d e2e -v ON_ERROR_STOP=1 -f e2e/grants.sql
+postgrest e2e/postgrest.conf > e2e/out/postgrest.log 2>&1 & PGRST=$!
+python3 e2e/local_supabase.py & GW=$!
+trap 'kill $PGRST $GW 2>/dev/null' EXIT
+ANON=$(python3 -c "
+import json,base64,hmac,hashlib
+S=b'super-secret-jwt-token-with-at-least-32-characters-long'
+b=lambda x: base64.urlsafe_b64encode(x).rstrip(b'=').decode()
+h=b(json.dumps({'alg':'HS256','typ':'JWT'}).encode()); p=b(json.dumps({'role':'anon','exp':2000000000}).encode())
+print(h+'.'+p+'.'+b(hmac.new(S,(h+'.'+p).encode(),hashlib.sha256).digest()))")
+NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321 NEXT_PUBLIC_SUPABASE_ANON_KEY=$ANON npm run build
+NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321 NEXT_PUBLIC_SUPABASE_ANON_KEY=$ANON npx next start -p 3123 > e2e/out/next.log 2>&1 & NEXT=$!
+trap 'kill $PGRST $GW $NEXT 2>/dev/null' EXIT
+sleep 5
+python3 e2e/setup_flow.py

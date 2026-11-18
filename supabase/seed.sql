@@ -1,16 +1,17 @@
 -- Nayboro seed data for local development and launch. Runs after migrations (supabase db reset).
 
-insert into areas (name, state, metro, zips) values
-  ('Garland','TX','DFW','{75040,75041,75042,75043,75044}'),
-  ('Plano','TX','DFW','{75023,75024,75025,75074,75075,75093}'),
-  ('Richardson','TX','DFW','{75080,75081,75082}'),
-  ('Frisco','TX','DFW','{75033,75034,75035,75036}'),
-  ('Irving','TX','DFW','{75038,75039,75060,75061,75062,75063}'),
-  ('Dallas','TX','DFW','{75201,75204,75206,75214,75219,75225,75230,75240,75248,75252}'),
-  ('Allen','TX','DFW','{75002,75013}'),
-  ('McKinney','TX','DFW','{75069,75070,75071,75072}'),
-  ('Carrollton','TX','DFW','{75006,75007,75010}'),
-  ('Rowlett','TX','DFW','{75088,75089}');
+-- lat/lng = approximate city centre, used on the device to match a location to the nearest area.
+insert into areas (name, state, metro, zips, lat, lng) values
+  ('Garland','TX','DFW','{75040,75041,75042,75043,75044}', 32.9126, -96.6389),
+  ('Plano','TX','DFW','{75023,75024,75025,75074,75075,75093}', 33.0198, -96.6989),
+  ('Richardson','TX','DFW','{75080,75081,75082}', 32.9483, -96.7299),
+  ('Frisco','TX','DFW','{75033,75034,75035,75036}', 33.1507, -96.8236),
+  ('Irving','TX','DFW','{75038,75039,75060,75061,75062,75063}', 32.8140, -96.9489),
+  ('Dallas','TX','DFW','{75201,75204,75206,75214,75219,75225,75230,75240,75248,75252}', 32.7767, -96.7970),
+  ('Allen','TX','DFW','{75002,75013}', 33.1032, -96.6706),
+  ('McKinney','TX','DFW','{75069,75070,75071,75072}', 33.1972, -96.6398),
+  ('Carrollton','TX','DFW','{75006,75007,75010}', 32.9756, -96.8900),
+  ('Rowlett','TX','DFW','{75088,75089}', 32.9029, -96.5639);
 
 insert into places (city, region, country) values
   ('Jaipur','Rajasthan','India'),('Jaisalmer','Rajasthan','India'),('Jodhpur','Rajasthan','India'),

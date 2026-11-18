@@ -1,8 +1,12 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { connection } from "next/server";
 
 /** Supabase client for Server Components, Route Handlers and Server Actions. */
 export async function createClient() {
+  // Supabase reads the clock while loading the session, so this must only run for a real
+  // request, never during a prerender or prefetch (Cache Components rule).
+  await connection();
   const cookieStore = await cookies();
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
