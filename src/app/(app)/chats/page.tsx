@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { ScreenSkeleton } from "@/components/Skeleton";
 import { createClient } from "@/lib/supabase/server";
 import { signPhotos } from "@/lib/photos";
 import { AppShell } from "@/components/AppShell";
@@ -9,7 +10,7 @@ export const metadata = { title: "Chats · Nayboro" };
 // Port of design/mockups/chats.html.
 export default function ChatsPage() {
   return (
-    <Suspense fallback={<div className="app-frame" />}>
+    <Suspense fallback={<ScreenSkeleton kind="list" />}>
       <Chats />
     </Suspense>
   );

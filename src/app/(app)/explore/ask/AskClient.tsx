@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { getClient } from "@/lib/supabase/client";
-import { MaskIcon, PlusIcon, XIcon, useToast } from "@/components/ui";
+import { MaskIcon, PlusIcon, XIcon, friendly, useToast } from "@/components/ui";
 
 const TOPICS = ["Groceries", "Schools", "Food", "Sports", "Immigration", "Housing", "Travel", "Life here"];
 // Starter keyword list for suggesting a topic (from the mockup). Grow it from real questions.
@@ -56,7 +56,7 @@ export function AskClient({ userId, name, roots, area, metro }: { userId: string
       scope, target_city: scope === "other" ? city.trim() : null, is_anonymous: anon,
     });
     setPosting(false);
-    if (error) return toast("Couldn't post. Please try again.");
+    if (error) return toast(friendly(error, "Couldn't post. Please try again."));
     router.push("/explore");
   }
 

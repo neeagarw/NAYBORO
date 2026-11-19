@@ -31,14 +31,32 @@
 4. **Custom SMTP (required before beta).** Supabase's built-in email only sends a handful of emails an hour, which breaks sign-in once more than a few people try. Create a free Resend account, verify your domain, then Authentication → SMTP Settings → host `smtp.resend.com`, port 465, user `resend`, password = Resend API key, sender `hello@<your domain>`.
 5. Authentication → URL Configuration: Site URL = your Vercel URL (later your domain).
 
-## 3. Vercel (10 min)
+## 3. Email alerts (15 min)
+Alerts go out when someone says hi to you, accepts your hello, or answers your question. One email per person per batch, with a one-click "Turn off email alerts" link.
+1. Resend: verify your domain and create an API key (the same account you set up for sign-in emails).
+2. Generate three secrets: run `openssl rand -base64 32` three times, for `NOTIFY_WEBHOOK_SECRET`, `CRON_SECRET` and `UNSUBSCRIBE_SECRET`.
+3. Supabase → Database → **Webhooks** → Create:
+   - Table `notifications`, event **Insert**
+   - Type HTTP Request, method **POST**, URL `https://<your site>/api/notifications/dispatch`
+   - Header `x-webhook-secret` = your `NOTIFY_WEBHOOK_SECRET`
+4. `vercel.json` already adds a daily safety-net run at 8–9am Central (Vercel sends `CRON_SECRET` itself).
+
+## 4. Make yourself an admin (1 min)
+After you've signed up on the live site, in Supabase → SQL Editor:
+```sql
+insert into admins select id from profiles where first_name = 'Neeraj';   -- check it picked only you
+```
+Then "Admin" appears in your account menu: open reports, hide questions/answers, pause or restore accounts, help messages, and add or delete events.
+
+## 5. Vercel (10 min)
 1. Push the repo to GitHub, then vercel.com → Add New Project → import it.
-2. Environment Variables: add the two `NEXT_PUBLIC_SUPABASE_*` values. Deploy.
+2. Environment Variables: add every name in `.env.example` (Supabase URL and anon key, service role key, site URL, Resend key and sender, the three secrets). Deploy.
 3. Use the paid plan before launch (the free plan doesn't allow commercial use).
 
-## 4. Smoke test on your phone (10 min)
+## 6. Smoke test on your phone (10 min)
 Open the Vercel URL → Get started → enter your email → type the code → finish setup → People shows "You're set up as…".
 Then Edit profile from the orange button, change something, and save. Log out and log back in.
+From a second account, say hi to yourself: you should get an alert email within a minute. Click its "Turn off email alerts" link once to check it works, then turn alerts back on in SQL (`update profiles set email_alerts = true where ...`).
 
 ## Checks you can run any time
 - `supabase/tests/run.sh`: 20 database privacy checks against a local Postgres.

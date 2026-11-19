@@ -81,6 +81,12 @@ export function Tag({ children, tone = "green", className = "" }: { children: Re
   return <span className={`whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-bold ${t} ${className}`}>{children}</span>;
 }
 
+/** Shows our own database messages (limits, paused account) as-is; anything else gets a generic line. */
+export function friendly(error: { message?: string } | null | undefined, fallback = "Something went wrong. Please try again.") {
+  const m = error?.message ?? "";
+  return /^(You |Your account is paused)/.test(m) ? m : fallback;
+}
+
 /** "2h ago", "Yesterday", "3 days ago". */
 export function ago(iso: string) {
   const s = (Date.now() - new Date(iso).getTime()) / 1000;

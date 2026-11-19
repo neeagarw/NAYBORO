@@ -1,4 +1,4 @@
-"""Tiny local stand-in for Supabase, for end-to-end tests only.
+"""Tiny local stand-in for Supabase (and Resend), for end-to-end tests only.
 /auth/v1/*    -> fake email-code auth (any 6 digits = 123456 works), issues real HS256 JWTs
 /rest/v1/*    -> proxied to a real PostgREST on the real schema (RLS enforced)
 /storage/v1/* -> accepts uploads into the caller's own folder only (mirrors the policy)
@@ -67,6 +67,7 @@ class H(BaseHTTPRequestHandler):
         if path.startswith("/auth/v1/"): return self.auth(m, path[9:])
         if path.startswith("/rest/v1/"): return self.rest(m, path[8:])
         if path.startswith("/storage/v1/"): return self.storage(m, path[12:])
+        if path.startswith("/resend/"): return self.resend()
         self.send(404, {"msg": "not found"})
 
     def auth(self, m, p):
@@ -78,7 +79,7 @@ class H(BaseHTTPRequestHandler):
             if j.get("token") != "123456": return self.send(403, {"code": 403, "error_code": "otp_expired", "msg": "Token has expired or is invalid"})
             email = j["email"]; uid = str(uuid.uuid5(uuid.NAMESPACE_URL, email))
             subprocess.run(["psql", "-d", "e2e", "-qc",
-                            f"insert into auth.users values ('{uid}') on conflict do nothing"], check=True)
+                            f"insert into auth.users (id, email) values ('{uid}', '{email}') on conflict do nothing"], check=True)
             return self.send(200, session(uid, email))
         if p.startswith("token"):
             rt = j.get("refresh_token", "")
@@ -105,6 +106,14 @@ class H(BaseHTTPRequestHandler):
             LOG.write(f"   -> {code} {data[:300]!r}\n"); LOG.flush()
         out = {k: hdrs[k] for k in ("Content-Type", "Content-Range") if hdrs.get(k)}
         self.send(code, data, out)
+
+    def resend(self):
+        # Stand-in for Resend: record the email instead of sending it.
+        if self.headers.get("Authorization") != "Bearer re_test":
+            return self.send(401, {"message": "bad api key"})
+        with open("e2e/out/emails.jsonl", "a") as f:
+            f.write(self.body().decode() + "\n")
+        return self.send(200, {"id": str(uuid.uuid4())})
 
     def storage(self, m, p):
         c = self.claims(); self.body()

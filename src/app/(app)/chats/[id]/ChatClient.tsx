@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getClient } from "@/lib/supabase/client";
-import { Avatar, Sheet, MenuItem, useToast, BackIcon, MoreIcon, ShieldIcon, XIcon, ArrowIcon } from "@/components/ui";
+import { Avatar, Sheet, MenuItem, friendly, useToast, BackIcon, MoreIcon, ShieldIcon, XIcon, ArrowIcon } from "@/components/ui";
 import { SafetyTips } from "@/components/SafetyTips";
 
 export type Header = { other_id: string; display_name: string; first_name: string; photo_path: string | null; subtitle: string; context: string; muted: boolean };
@@ -60,7 +60,7 @@ export function ChatClient({ conv, me, header: h, photoUrl, initial }: { conv: s
     setSending(true);
     const { data, error } = await getClient().from("messages").insert({ conversation_id: conv, sender_id: me, body }).select("id, sender_id, body, created_at").single();
     setSending(false);
-    if (error) return toast("Message not sent. Please try again.");
+    if (error) return toast(friendly(error, "Message not sent. Please try again."));
     add(data as Msg);
     setText(""); requestAnimationFrame(grow);
   }
@@ -70,8 +70,8 @@ export function ChatClient({ conv, me, header: h, photoUrl, initial }: { conv: s
     toast(next ? "Chat muted. You won't get notifications." : "Notifications are back on.");
   }
   async function report(reason: string) {
-    await getClient().from("reports").insert({ reporter_id: me, target_type: "profile", target_id: h.other_id, reason: `${reason} (from chat ${conv})` });
-    setSheet(null); toast("Thanks. Our team will review this.");
+    const { error } = await getClient().from("reports").insert({ reporter_id: me, target_type: "profile", target_id: h.other_id, reason: `${reason} (from chat ${conv})` });
+    setSheet(null); toast(error ? friendly(error) : "Thanks. Our team will review this.");
   }
   async function block() {
     await getClient().from("blocks").insert({ blocker_id: me, blocked_id: h.other_id });

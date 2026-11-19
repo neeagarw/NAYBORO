@@ -1,8 +1,6 @@
--- Roles and grants that Supabase sets up for you, needed only for the local test.
+-- Only the login role PostgREST uses; Supabase creates this for you. Table and function
+-- privileges come from the default privileges in supabase/tests/00_supabase_stub.sql.
 do $$ begin create role authenticator login noinherit; exception when duplicate_object then null; end $$;
-grant authenticated, anon to authenticator;
-grant usage on schema public to anon, authenticated;
-grant all on all tables in schema public to authenticated;
-grant select on all tables in schema public to anon;
-grant usage, select on all sequences in schema public to authenticated;
-grant execute on all functions in schema public to authenticated;
+grant authenticated, anon, service_role to authenticator;
+grant usage on schema auth to service_role;
+grant select on auth.users to service_role;

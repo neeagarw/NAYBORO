@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 /** Orange initial button + bottom sheet (Edit profile, Help and feedback, Log out). */
-export function AccountMenu({ name, route }: { name: string; route: string }) {
+export function AccountMenu({ name, route, admin = false }: { name: string; route: string; admin?: boolean }) {
   const [open, setOpen] = useState(false);
   return (
     <>
@@ -18,6 +18,7 @@ export function AccountMenu({ name, route }: { name: string; route: string }) {
             <h3 id="meTitle" className="m-0 font-display text-[22px] font-extrabold">{name}</h3>
             <span className="text-sm text-muted">{route}</span>
             <Link href="/setup" onClick={() => setOpen(false)} className="flex min-h-[52px] items-center rounded-[14px] bg-ground px-3.5 text-base font-semibold">Edit profile</Link>
+            {admin && <Link href="/admin" onClick={() => setOpen(false)} className="flex min-h-[52px] items-center rounded-[14px] bg-green-tint px-3.5 text-base font-semibold text-green">Admin</Link>}
             <Link href="/help" onClick={() => setOpen(false)} className="flex min-h-[52px] items-center rounded-[14px] bg-ground px-3.5 text-base font-semibold">Help and feedback</Link>
             <form action="/auth/signout" method="post">
               <button className="flex min-h-[52px] w-full items-center rounded-[14px] bg-ground px-3.5 text-left text-base font-semibold">Log out</button>

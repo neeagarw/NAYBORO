@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { getClient } from "@/lib/supabase/client";
-import { BackIcon, ShieldIcon, ArrowIcon } from "@/components/ui";
+import { BackIcon, ShieldIcon, ArrowIcon, friendly } from "@/components/ui";
 
 import { TOPICS } from "./topics";
 const validEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
@@ -25,7 +25,7 @@ export function HelpClient({ userId, email: initialEmail, initialTopic }: { user
     setSending(true); setError(null);
     const { error } = await getClient().from("contact_messages").insert({ profile_id: userId, topic, body: message.trim(), reply_email: email.trim() });
     setSending(false);
-    if (error) return setError("We couldn't send that. Please try again.");
+    if (error) return setError(friendly(error, "We couldn't send that. Please try again."));
     setDone(true);
   }
 

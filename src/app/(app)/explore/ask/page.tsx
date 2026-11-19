@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { ScreenSkeleton } from "@/components/Skeleton";
 import { createClient } from "@/lib/supabase/server";
 import { AskClient } from "./AskClient";
 
@@ -7,7 +8,7 @@ export const metadata = { title: "New question · Nayboro" };
 // Port of design/mockups/ask.html.
 export default function AskPage() {
   return (
-    <Suspense fallback={<div className="app-frame" />}>
+    <Suspense fallback={<ScreenSkeleton kind="form" />}>
       <Ask />
     </Suspense>
   );

@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { ScreenSkeleton } from "@/components/Skeleton";
 import { createClient } from "@/lib/supabase/server";
 import { HelpClient } from "./HelpClient";
 import { TOPICS } from "./topics";
@@ -8,7 +9,7 @@ export const metadata = { title: "Contact us · Nayboro" };
 // Port of design/mockups/contact.html. Opened from the account menu and from "Tell us" on Events.
 export default function HelpPage({ searchParams }: PageProps<"/help">) {
   return (
-    <Suspense fallback={<div className="app-frame" />}>
+    <Suspense fallback={<ScreenSkeleton kind="form" />}>
       <Help searchParams={searchParams} />
     </Suspense>
   );

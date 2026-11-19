@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { ScreenSkeleton } from "@/components/Skeleton";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { signPhotos } from "@/lib/photos";
@@ -9,7 +10,7 @@ export const metadata = { title: "Profile · Nayboro" };
 // Port of design/mockups/profile.html (someone else's profile).
 export default function ProfilePage({ params }: PageProps<"/p/[id]">) {
   return (
-    <Suspense fallback={<div className="app-frame" />}>
+    <Suspense fallback={<ScreenSkeleton kind="profile" />}>
       <Profile params={params} />
     </Suspense>
   );

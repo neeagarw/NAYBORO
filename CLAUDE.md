@@ -46,6 +46,9 @@ This Next.js version has breaking changes: read `node_modules/next/dist/docs/` b
 - Server: `createClient()` from `@/lib/supabase/server` already calls `connection()`; always use it.
 - Browser: call `getClient()` from `@/lib/supabase/client` only inside event handlers and effects, never during render.
 - Don't call `router.refresh()` right after `router.push()`: it re-shows the old screen. After sign-in use a full page load.
+- `createAdminClient()` (service role) skips row level security. Use it only in `src/app/api/*` jobs no user triggers directly; never in pages or Client Components.
+- In PL/pgSQL triggers shared by several tables, nest IFs instead of one AND chain: `new.some_column` on a table without that column fails even behind `tg_table_name = ...`.
+- New write paths for users need a `guard_write` trigger (spam limit + paused accounts); see `20261120000000_before_beta.sql`.
 - Never import a value (list, constant) into a Server Component from a `"use client"` file: it arrives as a client reference, not the value. Put shared values in a plain `.ts` file (see `src/app/(app)/help/topics.ts`).
 - Next.js keeps the last screen of each route alive. Reset state on purpose (a `key`, or close sheets when navigating away).
 

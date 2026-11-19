@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { getClient } from "@/lib/supabase/client";
-import { Sheet, MenuItem, useToast, BackIcon, MoreIcon, ShieldIcon, ChatIcon, FlagIcon, BlockIcon, toneFor } from "@/components/ui";
+import { Sheet, MenuItem, friendly, useToast, BackIcon, MoreIcon, ShieldIcon, ChatIcon, FlagIcon, BlockIcon, toneFor } from "@/components/ui";
 
 export type Card = {
   id: string; display_name: string; first_name: string; photo_path: string | null; intro: string | null;
@@ -15,6 +15,8 @@ export type Card = {
 };
 
 const SPORTS = new Set(["Tennis", "Cricket", "Badminton", "Pickleball", "Running", "Yoga", "Gym buddies", "Cycling", "Volleyball", "Hiking", "Swimming", "Table tennis", "Football", "Basketball"]);
+// Turn on once phone sign-in exists, so the badge means something.
+const PHONE_VERIFICATION_LIVE = false;
 const REASONS = ["Fake profile", "Harassment or hate", "Scam or asking for money", "Inappropriate photo or content", "Something else"];
 
 export function ProfileClient({ card: c, photoUrl, myArea, myRegion }: { card: Card; photoUrl: string | null; myArea: string; myRegion: string }) {
@@ -44,7 +46,7 @@ export function ProfileClient({ card: c, photoUrl, myArea, myRegion }: { card: C
     const me = (await getClient().auth.getUser()).data.user!.id;
     const { error } = await getClient().from("hellos").insert({ from_id: me, to_id: c.id, message: text.trim() });
     setBusy(false);
-    if (error) return toast(error.message.includes("a lot of people") ? error.message : "Couldn't send. Please try again.");
+    if (error) return toast(friendly(error, "Couldn't send. Please try again."));
     setSheet(null); setState("sent"); toast(`Hello sent to ${c.first_name}`);
   }
   async function accept() {
@@ -56,8 +58,8 @@ export function ProfileClient({ card: c, photoUrl, myArea, myRegion }: { card: C
   }
   async function report(reason: string) {
     const me = (await getClient().auth.getUser()).data.user!.id;
-    await getClient().from("reports").insert({ reporter_id: me, target_type: "profile", target_id: c.id, reason });
-    setSheet(null); toast("Thanks. Our team will review this.");
+    const { error } = await getClient().from("reports").insert({ reporter_id: me, target_type: "profile", target_id: c.id, reason });
+    setSheet(null); toast(error ? friendly(error) : "Thanks. Our team will review this.");
   }
   async function block() {
     const me = (await getClient().auth.getUser()).data.user!.id;
@@ -91,7 +93,8 @@ export function ProfileClient({ card: c, photoUrl, myArea, myRegion }: { card: C
             <span>{c.shown_root}</span><i aria-hidden="true" className="w-7 border-t-2 border-dashed border-orange" /><span>{c.area_name}</span>
           </div>
           <div className="flex flex-wrap justify-center gap-1.5">
-            {c.phone_verified && <span className="inline-flex items-center gap-1 rounded-full bg-green-tint px-2.5 py-[5px] text-xs font-bold text-green"><ShieldIcon size={14} />Phone verified</span>}
+            {/* "Phone verified" stays hidden until phone sign-in exists (docs/SPEC.md). */}
+            {PHONE_VERIFICATION_LIVE && c.phone_verified && <span className="inline-flex items-center gap-1 rounded-full bg-green-tint px-2.5 py-[5px] text-xs font-bold text-green"><ShieldIcon size={14} />Phone verified</span>}
             {c.is_new && <span className="rounded-full bg-ground px-2.5 py-[5px] text-xs font-bold text-muted">New</span>}
           </div>
         </section>

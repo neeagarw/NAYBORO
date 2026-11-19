@@ -1,7 +1,4 @@
 \set ON_ERROR_STOP 0
-grant usage on schema public to authenticated;
-grant all on all tables in schema public to authenticated;
-grant execute on all functions in schema public to authenticated;
 -- users: N=Neeraj, R=Rohit, A=Aman
 insert into auth.users values ('11111111-1111-1111-1111-111111111111'),('22222222-2222-2222-2222-222222222222'),('33333333-3333-3333-3333-333333333333');
 insert into profiles (id, first_name, last_name, area_id, root_level, is_adult, onboarded_at) values
@@ -105,3 +102,65 @@ set role authenticated;
 select set_config('request.jwt.claim.sub','22222222-2222-2222-2222-222222222222',false);
 insert into hellos (from_id, to_id, message) select '22222222-2222-2222-2222-222222222222', ('aaaaaaaa-0000-0000-0000-' || lpad(g::text, 12, '0'))::uuid, 'hi there' from generate_series(1,19) g;
 insert into hellos (from_id, to_id, message) values ('22222222-2222-2222-2222-222222222222','aaaaaaaa-0000-0000-0000-000000000020','hi there');
+
+-- ───────── before beta: admin, suspensions, limits, email queue ─────────
+reset role;
+update auth.users set email = 'neeraj@example.com' where id = '11111111-1111-1111-1111-111111111111';
+update auth.users set email = 'rohit@example.com'  where id = '22222222-2222-2222-2222-222222222222';
+update auth.users set email = 'kavya@example.com'  where id = '55555555-5555-5555-5555-555555555555';
+set role authenticated;
+select set_config('request.jwt.claim.sub','11111111-1111-1111-1111-111111111111',false);
+\echo '27. Non-admin cannot read reports (expect error: not allowed):'
+select * from admin_reports();
+\echo '28. Signed-in users cannot claim email alerts (expect permission denied):'
+select * from claim_notifications(10);
+\echo '29. Saying hi queues an email alert for the receiver (Rohit -> Kavya):'
+reset role; update notifications set sent_at = now() where sent_at is null; set role authenticated;
+select set_config('request.jwt.claim.sub','22222222-2222-2222-2222-222222222222',false);
+delete from hellos where from_id = '22222222-2222-2222-2222-222222222222' and to_id::text like 'aaaaaaaa%';
+reset role;
+delete from hellos where from_id = '22222222-2222-2222-2222-222222222222' and to_id::text like 'aaaaaaaa%';
+set role authenticated;
+select set_config('request.jwt.claim.sub','22222222-2222-2222-2222-222222222222',false);
+insert into hellos (from_id, to_id, message) values ('22222222-2222-2222-2222-222222222222','55555555-5555-5555-5555-555555555555','Hi Kavya!');
+reset role;
+select kind, recipient_id = '55555555-5555-5555-5555-555555555555' as to_kavya from notifications where sent_at is null;
+\echo '30. Server claims it once: email, names and message (second claim returns nothing):'
+set role service_role;
+select email, first_name, kind, actor_name, detail, link_path from claim_notifications(10);
+select count(*) as second_claim from claim_notifications(10);
+\echo '31. Alerts off = no email:'
+reset role;
+update profiles set email_alerts = false where id = '55555555-5555-5555-5555-555555555555';
+insert into notifications (recipient_id, kind, actor_id) values ('55555555-5555-5555-5555-555555555555','hello','22222222-2222-2222-2222-222222222222');
+set role service_role;
+select count(*) as emails from claim_notifications(10);
+\echo '32. Admin suspends Kavya after a report: she disappears for others and cannot post:'
+reset role;
+insert into admins values ('11111111-1111-1111-1111-111111111111');
+set role authenticated;
+select set_config('request.jwt.claim.sub','22222222-2222-2222-2222-222222222222',false);
+insert into reports (reporter_id, target_type, target_id, reason) values ('22222222-2222-2222-2222-222222222222','profile','55555555-5555-5555-5555-555555555555','Fake profile');
+select set_config('request.jwt.claim.sub','11111111-1111-1111-1111-111111111111',false);
+select target_type, report_count, reasons, owner_name from admin_reports();
+select admin_resolve('profile','55555555-5555-5555-5555-555555555555','suspend');
+select count(*) as open_reports from admin_reports();
+select set_config('request.jwt.claim.sub','22222222-2222-2222-2222-222222222222',false);
+select count(*) as kavya_visible from public_profiles where id = '55555555-5555-5555-5555-555555555555';
+select set_config('request.jwt.claim.sub','55555555-5555-5555-5555-555555555555',false);
+insert into questions (author_id, body) values ('55555555-5555-5555-5555-555555555555','Is anyone around for chai?');
+\echo '33. Question limit: 6th question in a day is refused (expect error on the last insert):'
+select set_config('request.jwt.claim.sub','11111111-1111-1111-1111-111111111111',false);
+insert into questions (author_id, body) select '11111111-1111-1111-1111-111111111111', 'Question number ' || g || ' about life here' from generate_series(1,5) g;
+insert into questions (author_id, body) values ('11111111-1111-1111-1111-111111111111','One more question about life here');
+\echo '34. Admin cannot suspend another admin (expect error):'
+select admin_resolve('profile','11111111-1111-1111-1111-111111111111','suspend');
+\echo '35. Posting an answer works and alerts the asker (regression check for the alert trigger):'
+reset role;
+update notifications set sent_at = now() where sent_at is null;
+select id as rohit_q from questions where author_id = '22222222-2222-2222-2222-222222222222' limit 1 \gset
+set role authenticated;
+select set_config('request.jwt.claim.sub','11111111-1111-1111-1111-111111111111',false);
+insert into answers (question_id, author_id, body) values (:'rohit_q', '11111111-1111-1111-1111-111111111111', 'Try the Saturday market.');
+reset role;
+select kind, recipient_id = '22222222-2222-2222-2222-222222222222' as to_rohit from notifications where sent_at is null;

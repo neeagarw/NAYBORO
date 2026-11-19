@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { ScreenSkeleton } from "@/components/Skeleton";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { signPhotos } from "@/lib/photos";
@@ -9,7 +10,7 @@ export const metadata = { title: "Chat · Nayboro" };
 // Port of design/mockups/chat.html.
 export default function ChatPage({ params }: PageProps<"/chats/[id]">) {
   return (
-    <Suspense fallback={<div className="app-frame" />}>
+    <Suspense fallback={<ScreenSkeleton kind="chat" />}>
       <Chat params={params} />
     </Suspense>
   );

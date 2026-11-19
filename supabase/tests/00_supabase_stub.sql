@@ -1,7 +1,15 @@
 do $$ begin create role authenticated nologin; exception when duplicate_object then null; end $$;
 do $$ begin create role anon nologin; exception when duplicate_object then null; end $$;
+-- Supabase's server-side role: skips row level security (used only by the server, never the browser).
+do $$ begin create role service_role nologin bypassrls; exception when duplicate_object then null; end $$;
+-- Supabase's default privileges: new tables, functions and sequences in public are granted to these roles.
+-- Row level security (tables) and explicit revokes (server-only functions) do the real protecting.
+grant usage on schema public to anon, authenticated, service_role;
+alter default privileges in schema public grant all on tables to anon, authenticated, service_role;
+alter default privileges in schema public grant all on functions to anon, authenticated, service_role;
+alter default privileges in schema public grant all on sequences to anon, authenticated, service_role;
 create schema auth;
-create table auth.users (id uuid primary key);
+create table auth.users (id uuid primary key, email text);
 -- Same definition as Supabase: works with PostgREST's request.jwt.claims and the older per-claim setting.
 create function auth.uid() returns uuid language sql stable as $$
   select coalesce(

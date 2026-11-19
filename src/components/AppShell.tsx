@@ -11,9 +11,10 @@ export async function AppShell({ tab, title, sub, head, children, overlay }: {
 }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  const [{ data: me }, { data: badge }] = await Promise.all([
+  const [{ data: me }, { data: badge }, { data: admin }] = await Promise.all([
     supabase.from("public_profiles").select("display_name, shown_root, area_name").eq("id", user!.id).maybeSingle(),
     supabase.rpc("chats_badge"),
+    supabase.rpc("is_admin"),
   ]);
 
   return (
@@ -21,7 +22,7 @@ export async function AppShell({ tab, title, sub, head, children, overlay }: {
       <div className="flex flex-col gap-3 px-5 pb-2 pt-[18px]">
         <div className="flex items-center justify-between">
           <Logo />
-          <AccountMenu name={me?.display_name ?? "You"} route={`${me?.shown_root ?? ""} → ${me?.area_name ?? ""}`} />
+          <AccountMenu name={me?.display_name ?? "You"} route={`${me?.shown_root ?? ""} → ${me?.area_name ?? ""}`} admin={!!admin} />
         </div>
         <div>
           <h1 className="m-0 font-display text-[34px] font-extrabold leading-[1.02] tracking-[-0.5px]">{title}</h1>

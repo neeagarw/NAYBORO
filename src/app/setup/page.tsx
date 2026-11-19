@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { ScreenSkeleton } from "@/components/Skeleton";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { SetupFlow, type Area, type InterestGroup, type Place, type Initial } from "./SetupFlow";
@@ -10,7 +11,7 @@ const GROUP_ORDER = ["Sport and fitness", "Food and drink", "Family and home", "
 
 export default function SetupPage() {
   return (
-    <Suspense fallback={<div className="app-frame" />}>
+    <Suspense fallback={<ScreenSkeleton kind="form" />}>
       <Setup />
     </Suspense>
   );

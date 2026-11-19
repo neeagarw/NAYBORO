@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getClient } from "@/lib/supabase/client";
-import { Avatar, Sheet, Tag, ago, useToast, PlusIcon, PinIcon, MaskIcon } from "@/components/ui";
+import { Avatar, Sheet, MenuItem, Tag, ago, friendly, useToast, PlusIcon, PinIcon, MaskIcon, MoreIcon } from "@/components/ui";
 
 export type Question = { id: string; body: string; details: string | null; topic: string; is_anonymous: boolean; author_id: string | null; author_name: string; area_label: string; is_mine: boolean; answer_count: number; created_at: string };
 export type Answer = { id: string; question_id: string; author_id: string; display_name: string; photo_path: string | null; area_name: string; roots_tag: string | null; body: string; helpful_count: number; i_found_helpful: boolean; is_mine: boolean };
@@ -16,6 +16,7 @@ export const TOPIC_COLORS: Record<string, string> = {
   Housing: "bg-[#F7E7C6] text-[#6B4A0E]", "Life here": "bg-line-soft text-[#3B463F]", General: "bg-ground text-muted",
 };
 const TZ = "America/Chicago";
+const REPORT_REASONS = ["Scam or asking for money", "Selling or advertising", "Harassment or hate", "False or harmful information", "Something else"];
 const fmt = (iso: string, o: Intl.DateTimeFormatOptions) => new Date(iso).toLocaleString("en-US", { timeZone: TZ, ...o });
 const timeRange = (e: Event) => {
   const t = (iso: string) => fmt(iso, { hour: "numeric", minute: "2-digit" });
@@ -42,6 +43,8 @@ export function ExploreClient({ initialTab, questions, answers, events, photos }
   const [answering, setAnswering] = useState<Question | null>(null);
   const [ansText, setAnsText] = useState("");
   const [posting, setPosting] = useState(false);
+  const [reporting, setReporting] = useState<{ type: "question" | "answer"; id: string } | null>(null);
+  const [reported, setReported] = useState<string[]>([]);
   const [liked, setLiked] = useState<string[]>(events.filter((e) => e.i_am_interested).map((e) => e.id));
 
   const byQ = useMemo(() => {
@@ -68,11 +71,21 @@ export function ExploreClient({ initialTab, questions, answers, events, photos }
     const me = (await getClient().auth.getUser()).data.user!.id;
     const { error } = await getClient().from("answers").insert({ question_id: answering.id, author_id: me, body: ansText.trim() });
     setPosting(false);
-    if (error) return toast("Couldn't post your answer. Please try again.");
+    if (error) return toast(friendly(error, "Couldn't post your answer. Please try again."));
     setOpen((o) => ({ ...o, [answering.id]: true }));
     setAnswering(null); setAnsText("");
     toast("Answer posted");
     router.refresh();
+  }
+  async function report(reason: string) {
+    if (!reporting) return;
+    const sb = getClient();
+    const me = (await sb.auth.getUser()).data.user!.id;
+    const { error } = await sb.from("reports").insert({ reporter_id: me, target_type: reporting.type, target_id: reporting.id, reason });
+    setReporting(null);
+    if (error) return toast(friendly(error));
+    setReported((r) => [...r, reporting.id]);
+    toast("Thanks. Our team will review this.");
   }
   async function toggleInterest(e: Event) {
     const on = liked.includes(e.id);
@@ -126,6 +139,9 @@ export function ExploreClient({ initialTab, questions, answers, events, photos }
                       {q.is_anonymous && <span className="flex h-5 w-5 items-center justify-center rounded-full bg-line-soft text-[#3B463F]"><MaskIcon size={13} /></span>}
                       {q.is_mine && q.is_anonymous ? "You (anonymous)" : q.author_name} · {q.area_label} · {ago(q.created_at)}
                     </span>
+                    {!q.is_mine && (
+                      <button aria-label="Report this question" onClick={() => setReporting({ type: "question", id: q.id })} className="-my-2 -mr-2 ml-auto flex h-9 w-9 items-center justify-center rounded-xl text-muted"><MoreIcon /></button>
+                    )}
                   </div>
                   <h2 className="m-0 text-lg leading-[1.35]">{q.body}</h2>
                   {q.details && <p className="-mt-1 text-sm leading-normal text-[#3B463F]">{q.details}</p>}
@@ -138,7 +154,12 @@ export function ExploreClient({ initialTab, questions, answers, events, photos }
                           {a.roots_tag && <Tag className="px-[7px] py-0.5 text-[11px]">{a.roots_tag}</Tag>}
                         </span>
                         <span className="whitespace-pre-wrap">{a.body}</span>
-                        {a.helpful_count > 0 && <span className="text-xs text-muted">{a.helpful_count} found this helpful</span>}
+                        <span className="flex items-center gap-3 text-xs text-muted">
+                          {a.helpful_count > 0 && <span>{a.helpful_count} found this helpful</span>}
+                          {!a.is_mine && (reported.includes(a.id)
+                            ? <span>Reported</span>
+                            : <button onClick={() => setReporting({ type: "answer", id: a.id })} className="min-h-6 font-semibold underline">Report</button>)}
+                        </span>
                       </div>
                     </div>
                   ))}
@@ -214,6 +235,11 @@ export function ExploreClient({ initialTab, questions, answers, events, photos }
         <span className="text-xs text-muted">Answers always show your name, so help stays trusted. Never ask for money or move people to private chats for jobs or visas.</span>
         <button onClick={postAnswer} disabled={posting || ansText.trim().length < 3} className="h-14 rounded-[18px] bg-green text-[17px] font-bold text-white disabled:bg-line disabled:text-muted">Post answer</button>
         <button onClick={() => setAnswering(null)} className="h-11 text-sm font-bold text-green">Cancel</button>
+      </Sheet>
+      <Sheet open={!!reporting} onClose={() => setReporting(null)} label="Report" title={reporting?.type === "answer" ? "Report this answer" : "Report this question"}>
+        <span className="text-[13px] text-muted">The writer won&apos;t know you reported it. Our team reviews every report.</span>
+        {REPORT_REASONS.map((r) => <MenuItem key={r} onClick={() => report(r)}>{r}</MenuItem>)}
+        <button onClick={() => setReporting(null)} className="h-11 text-sm font-bold text-green">Cancel</button>
       </Sheet>
       {toastNode}
     </>

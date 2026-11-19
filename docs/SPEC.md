@@ -31,6 +31,17 @@ mockup to a route and to the tables behind it. It also lists what the mockups st
 - **Photo:** shrunk on the phone to 640px JPEG, uploaded to the private `avatars` bucket under the person's own folder.
 - **Save:** one call to `save_profile()` writes the profile, hometowns and interests together, or nothing if anything is invalid.
 
+## Before-beta work (done)
+| Item | What it does |
+|---|---|
+| "Phone verified" badge hidden | Comes back when phone sign-in exists (`PHONE_VERIFICATION_LIVE` in ProfileClient) |
+| Styled 404, error screen, loading placeholders | `src/app/not-found.tsx`, `src/app/error.tsx`, `src/components/Skeleton.tsx` |
+| Spam limits (database) | Hellos 20/day, questions 5/day, answers 30/day, messages 60 per 10 min, reports 20/day, help messages 5/day; friendly message on screen |
+| Report questions and answers | ⋯ on question cards, "Report" under answers, reason list |
+| Admin page `/admin` | Reports grouped by target (dismiss, hide, pause account), help messages (reply, mark done), add/delete events, paused accounts (restore). Only people in `admins` |
+| Paused accounts | Disappear for everyone, can't post, say hi or message |
+| Email alerts | Said hi, accepted, new answer; one email per person per batch; one-click unsubscribe; sent via Supabase webhook + daily cron |
+
 ## Extra safety built in beyond the mockups
 - Report gives a reason list (fake profile, harassment, scam, inappropriate, other) instead of a bare toast.
 - Block asks to confirm first and explains what happens.
@@ -47,7 +58,7 @@ mockup to a route and to the tables behind it. It also lists what the mockups st
 - **Read-side views:** `public_profiles` (name + initial, area, hometown at chosen level, no blocked people) · `question_feed` (anonymous authors masked) · `event_feed` (interest counts under 5 hidden)
 - **Reference:** `places` (36 seeded hometowns), `areas` (10 DFW cities with ZIPs), `interests` (43 in 5 groups)
 
-`supabase/tests/privacy_checks.sql` checks 26 rules against a real Postgres. All pass: hometown level, owner-only base rows, anonymous masking, under-5 counts, hello-only chat, outsiders locked out of chats, block hides and stops hellos, the 18+ check, setup validation (3+ interests, 1–3 hometowns), edit keeps data, and photos only in your own folder.
+`supabase/tests/privacy_checks.sql` checks 35 rules against a real Postgres. All pass: hometown level, owner-only base rows, anonymous masking, under-5 counts, hello-only chat, outsiders locked out of chats, block hides and stops hellos, the 18+ check, setup validation (3+ interests, 1–3 hometowns), edit keeps data, and photos only in your own folder.
 
 `e2e/run.sh` drives the real app in Chrome: (1) sign in with a code, all 4 setup steps, Edit profile, log out; (2) every main screen with two real users in separate browsers: hellos, Say hi, accept, chat both ways, answer, events, anonymous ask, help form, block and report, and a non-member opening someone else's chat.
 

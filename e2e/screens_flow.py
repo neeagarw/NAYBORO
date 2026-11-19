@@ -4,7 +4,7 @@ Run from the repo root via e2e/run.sh (needs the local stand-in for Supabase + d
 Neeraj (Jaipur → Garland) gets the mockup's starting state: 3 hellos, a chat with Aman.
 Sana is a second real user. Neeraj says hi to Sana, Sana accepts, they chat both ways.
 """
-import os, re, subprocess, uuid
+import json, os, re, subprocess, urllib.error, urllib.parse, urllib.request, uuid
 from playwright.sync_api import sync_playwright, expect
 
 B = "http://localhost:3123"
@@ -13,6 +13,17 @@ os.makedirs(OUT, exist_ok=True)
 psql = lambda sql: subprocess.run(["psql", "-d", "e2e", "-qtAc", sql], check=True, capture_output=True, text=True).stdout.strip()
 uid = lambda email: str(uuid.uuid5(uuid.NAMESPACE_URL, email))
 shots = []
+
+def dispatch(secret="whsec_test"):
+    """What the Supabase webhook does: ask the app to send queued email alerts."""
+    req = urllib.request.Request(B + "/api/notifications/dispatch", method="POST", headers={"x-webhook-secret": secret})
+    try:
+        with urllib.request.urlopen(req) as r: return r.status, json.loads(r.read())
+    except urllib.error.HTTPError as e: return e.code, None
+
+def emails():
+    try: return [json.loads(l) for l in open(f"{OUT}/emails.jsonl")]
+    except FileNotFoundError: return []
 
 def shot(pg, name):
     pg.wait_for_timeout(400)
@@ -68,6 +79,7 @@ with sync_playwright() as p:
     expect(A.get_by_role("heading", name="Rohit G.")).to_be_visible()
     expect(A.get_by_text("Both from Rajasthan")).to_be_visible()
     expect(A.get_by_text("Both play tennis")).to_be_visible()
+    expect(A.get_by_text("Phone verified")).to_have_count(0)        # hidden until phone sign-in exists
     shot(A, "s02_profile")
     A.get_by_role("button", name="Say hi to Rohit").click()
     A.get_by_role("button", name="Up for tennis this weekend?").click()
@@ -203,8 +215,89 @@ with sync_playwright() as p:
     # Sana can't open Neeraj's chat with Aman (not a member) → 404
     aman_conv = psql(f"select conversation_id from conversation_members where profile_id='d0000000-0000-0000-0000-000000000003' limit 1")
     Bp.goto(B + f"/chats/{aman_conv}")
-    expect(Bp.get_by_text("This page could not be found.")).to_be_visible()
+    expect(Bp.get_by_role("heading", name="We couldn't find that")).to_be_visible()
     expect(Bp.locator("body")).not_to_contain_text("Firewheel")
+
+    # ── Email alerts ──
+    assert dispatch("wrong")[0] == 401
+    psql("update notifications set sent_at = now() where sent_at is null")  # ignore alerts to demo people
+    A.goto(B + f"/p/{sana}")
+    # (Neeraj already said hi to Sana above and she accepted; send fresh activity for the alert test)
+    q = psql(f"insert into questions (author_id, body, topic) values ('{sana}', 'Best place for chai near Plano on weekends?', 'Food') returning id")
+    A.goto(B + "/explore")
+    A.locator("article:visible").filter(has_text="Best place for chai near Plano").get_by_role("button", name="Answer").click()
+    A.get_by_label("Answer", exact=True).fill("Try the cafe on 15th Street, great masala chai.")
+    A.get_by_role("button", name="Post answer").click(); expect(A.get_by_text("Answer posted")).to_be_visible()
+    status, res = dispatch()
+    assert status == 200 and res["emails"] == 1, res
+    mail = emails()[-1]
+    assert mail["to"] == ["sana@example.com"] and mail["subject"] == "Neeraj A. answered your question on Nayboro", mail["subject"]
+    assert "Best place for chai near Plano" in mail["html"] and "Turn off email alerts" in mail["html"]
+    assert dispatch()[1]["emails"] == 0                                # each alert goes out once
+    # Unsubscribe from the email link (and a tampered link is refused)
+    link = re.search(r'href="(http://localhost:3123/api/unsubscribe[^"]+)"', mail["html"]).group(1).replace("&amp;", "&")
+    Bp.goto(link[:-3] + "xyz"); expect(Bp.get_by_role("heading", name="That link didn't work")).to_be_visible()
+    assert psql(f"select email_alerts from profiles where id='{sana}'") == "t"
+    Bp.goto(link); expect(Bp.get_by_role("heading", name="Email alerts are off")).to_be_visible()
+    assert psql(f"select email_alerts from profiles where id='{sana}'") == "f"
+    shot(Bp, "s13_unsubscribed")
+    # Hello + accepted alerts, grouped into one email per person
+    psql(f"update profiles set email_alerts = true where id='{sana}'")
+    rid = psql("select id from profiles where id::text like 'd0000000%' and first_name='Rohit'")
+    psql(f"insert into hellos (from_id, to_id, message) values ('{rid}', '{sana}', 'Hi Sana, doubles on Saturday?')")
+    psql(f"insert into hellos (from_id, to_id, message) values ('d0000000-0000-0000-0000-000000000007', '{sana}', 'Hello from a fellow Jaipurite!')")
+    status, res = dispatch()
+    mail = emails()[-1]
+    assert res["emails"] == 1 and mail["subject"] == "2 people said hi on Nayboro", (res, mail["subject"])
+    assert "Hi Sana, doubles on Saturday?" in mail["text"]
+
+    # ── Spam limit shows a friendly message ──
+    me = uid("neeraj@example.com")
+    psql(f"insert into questions (author_id, body) select '{me}', 'Filler question number ' || g from generate_series(1,4) g")
+    A.goto(B + "/explore/ask")
+    A.get_by_label("Your question").fill("Any badminton courts open late in Garland?")
+    A.get_by_role("button", name="Post question").click()
+    expect(A.get_by_text("You have asked 5 questions today. Try again tomorrow.")).to_be_visible()
+
+    # ── Report a question, then moderate it in Admin ──
+    A.goto(B + "/explore")
+    jalebi = A.locator("article:visible").filter(has_text="fresh jalebi")
+    jalebi.get_by_role("button", name="Report this question").click()
+    A.get_by_role("button", name="Selling or advertising").click(); expect(A.get_by_text("Our team will review this.")).to_be_visible()
+    # Non-admins can't open Admin
+    Bp.goto(B + "/admin"); expect(Bp.get_by_role("heading", name="We couldn't find that")).to_be_visible()
+    psql(f"insert into admins values ('{me}')")
+    A.goto(B + "/people")
+    A.get_by_role("button", name="Your account").click(); A.get_by_role("link", name="Admin").click()
+    expect(A).to_have_url(re.compile(r"/admin$"))
+    rep = A.locator("article:visible").filter(has_text="fresh jalebi")
+    expect(rep).to_contain_text("Selling or advertising")
+    expect(A.locator("article:visible").filter(has_text="Arjun")).to_contain_text("Fake profile")
+    shot(A, "s14_admin_reports")
+    rep.get_by_role("button", name="Hide question").click(); expect(A.get_by_text("Hidden from everyone")).to_be_visible()
+    A.on("dialog", lambda d: d.accept())
+    A.locator("article:visible").filter(has_text="Arjun").get_by_role("button", name="Pause account").click()
+    expect(A.get_by_text("Arjun Mehta paused")).to_be_visible()
+    A.get_by_role("button", name=re.compile(r"^Paused · 1")).click()
+    expect(A.locator("main:visible")).to_contain_text("Arjun Mehta")
+    A.get_by_role("button", name=re.compile(r"^Messages")).click()
+    expect(A.locator("main:visible")).to_contain_text("Diwali mela at Frisco Commons")
+    A.get_by_role("button", name="Mark done").first.click(); expect(A.get_by_text("Marked done")).to_be_visible()
+    A.get_by_role("button", name=re.compile(r"^Events")).click()
+    A.get_by_label("Title").fill("Garba night at Plano Event Center")
+    A.get_by_label("Starts").fill("2026-12-12T19:00")
+    A.get_by_label("Place").fill("Plano Event Center"); A.get_by_label("City").select_option(label="Plano")
+    A.get_by_label("Kind").select_option("Festival"); A.get_by_label("Price").fill("$20")
+    A.get_by_label("Organiser").fill("DFW Garba Collective"); A.get_by_label("Link to details").fill("https://example.com/garba")
+    shot(A, "s15_admin_event")
+    A.get_by_role("button", name="Add event").click(); expect(A.get_by_text("Event added")).to_be_visible()
+    # Effects for everyone else
+    Bp.goto(B + "/explore")
+    expect(Bp.locator("main:visible")).not_to_contain_text("fresh jalebi")
+    Bp.goto(B + "/explore?tab=events"); expect(Bp.locator("main:visible")).to_contain_text("Garba night at Plano Event Center")
+    Bp.goto(B + "/people"); expect(Bp.locator("main:visible")).not_to_contain_text("Arjun")
+    Bp.goto(B + "/explore")
+    expect(Bp.locator("main:visible")).not_to_contain_text("Count me in! What time do you start?")   # paused person's answer gone
 
     print("SCREENS: ALL STEPS PASSED")
     print("page errors:", (a_errs + b_errs) or "none")

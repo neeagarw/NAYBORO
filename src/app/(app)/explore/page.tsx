@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { ScreenSkeleton } from "@/components/Skeleton";
 import { createClient } from "@/lib/supabase/server";
 import { signPhotos } from "@/lib/photos";
 import { AppShell } from "@/components/AppShell";
@@ -10,7 +11,7 @@ export const metadata = { title: "Explore · Nayboro" };
 // Port of design/mockups/explore.html (Questions and Events tabs).
 export default function ExplorePage({ searchParams }: PageProps<"/explore">) {
   return (
-    <Suspense fallback={<div className="app-frame" />}>
+    <Suspense fallback={<ScreenSkeleton kind="feed" />}>
       <Explore searchParams={searchParams} />
     </Suspense>
   );

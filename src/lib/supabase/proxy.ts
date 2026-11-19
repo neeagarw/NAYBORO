@@ -2,7 +2,8 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 /** Pages anyone can open without signing in. */
-const PUBLIC = [/^\/$/, /^\/login$/, /^\/auth\//];
+// /api routes check their own secrets or signed links; /unsubscribed is reached from an email.
+const PUBLIC = [/^\/$/, /^\/login$/, /^\/auth\//, /^\/api\//, /^\/unsubscribed$/];
 
 /**
  * Refreshes the Supabase session cookie on every request and sends signed-out

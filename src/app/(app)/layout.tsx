@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { ScreenSkeleton } from "@/components/Skeleton";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
@@ -6,7 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 // The check reads cookies (request-time data), so it sits inside Suspense.
 export default function AppLayout({ children }: LayoutProps<"/">) {
   return (
-    <Suspense fallback={<div className="app-frame" />}>
+    <Suspense fallback={<ScreenSkeleton />}>
       <Gate>{children}</Gate>
     </Suspense>
   );
