@@ -22,8 +22,8 @@ async function Setup() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login?next=/setup");
 
-  const [{ data: areas }, { data: interests }, { data: profile }, { data: roots }, { data: mine }, { data: settings }] = await Promise.all([
-    supabase.from("areas").select("id,name,state,zips,lat,lng,metros!inner(name,match_km,active)").eq("metros.active", true).order("name"),
+  const [{ data: myArea }, { data: interests }, { data: profile }, { data: roots }, { data: mine }, { data: settings }] = await Promise.all([
+    supabase.from("profiles").select("areas(id,name,state,metros(name))").eq("id", user.id).maybeSingle(),
     supabase.from("interests").select("id,label,group_name,group_sort,sort").order("group_sort").order("sort"),
     supabase.from("profiles").select("first_name,last_name,intro,area_id,root_level,photo_path").eq("id", user.id).maybeSingle(),
     supabase.from("profile_roots").select("position, places(id,city,region,country)").eq("profile_id", user.id).order("position"),
@@ -39,10 +39,8 @@ async function Setup() {
     g.items.push({ id: i.id, label: i.label });
   }
   const setting = (k: string, d: number) => Number(settings?.find((x) => x.key === k)?.value ?? d);
-  const areaRows: Area[] = (areas ?? []).map((a) => {
-    const m = a.metros as unknown as { name: string; match_km: number };
-    return { id: a.id, name: a.name, state: a.state, zips: a.zips, lat: a.lat, lng: a.lng, metro_name: m.name, match_km: Number(m.match_km) };
-  });
+  const ar = (myArea?.areas ?? null) as unknown as { id: number; name: string; state: string; metros: { name: string } } | null;
+  const initialArea: Area | null = ar ? { id: ar.id, name: ar.name, state: ar.state, metro_name: ar.metros.name } : null;
 
   // Editing an existing profile ("Edit profile" in the account menu) starts pre-filled.
   const initial: Initial | null = profile
@@ -61,5 +59,5 @@ async function Setup() {
   // The key remounts the flow whenever saved data changes, so "Edit profile" always opens
   // on step 1 with fresh values (Next.js otherwise restores the last visit's screen).
   const key = JSON.stringify(initial);
-  return <SetupFlow key={key} userId={user.id} areas={areaRows} groups={groups} initial={initial} minInterests={setting("min_interests", 3)} maxHometowns={setting("max_hometowns", 3)} />;
+  return <SetupFlow key={key} userId={user.id} initialArea={initialArea} groups={groups} initial={initial} minInterests={setting("min_interests", 3)} maxHometowns={setting("max_hometowns", 3)} />;
 }

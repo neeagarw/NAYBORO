@@ -39,7 +39,7 @@ async function People() {
     .map((r) => r.interests as unknown as { label: string; sort: number })
     .sort((x, y) => x.sort - y.sort)
     .map((i) => i.label);
-  const metro = cfg.metro?.code ?? "";
+  const metro = cfg.metro?.name ?? "";
   const sub = `Near ${area?.name ?? "you"}${c?.city_count ? ` · ${c.city_count} from ${c.city} around ${metro}` : ""}`;
 
   return (

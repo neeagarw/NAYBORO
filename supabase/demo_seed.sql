@@ -10,7 +10,7 @@ declare uid uuid := p_id::uuid;
 begin
   insert into auth.users values (uid) on conflict do nothing;
   insert into profiles (id, first_name, last_name, intro, area_id, root_level, languages, is_adult, phone_verified, onboarded_at, created_at)
-  values (uid, p_first, p_last, p_intro, (select id from areas where name = p_area), p_level, p_langs, true, true,
+  values (uid, p_first, p_last, p_intro, (select id from areas where name = p_area and state = 'TX'), p_level, p_langs, true, true,
           now() - make_interval(days => p_days_old), now() - make_interval(days => p_days_old))
   on conflict (id) do nothing;
   insert into profile_roots (profile_id, place_id, position)
@@ -84,12 +84,12 @@ declare sat date := (current_date + ((6 - extract(dow from current_date)::int + 
 begin
   if sat = current_date then sat := sat + 7; end if;
   insert into events (title, starts_at, ends_at, place_name, area_id, price_label, kind, host_name, url) values
-  ('Saturday morning cricket meetup', (sat + time '08:00') at time zone 'America/Chicago', (sat + time '11:00') at time zone 'America/Chicago', 'Holford Park, Garland', (select id from areas where name='Garland'), 'Free', 'Sports', 'Garland Weekend Cricket', 'https://example.com/cricket'),
-  ('Rajasthani food pop-up', (sat + time '12:00') at time zone 'America/Chicago', (sat + time '16:00') at time zone 'America/Chicago', 'Richardson', (select id from areas where name='Richardson'), '$15', 'Food', 'DFW Desi Kitchens', 'https://example.com/popup'),
-  ('Family craft afternoon', (sat + 1 + time '14:00') at time zone 'America/Chicago', (sat + 1 + time '16:00') at time zone 'America/Chicago', 'Plano', (select id from areas where name='Plano'), 'Free', 'Family', 'Plano Community Library', 'https://example.com/craft'),
-  ('Newcomers potluck', (sat + 5 + time '13:00') at time zone 'America/Chicago', null, 'Irving', (select id from areas where name='Irving'), 'Free', 'Food', 'Irving Newcomers Circle', 'https://example.com/potluck'),
-  ('Winter Mela', (sat + 14 + time '17:00') at time zone 'America/Chicago', (sat + 14 + time '22:00') at time zone 'America/Chicago', 'Frisco', (select id from areas where name='Frisco'), '$10', 'Festival', 'Frisco Cultural Association', 'https://example.com/mela'),
-  ('Badminton doubles social', (sat + 15 + time '09:00') at time zone 'America/Chicago', null, 'Plano', (select id from areas where name='Plano'), 'Free', 'Sports', 'Plano Shuttle Club', 'https://example.com/badminton');
+  ('Saturday morning cricket meetup', (sat + time '08:00') at time zone 'America/Chicago', (sat + time '11:00') at time zone 'America/Chicago', 'Holford Park, Garland', (select id from areas where name='Garland' and state='TX'), 'Free', 'Sports', 'Garland Weekend Cricket', 'https://example.com/cricket'),
+  ('Rajasthani food pop-up', (sat + time '12:00') at time zone 'America/Chicago', (sat + time '16:00') at time zone 'America/Chicago', 'Richardson', (select id from areas where name='Richardson' and state='TX'), '$15', 'Food', 'DFW Desi Kitchens', 'https://example.com/popup'),
+  ('Family craft afternoon', (sat + 1 + time '14:00') at time zone 'America/Chicago', (sat + 1 + time '16:00') at time zone 'America/Chicago', 'Plano', (select id from areas where name='Plano' and state='TX'), 'Free', 'Family', 'Plano Community Library', 'https://example.com/craft'),
+  ('Newcomers potluck', (sat + 5 + time '13:00') at time zone 'America/Chicago', null, 'Irving', (select id from areas where name='Irving' and state='TX'), 'Free', 'Food', 'Irving Newcomers Circle', 'https://example.com/potluck'),
+  ('Winter Mela', (sat + 14 + time '17:00') at time zone 'America/Chicago', (sat + 14 + time '22:00') at time zone 'America/Chicago', 'Frisco', (select id from areas where name='Frisco' and state='TX'), '$10', 'Festival', 'Frisco Cultural Association', 'https://example.com/mela'),
+  ('Badminton doubles social', (sat + 15 + time '09:00') at time zone 'America/Chicago', null, 'Plano', (select id from areas where name='Plano' and state='TX'), 'Free', 'Sports', 'Plano Shuttle Club', 'https://example.com/badminton');
   -- 3 interested in cricket (shown as "Be one of the first"), 12 in the pop-up.
   insert into event_interest (event_id, profile_id)
   select e.id, p.id from events e, profiles p where e.title = 'Saturday morning cricket meetup' and p.first_name in ('Vikram','Arjun','Priya');

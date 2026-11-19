@@ -12,7 +12,7 @@
    npx supabase login
    npx supabase link --project-ref xxxx
    npx supabase db push                       # runs supabase/migrations in order
-   psql "<connection string from Settings → Database>" -f supabase/seed.sql
+   psql "<connection string from Settings → Database>" -f supabase/seed.sql   # includes every US city (~30 s)
    ```
    Do **not** run `supabase/demo_seed.sql` here: it adds fake people and only works on the local test setup.
 4. Database → Replication (Realtime): make sure `messages` and `hellos` are turned on, so chats update live.
@@ -53,8 +53,11 @@ Then "Admin" appears in your account menu: open reports, hide questions/answers,
 2. Environment Variables: add every name in `.env.example` (Supabase URL and anon key, service role key, site URL, Resend key and sender, the three secrets). Deploy.
 3. Use the paid plan before launch (the free plan doesn't allow commercial use).
 
-## Adding a new city later (no code change)
-In the SQL Editor: insert one row into `metros` (name, time zone, radii), then its `areas` (name, state, ZIPs, centre point). Add hometowns to `places` if needed. Topics, interests, limits and rules are in `topics`, `interests`, `rate_limits` and `app_settings`.
+## Cities and metro areas
+Every US city (29,598), ZIP code (41,045) and metro area (387, plus "Rest of <State>" groups) is loaded by `seed.sql`. Nothing to add when people join from a new city.
+- **Merge or rename metros** (e.g. add Stockton to the Bay Area): edit `COMBINE` / `FRIENDLY_NAMES` in `scripts/build_us_geo.py`, run `python3 scripts/build_us_geo.py`, then run `psql ... -f supabase/geo/us_geo.sql` on the live database. It updates in place.
+- **Refresh ZIP data** once a year: `pip install zipcodes`, regenerate `data/geo/zips.csv` (see the script's header), re-run the script.
+- Data sources and licences (MIT): `data/geo/`.
 
 ## 6. Smoke test on your phone (10 min)
 Open the Vercel URL → Get started → enter your email → type the code → finish setup → People shows "You're set up as…".

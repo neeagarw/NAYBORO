@@ -1,31 +1,3 @@
-/** Distance in km between two points (haversine). */
-export function kmBetween(a: { lat: number; lng: number }, b: { lat: number; lng: number }) {
-  const R = 6371;
-  const toRad = (d: number) => (d * Math.PI) / 180;
-  const dLat = toRad(b.lat - a.lat);
-  const dLng = toRad(b.lng - a.lng);
-  const h = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLng / 2) ** 2;
-  return 2 * R * Math.asin(Math.sqrt(h));
-}
-
-/** Nearest area within its metro's match_km, or null. Runs on the device: coordinates never leave the phone. */
-export function nearestArea<T extends { lat: number | null; lng: number | null; match_km: number }>(
-  here: { lat: number; lng: number },
-  areas: T[],
-): T | null {
-  let best: T | null = null;
-  let bestKm = Infinity;
-  for (const a of areas) {
-    if (a.lat == null || a.lng == null) continue;
-    const d = kmBetween(here, { lat: a.lat, lng: a.lng });
-    if (d < bestKm) {
-      best = a;
-      bestKm = d;
-    }
-  }
-  return best && bestKm <= best.match_km ? best : null;
-}
-
 /** Shrink a photo to a square-ish JPEG (max 640px) before upload. */
 export async function shrinkImage(file: File, max: number): Promise<Blob> {
   const bitmap = await createImageBitmap(file);

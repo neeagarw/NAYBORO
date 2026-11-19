@@ -32,7 +32,7 @@ with sync_playwright() as p:
     pg.get_by_role('button', name='Continue').click()
     # Now
     shot(pg,'06_now_before'); pg.get_by_role('button', name='Find my city').click()
-    expect(pg.get_by_text("You're in Garland, TX")).to_be_visible(); shot(pg,'07_now_found')
+    expect(pg.get_by_text("You're in Garland, TX")).to_be_visible(); expect(pg.get_by_text("Part of Dallas–Fort Worth")).to_be_visible(); shot(pg,'07_now_found')
     pg.get_by_role('button', name='Continue').click()
     # You
     expect(pg.get_by_role('button', name='Finish')).to_be_disabled()

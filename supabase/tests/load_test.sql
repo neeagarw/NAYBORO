@@ -10,7 +10,7 @@ set session_replication_role = replica;   -- skip spam-limit and alert triggers 
 insert into auth.users (id) select ('10000000-0000-0000-0000-' || lpad(g::text, 12, '0'))::uuid from generate_series(1, :n) g;
 insert into profiles (id, first_name, last_name, area_id, root_level, is_adult, onboarded_at, created_at)
 select ('10000000-0000-0000-0000-' || lpad(g::text, 12, '0'))::uuid, 'User' || g, 'Test',
-       (select id from areas order by id offset (g % (select count(*) from areas)) limit 1),
+       (select id from areas where metro = '19100' order by weight desc, id offset (g % 40) limit 1),   -- spread across 40 DFW cities
        (array['city','state','country']::root_level[])[1 + g % 3], true, now(), now() - (g % 60) * interval '1 day'
 from generate_series(1, :n) g;
 insert into profile_roots (profile_id, place_id, position)
@@ -21,7 +21,7 @@ cross join lateral (select id from interests order by md5(p.id::text || id::text
 
 insert into questions (author_id, body, topic, scope, area_id, created_at)
 select ('10000000-0000-0000-0000-' || lpad((1 + g % :n)::text, 12, '0'))::uuid, 'Load test question number ' || g,
-       'Food', (array['near','metro']::question_scope[])[1 + g % 2], (select id from areas order by id offset (g % 10) limit 1), now() - g * interval '1 minute'
+       'Food', (array['near','metro']::question_scope[])[1 + g % 2], (select id from areas where metro = '19100' order by weight desc, id offset (g % 40) limit 1), now() - g * interval '1 minute'
 from generate_series(1, 5000) g;
 insert into answers (question_id, author_id, body)
 select q.id, ('10000000-0000-0000-0000-' || lpad((1 + (row_number() over ()) % :n)::text, 12, '0'))::uuid, 'Load test answer'

@@ -72,3 +72,10 @@ People grows with metro size (it ranks everyone in the metro). Next step when on
 - **The welcome illustration uses example names** (Priya, Vikram): marketing art, not data.
 - **Help topics** stay in code because they match fixed database values (`contact_topic`).
 - **Languages** are shown on profiles but not collected in setup (decide: add a step or drop it).
+
+## 6. Nationwide update (19 Nov 2026)
+- Every US city and ZIP, grouped into 387 Census metro areas, with Bay Area-style merges and everyday names (`scripts/build_us_geo.py`).
+- "Find my city" works anywhere in the US (checked: Fremont → San Francisco Bay Area, San Jose → Bay Area, Mesquite → Dallas–Fort Worth, Austin → Austin area, Marfa → Rest of Texas, the ocean → no match). Speed: 3 ms. City/ZIP search: 31 ms.
+- Communities stay separate by metro (checked: a Fremont user doesn't see DFW people or questions, and vice versa).
+- Fixed: the People subtitle showed the raw metro code ("19100") instead of "Dallas–Fort Worth".
+- Tests and demo data no longer use fixed area IDs; they look cities up by name and state.

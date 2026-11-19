@@ -4,13 +4,14 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getClient } from "@/lib/supabase/client";
 import { LogoMark } from "@/components/Logo";
-import { nearestArea, shrinkImage } from "@/lib/geo";
+import { shrinkImage } from "@/lib/geo";
 import { UI } from "@/config/app";
 
 // Port of design/mockups/profile-setup.html: Roots → Interests → Now → You → Done.
 
 export type Place = { id: number; city: string; region: string; country: string };
-export type Area = { id: number; name: string; state: string; zips: string[]; lat: number | null; lng: number | null; metro_name: string; match_km: number };
+/** A US city and the metro area it belongs to (e.g. Fremont, CA · San Francisco Bay Area). */
+export type Area = { id: number; name: string; state: string; metro_name: string; zip?: string | null };
 export type InterestGroup = { title: string; items: { id: number; label: string }[] };
 export type Level = "city" | "state" | "country";
 export type Initial = {
@@ -26,7 +27,7 @@ function newPhotoPath(userId: string) {
 const STEPS = ["Roots", "Interests", "Now", "You"];
 const VISIBLE = UI.interestsVisible;
 
-export function SetupFlow({ userId, areas, groups, initial, minInterests: MIN_INTERESTS, maxHometowns }: { userId: string; areas: Area[]; groups: InterestGroup[]; initial: Initial | null; minInterests: number; maxHometowns: number }) {
+export function SetupFlow({ userId, initialArea, groups, initial, minInterests: MIN_INTERESTS, maxHometowns }: { userId: string; initialArea: Area | null; groups: InterestGroup[]; initial: Initial | null; minInterests: number; maxHometowns: number }) {
   const router = useRouter();
   const editing = !!initial;
 
@@ -41,7 +42,7 @@ export function SetupFlow({ userId, areas, groups, initial, minInterests: MIN_IN
   const [picked, setPicked] = useState<number[]>(initial?.interests ?? []);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   // now
-  const [now, setNow] = useState<Area | null>(areas.find((a) => a.id === initial?.areaId) ?? null);
+  const [now, setNow] = useState<Area | null>(initialArea);
   const [typing, setTyping] = useState(false);
   const [cityQuery, setCityQuery] = useState("");
   const [locating, setLocating] = useState(false);
@@ -61,8 +62,7 @@ export function SetupFlow({ userId, areas, groups, initial, minInterests: MIN_IN
   const introRef = useRef<HTMLTextAreaElement>(null);
 
   const searching = roots.length === 0 || adding;
-  const metroNames = [...new Set(areas.map((a) => a.metro_name))].join(" and ");
-  const example = areas[0] ? `e.g. ${areas[0].name}${areas[0].zips[0] ? ` or ${areas[0].zips[0]}` : ""}` : "City or ZIP";
+  const [cityResults, setCityResults] = useState<Area[] | null>(null);
   const labels = useMemo(() => new Map(groups.flatMap((g) => g.items.map((i) => [i.id, i.label] as const))), [groups]);
 
   // Hometown search: prefix match on places, up to 5.
@@ -87,17 +87,30 @@ export function SetupFlow({ userId, areas, groups, initial, minInterests: MIN_IN
     bodyRef.current?.scrollTo(0, 0);
   }
 
+  // Typed city or ZIP: search every US city (debounced).
+  useEffect(() => {
+    const q = cityQuery.trim();
+    if (q.length < 2) return;
+    let live = true;
+    const t = setTimeout(async () => {
+      const { data } = await getClient().rpc("search_areas", { p_q: q, p_limit: 6 });
+      if (live) setCityResults((data ?? []) as Area[]);
+    }, 200);
+    return () => { live = false; clearTimeout(t); };
+  }, [cityQuery]);
+
   function findCity() {
     setLocNote(null);
     if (!("geolocation" in navigator)) { setTyping(true); return; }
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        // Matched on the device; the coordinates are not stored or sent anywhere.
-        const hit = nearestArea({ lat: pos.coords.latitude, lng: pos.coords.longitude }, areas);
+      async (pos) => {
+        // Sent once to find the nearest city; the database returns the city and stores nothing.
+        const { data } = await getClient().rpc("locate_area", { p_lat: pos.coords.latitude, p_lng: pos.coords.longitude });
         setLocating(false);
+        const hit = ((data ?? []) as Area[])[0];
         if (hit) { setNow(hit); setTyping(false); }
-        else { setTyping(true); setLocNote(`Nayboro is only in ${metroNames} for now. Pick the closest city below.`); }
+        else { setTyping(true); setLocNote("We couldn't match your location to a US city. Type your city or ZIP instead."); }
       },
       () => { setLocating(false); setTyping(true); setLocNote("We couldn't get your location. Type your city or ZIP instead."); },
       { enableHighAccuracy: false, timeout: 10000, maximumAge: 600000 },
@@ -144,9 +157,7 @@ export function SetupFlow({ userId, areas, groups, initial, minInterests: MIN_IN
   else if (step === 3) next = { label: saving ? "Saving..." : editing ? "Save" : "Finish", disabled: saving || !first.trim() || !adult, onClick: finish };
   else next = { label: editing ? "Back to Nayboro" : "Start exploring", disabled: false, onClick: () => router.push("/people") };
 
-  const filteredCities = areas
-    .filter((c) => { const q = cityQuery.trim().toLowerCase(); return !q || c.name.toLowerCase().startsWith(q) || c.zips.some((z) => z.startsWith(q)); })
-    .slice(0, 6);
+  const filteredCities = cityQuery.trim().length >= 2 ? cityResults ?? [] : [];
 
   return (
     <div className="app-frame">
@@ -284,7 +295,10 @@ export function SetupFlow({ userId, areas, groups, initial, minInterests: MIN_IN
             </div>
 
             {now && !typing && (
-              <div className="flex items-center gap-2.5 rounded-2xl bg-green-tint px-3.5 py-3 text-[15px] font-semibold text-green"><CheckIcon size={18} />You&apos;re in {now.name}, {now.state}</div>
+              <div className="flex items-center gap-2.5 rounded-2xl bg-green-tint px-3.5 py-3 text-green">
+                <CheckIcon size={18} />
+                <span className="flex flex-col"><span className="text-[15px] font-semibold">You&apos;re in {now.name}, {now.state}</span><span className="text-[13px] font-medium">Part of {now.metro_name}</span></span>
+              </div>
             )}
 
             {typing && (
@@ -292,15 +306,18 @@ export function SetupFlow({ userId, areas, groups, initial, minInterests: MIN_IN
                 {locNote && <p className="text-[13px] font-semibold text-orange-text">{locNote}</p>}
                 <label htmlFor="citySearch" className="text-[13px] font-bold">Your city or ZIP</label>
                 <div className="flex h-[52px] items-center rounded-2xl border-2 border-line bg-surface px-4 focus-within:border-green">
-                  <input id="citySearch" ref={cityRef} type="text" autoComplete="off" value={cityQuery} onChange={(e) => setCityQuery(e.target.value)} placeholder={example} className="min-w-0 flex-1 bg-transparent text-base outline-none" />
+                  <input id="citySearch" ref={cityRef} type="text" autoComplete="off" value={cityQuery} onChange={(e) => setCityQuery(e.target.value)} placeholder="e.g. Fremont or 94538" className="min-w-0 flex-1 bg-transparent text-base outline-none" />
                 </div>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-col gap-1.5" aria-live="polite">
                   {filteredCities.map((c) => (
-                    <button key={c.id} aria-pressed={now?.id === c.id} onClick={() => setNow(c)} className={`inline-flex min-h-11 items-center rounded-full border-2 px-4 text-[15px] font-semibold ${now?.id === c.id ? "border-green bg-green text-white" : "border-ground bg-ground"}`}>
-                      {c.name}, {c.state}
+                    <button key={`${c.id}-${c.zip ?? ""}`} aria-pressed={now?.id === c.id} onClick={() => setNow(c)}
+                      className={`flex min-h-[52px] w-full flex-col items-start justify-center rounded-2xl border-2 px-4 py-2 text-left ${now?.id === c.id ? "border-green bg-green-tint" : "border-line-soft bg-surface"}`}>
+                      <b className="text-[15px]">{c.name}, {c.state}{c.zip ? ` ${c.zip}` : ""}</b>
+                      <span className="text-xs text-muted">{c.metro_name}</span>
                     </button>
                   ))}
-                  {filteredCities.length === 0 && <span className="text-[13px] text-muted">We&apos;re only in {metroNames} for now.</span>}
+                  {cityQuery.trim().length >= 2 && cityResults && filteredCities.length === 0 && <span className="text-[13px] text-muted">No US city or ZIP matches that yet. Check the spelling.</span>}
+                  {cityQuery.trim().length < 2 && <span className="text-[13px] text-muted">Type at least 2 letters of your city, or your 5-digit ZIP.</span>}
                 </div>
               </div>
             )}

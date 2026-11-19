@@ -27,7 +27,8 @@ mockup to a route and to the tables behind it. It also lists what the mockups st
 5. **Done:** profile preview, then "Start exploring" → `/people`.
 
 ## How setup works
-- **Location:** the phone's position is matched to the nearest DFW area **on the device** (within 40 km). Coordinates are never sent or stored. Outside DFW, or if location is denied, the person picks their city or types a ZIP.
+- **Location (nationwide):** "Find my city" sends the phone's position once to `locate_area()`, which returns the nearest US city by ZIP centre and its metro ("You're in Fremont, CA · Part of San Francisco Bay Area"). Nothing is stored. If location is denied or doesn't match, the person types any US city or ZIP (`search_areas()`).
+- **Communities = metro areas:** People, Explore ("All of …") and Events are grouped by metro. Cities outside any metro join "Rest of <State>".
 - **Photo:** shrunk on the phone to 640px JPEG, uploaded to the private `avatars` bucket under the person's own folder.
 - **Save:** one call to `save_profile()` writes the profile, hometowns and interests together, or nothing if anything is invalid.
 

@@ -1,13 +1,17 @@
 \set ON_ERROR_STOP 0
+-- Look cities up by name and state (never by id: ids depend on load order).
+select id as garland    from areas where name = 'Garland'    and state = 'TX' \gset
+select id as richardson from areas where name = 'Richardson' and state = 'TX' \gset
+select id as frisco     from areas where name = 'Frisco'     and state = 'TX' \gset
 -- users: N=Neeraj, R=Rohit, A=Aman
 insert into auth.users values ('11111111-1111-1111-1111-111111111111'),('22222222-2222-2222-2222-222222222222'),('33333333-3333-3333-3333-333333333333');
 insert into profiles (id, first_name, last_name, area_id, root_level, is_adult, onboarded_at) values
- ('11111111-1111-1111-1111-111111111111','Neeraj','Agarwala',1,'city',true,now()),
- ('22222222-2222-2222-2222-222222222222','Rohit','Gupta',3,'state',true,now()),
- ('33333333-3333-3333-3333-333333333333','Aman','Kumar',1,'city',true,now());
+ ('11111111-1111-1111-1111-111111111111','Neeraj','Agarwala',:garland,'city',true,now()),
+ ('22222222-2222-2222-2222-222222222222','Rohit','Gupta',:richardson,'state',true,now()),
+ ('33333333-3333-3333-3333-333333333333','Aman','Kumar',:garland,'city',true,now());
 insert into profile_roots values ('11111111-1111-1111-1111-111111111111',1,1),('22222222-2222-2222-2222-222222222222',3,1),('33333333-3333-3333-3333-333333333333',10,1);
-insert into questions (author_id,is_anonymous,body,topic,area_id) values ('22222222-2222-2222-2222-222222222222',true,'Laid off on H-1B last month. How long to find a sponsor?','Immigration',3);
-insert into events (title,starts_at,place_name,area_id,kind,host_name,url) values ('Cricket',now(),'Holford Park',1,'Sports','GWC','https://x'),('Mela',now(),'Frisco',4,'Festival','FCA','https://y');
+insert into questions (author_id,is_anonymous,body,topic,area_id) values ('22222222-2222-2222-2222-222222222222',true,'Laid off on H-1B last month. How long to find a sponsor?','Immigration',:richardson);
+insert into events (title,starts_at,place_name,area_id,kind,host_name,url) values ('Cricket',now(),'Holford Park',:garland,'Sports','GWC','https://x'),('Mela',now(),'Frisco',:frisco,'Festival','FCA','https://y');
 insert into auth.users select gen_random_uuid() from generate_series(1,5);
 insert into profiles (id, first_name, is_adult) select id,'X',true from auth.users where id::text not like '1111%' and id::text not like '2222%' and id::text not like '3333%';
 insert into event_interest select (select id from events where title='Cricket'), id from profiles where first_name='X' limit 3;
@@ -62,17 +66,17 @@ insert into auth.users values ('55555555-5555-5555-5555-555555555555');
 set role authenticated;
 select set_config('request.jwt.claim.sub','55555555-5555-5555-5555-555555555555',false);
 \echo '14. save_profile with only 2 interests (expect error):'
-select save_profile('Kavya','Sharma',null,null,4,'city',array[1]::bigint[],array[1,2]::bigint[],true);
+select save_profile('Kavya','Sharma',null,null,:frisco,'city',array[1]::bigint[],array[1,2]::bigint[],true);
 \echo '15. save_profile without the 18+ box (expect error):'
-select save_profile('Kavya','Sharma',null,null,4,'city',array[1]::bigint[],array[1,2,3]::bigint[],false);
+select save_profile('Kavya','Sharma',null,null,:frisco,'city',array[1]::bigint[],array[1,2,3]::bigint[],false);
 \echo '16. save_profile valid (Jaipur + Kolkata, 3 interests, Frisco):'
-select save_profile('Kavya','Sharma','Chai and long walks','55555555-5555-5555-5555-555555555555/a.jpg',4,'city',array[1,9]::bigint[],array[1,2,16]::bigint[],true);
+select save_profile('Kavya','Sharma','Chai and long walks','55555555-5555-5555-5555-555555555555/a.jpg',:frisco,'city',array[1,9]::bigint[],array[1,2,16]::bigint[],true);
 select first_name, onboarded_at is not null as onboarded, (select count(*) from profile_roots) roots, (select count(*) from profile_interests where profile_id=auth.uid()) ints from profiles;
 \echo '17. Re-save (edit profile) keeps onboarded and photo, replaces roots:'
-select save_profile('Kavya','S',null,null,4,'state',array[1]::bigint[],array[1,2,3,4]::bigint[],true);
+select save_profile('Kavya','S',null,null,:frisco,'state',array[1]::bigint[],array[1,2,3,4]::bigint[],true);
 select last_name, photo_path, root_level, (select count(*) from profile_roots) roots from profiles;
 \echo '18. Photo path in someone else''s folder (expect error):'
-select save_profile('Kavya','S',null,'11111111-1111-1111-1111-111111111111/x.jpg',4,'city',array[1]::bigint[],array[1,2,3]::bigint[],true);
+select save_profile('Kavya','S',null,'11111111-1111-1111-1111-111111111111/x.jpg',:frisco,'city',array[1]::bigint[],array[1,2,3]::bigint[],true);
 \echo '19. Upload into own avatar folder ok, other folder blocked:'
 insert into storage.objects (bucket_id,name) values ('avatars','55555555-5555-5555-5555-555555555555/a.jpg');
 insert into storage.objects (bucket_id,name) values ('avatars','11111111-1111-1111-1111-111111111111/evil.jpg');
@@ -197,3 +201,17 @@ select status, message from hellos where to_id = '33333333-3333-3333-3333-333333
 set role authenticated;
 select set_config('request.jwt.claim.sub','22222222-2222-2222-2222-222222222222',false);
 select app_config() -> 'metro' ->> 'timezone' as tz, jsonb_array_length(app_config() -> 'topics') as topics, app_config() -> 'verbs' ->> 'Tennis' as tennis;
+
+\echo '40. Find my city: Fremont CA position -> Fremont, San Francisco Bay Area (nothing stored):'
+set role authenticated;
+select set_config('request.jwt.claim.sub','22222222-2222-2222-2222-222222222222',false);
+select name, state, metro_name from locate_area(37.5485, -121.9886);
+\echo '41. Other places: San Jose, Mesquite TX, Austin, Marfa (rural), and the middle of the ocean (no city):'
+select name, state, metro_name from locate_area(37.3382, -121.8863)
+union all select name, state, metro_name from locate_area(32.7668, -96.5992)
+union all select name, state, metro_name from locate_area(30.2672, -97.7431)
+union all select name, state, metro_name from locate_area(30.3094, -104.0206);
+select count(*) as ocean_hits from locate_area(30.0, -140.0);
+\echo '42. Typed search: "Frem" and ZIP "75040":'
+select name, state, metro_name from search_areas('Frem', 3);
+select name, state, metro_name, zip from search_areas('75040');

@@ -43,7 +43,7 @@ def join(browser, email, first, last, town, interests, city_zip):
     for i in interests: pg.get_by_role("button", name=i, exact=True).click()
     pg.get_by_role("button", name="Continue").click()
     pg.get_by_role("button", name="Type a city or ZIP instead").click()
-    pg.get_by_label("Your city or ZIP").fill(city_zip); pg.get_by_role("button", name=re.compile(r", TX$")).first.click()
+    pg.get_by_label("Your city or ZIP").fill(city_zip); pg.get_by_role("button", name=re.compile(r", TX " + city_zip)).first.click()
     pg.get_by_role("button", name="Continue").click()
     pg.get_by_label("First name").fill(first); pg.get_by_label("Last name").fill(last)
     pg.get_by_role("checkbox").check(); pg.get_by_role("button", name="Finish").click()
@@ -63,14 +63,14 @@ with sync_playwright() as p:
     # People
     A.goto(B + "/people")
     main = A.locator("main:visible")
-    expect(A.get_by_text("Near Garland · 6 from Jaipur around DFW")).to_be_visible()
+    expect(A.get_by_text("Near Garland · 6 from Jaipur around Dallas–Fort Worth")).to_be_visible()
     expect(main.get_by_text("Said hi to you")).to_be_visible()
     expect(main).to_contain_text("Need one more for Sunday cricket. You in?")
     expect(main.get_by_text("SUGGESTED FOR YOU")).to_be_visible()
     expect(A.get_by_role("link", name="Chats").get_by_text("4")).to_be_visible()   # 3 hellos + 1 unread chat
     shot(A, "s01_people")
     A.get_by_role("button", name=re.compile(r"^Jaipur · 6$")).click()
-    expect(main.get_by_text("FROM JAIPUR, AROUND DFW")).to_be_visible()
+    expect(main.get_by_text("FROM JAIPUR, AROUND DALLAS–FORT WORTH")).to_be_visible()
     expect(main.get_by_role("link", name=re.compile("Kavya S\\.")).first).to_be_visible()
     A.get_by_role("button", name="For you").click()
 
@@ -286,7 +286,8 @@ with sync_playwright() as p:
     A.get_by_role("button", name=re.compile(r"^Events")).click()
     A.get_by_label("Title").fill("Garba night at Plano Event Center")
     A.get_by_label("Starts").fill("2026-12-12T19:00")
-    A.get_by_label("Place").fill("Plano Event Center"); A.get_by_label("City").select_option(label="Plano (DFW)")
+    A.get_by_label("Place").fill("Plano Event Center")
+    A.get_by_label("City").fill("Plano"); A.get_by_role("option", name=re.compile(r"^Plano, TX")).click()
     A.get_by_label("Kind").select_option("Festival"); A.get_by_label("Price").fill("$20")
     A.get_by_label("Organiser").fill("DFW Garba Collective"); A.get_by_label("Link to details").fill("https://example.com/garba")
     shot(A, "s15_admin_event")
@@ -298,6 +299,41 @@ with sync_playwright() as p:
     Bp.goto(B + "/people"); expect(Bp.locator("main:visible")).not_to_contain_text("Arjun")
     Bp.goto(B + "/explore")
     expect(Bp.locator("main:visible")).not_to_contain_text("Count me in! What time do you start?")   # paused person's answer gone
+
+    # ── Nationwide: someone in Fremont, CA uses "Find my city" ──
+    c_ctx = browser.new_context(viewport={"width": 400, "height": 860}, geolocation={"latitude": 37.5485, "longitude": -121.9886}, permissions=["geolocation"])
+    C = c_ctx.new_page()
+    C.goto(B + "/login?next=/setup")
+    C.get_by_label("Email").fill("maya@example.com"); C.get_by_role("button", name="Send me a code").click()
+    C.get_by_label("6-digit code").fill("123456"); expect(C).to_have_url(re.compile(r"/setup$"))
+    C.get_by_label("Hometown").fill("Pun"); C.get_by_role("button", name=re.compile("^Pune")).first.click(); C.get_by_role("button", name="Continue").click()
+    for i in ["Running", "Cooking", "Book club"]: C.get_by_role("button", name=i, exact=True).click()
+    C.get_by_role("button", name="Continue").click()
+    C.get_by_role("button", name="Find my city").click()
+    expect(C.get_by_text("You're in Fremont, CA")).to_be_visible()
+    expect(C.get_by_text("Part of San Francisco Bay Area")).to_be_visible()
+    shot(C, "s17_fremont_found")
+    # Typing works for any US city or ZIP too
+    C.get_by_role("button", name="Not right? Type a city or ZIP").click()
+    C.get_by_label("Your city or ZIP").fill("San Jo")
+    expect(C.get_by_role("button", name=re.compile(r"San Jose, CA"))).to_contain_text("San Francisco Bay Area")
+    C.get_by_label("Your city or ZIP").fill("02139")
+    expect(C.get_by_role("button", name=re.compile(r"Cambridge, MA 02139"))).to_contain_text("Boston area")
+    shot(C, "s18_search_any_city")
+    C.get_by_role("button", name=re.compile(r"San Jose, CA")).click() if C.get_by_role("button", name=re.compile(r"San Jose, CA")).count() else None
+    C.get_by_label("Your city or ZIP").fill("Fremont"); C.get_by_role("button", name=re.compile(r"^Fremont, CA")).click()
+    C.get_by_role("button", name="Continue").click()
+    C.get_by_label("First name").fill("Maya"); C.get_by_role("checkbox").check(); C.get_by_role("button", name="Finish").click()
+    expect(C.get_by_role("heading", name="You're in, Maya!")).to_be_visible()
+    C.get_by_role("button", name="Start exploring").click(); expect(C).to_have_url(re.compile(r"/people$"))
+    expect(C.get_by_text("Near Fremont")).to_be_visible()
+    expect(C.locator("main:visible")).not_to_contain_text("Kavya")         # DFW people are a different community
+    C.goto(B + "/explore"); expect(C.get_by_text("Around Fremont")).to_be_visible()
+    expect(C.locator("main:visible")).not_to_contain_text("methi and curry leaves")   # DFW questions stay in DFW
+    C.goto(B + "/explore/ask"); expect(C.get_by_role("button", name=re.compile("All of San Francisco Bay Area"))).to_be_visible()
+    shot(C, "s19_bay_area_ask")
+    # Sana (Plano) can't see Maya on People either
+    Bp.goto(B + "/people"); expect(Bp.locator("main:visible")).not_to_contain_text("Maya")
 
     print("SCREENS: ALL STEPS PASSED")
     print("page errors:", (a_errs + b_errs) or "none")

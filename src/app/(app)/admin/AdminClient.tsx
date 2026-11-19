@@ -12,12 +12,12 @@ export type Report = { target_type: "profile" | "question" | "answer" | "message
 export type Contact = { id: string; topic: string; body: string; reply_email: string; name: string | null; created_at: string; handled_at: string | null };
 export type Paused = { id: string; name: string; suspended_at: string };
 export type EventRow = { id: string; title: string; starts_at: string; place_name: string; price_label: string; kind: string; host_name: string; url: string; timezone: string };
-export type AreaRow = { id: number; name: string; metro: string; timezone: string };
+export type AreaRow = { id: number; name: string; state: string; metro_name: string; timezone: string };
 
 const KINDS = EVENT_KINDS;
 const TYPE_LABEL: Record<Report["target_type"], string> = { profile: "Profile", question: "Question", answer: "Answer", message: "Message" };
 
-export function AdminClient({ reports, contact, paused, events, areas }: { reports: Report[]; contact: Contact[]; paused: Paused[]; events: EventRow[]; areas: AreaRow[] }) {
+export function AdminClient({ reports, contact, paused, events }: { reports: Report[]; contact: Contact[]; paused: Paused[]; events: EventRow[] }) {
   const router = useRouter();
   const [toast, toastNode] = useToast();
   const [tab, setTab] = useState<"reports" | "messages" | "events" | "paused">("reports");
@@ -96,7 +96,7 @@ export function AdminClient({ reports, contact, paused, events, areas }: { repor
           </>
         )}
 
-        {tab === "events" && <Events events={events} areas={areas} busy={busy} run={run} />}
+        {tab === "events" && <Events events={events} busy={busy} run={run} />}
 
         {tab === "paused" && (
           <>
@@ -115,12 +115,21 @@ export function AdminClient({ reports, contact, paused, events, areas }: { repor
   );
 }
 
-function Events({ events, areas, busy, run }: { events: EventRow[]; areas: AreaRow[]; busy: boolean; run: (fn: () => PromiseLike<{ error: { message?: string } | null }>, done: string) => void }) {
-  const empty = { title: "", start: "", end: "", place: "", area: String(areas[0]?.id ?? ""), price: "Free", kind: "Sports", host: "", url: "" };
+function Events({ events, busy, run }: { events: EventRow[]; busy: boolean; run: (fn: () => PromiseLike<{ error: { message?: string } | null }>, done: string) => void }) {
+  const empty = { title: "", start: "", end: "", place: "", price: "Free", kind: "Sports", host: "", url: "" };
+  const [city, setCity] = useState<AreaRow | null>(null);
+  const [cityQ, setCityQ] = useState("");
+  const [cityHits, setCityHits] = useState<AreaRow[]>([]);
+  async function searchCity(q: string) {
+    setCityQ(q); setCity(null);
+    if (q.trim().length < 2) return setCityHits([]);
+    const { data } = await getClient().rpc("search_areas", { p_q: q.trim(), p_limit: 6 });
+    setCityHits((data ?? []) as AreaRow[]);
+  }
   const [f, setF] = useState(empty);
   const set = (k: keyof typeof empty) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setF({ ...f, [k]: e.target.value });
-  const ready = f.title.trim() && f.start && f.place.trim() && f.host.trim() && /^https?:\/\//i.test(f.url.trim());
-  const tz = areas.find((a) => String(a.id) === f.area)?.timezone ?? "UTC";
+  const ready = city && f.title.trim() && f.start && f.place.trim() && f.host.trim() && /^https?:\/\//i.test(f.url.trim());
+  const tz = city?.timezone ?? "UTC";
   const input = "h-11 w-full rounded-xl border-2 border-line bg-surface px-3 text-[15px] outline-none focus:border-green";
 
   return (
@@ -130,22 +139,33 @@ function Events({ events, areas, busy, run }: { events: EventRow[]; areas: AreaR
           e.preventDefault();
           run(() => getClient().rpc("admin_add_event", {
             p_title: f.title, p_starts: localToUtcIso(f.start, tz), p_ends: f.end ? localToUtcIso(f.end, tz) : null,
-            p_place: f.place, p_area: Number(f.area), p_price: f.price, p_kind: f.kind, p_host: f.host, p_url: f.url,
+            p_place: f.place, p_area: city!.id, p_price: f.price, p_kind: f.kind, p_host: f.host, p_url: f.url,
           }), "Event added");
-          setF(empty);
+          setF(empty); setCity(null); setCityQ(""); setCityHits([]);
         }}
         className="flex flex-col gap-2.5 rounded-[20px] border border-line-soft bg-surface p-4"
       >
         <b className="text-[15px]">Add an event</b>
-        <span className="text-xs text-muted">Times are local to the event&apos;s city ({tz.replace("_", " ")}). We list events and link to the organiser; we don&apos;t host.</span>
+        <span className="text-xs text-muted">Times are local to the event&apos;s city{city ? ` (${tz.replace("_", " ")})` : ""}. We list events and link to the organiser; we don&apos;t host.</span>
         <label className="text-[13px] font-bold">Title<input className={input} value={f.title} onChange={set("title")} placeholder="What is it?" /></label>
         <div className="grid grid-cols-2 gap-2">
           <label className="text-[13px] font-bold">Starts<input type="datetime-local" className={input} value={f.start} onChange={set("start")} /></label>
           <label className="text-[13px] font-bold">Ends (optional)<input type="datetime-local" className={input} value={f.end} onChange={set("end")} /></label>
         </div>
         <label className="text-[13px] font-bold">Place<input className={input} value={f.place} onChange={set("place")} placeholder="Venue or park, and city" /></label>
-        <div className="grid grid-cols-3 gap-2">
-          <label className="text-[13px] font-bold">City<select className={input} value={f.area} onChange={set("area")}>{areas.map((a) => <option key={a.id} value={a.id}>{a.name} ({a.metro})</option>)}</select></label>
+        <label className="text-[13px] font-bold">City
+          <input className={input} value={city ? `${city.name}, ${city.state}` : cityQ} onChange={(e) => searchCity(e.target.value)} placeholder="Type a city or ZIP" autoComplete="off" />
+        </label>
+        {!city && cityHits.length > 0 && (
+          <div className="flex flex-col gap-1" role="listbox" aria-label="Matching cities">
+            {cityHits.map((c) => (
+              <button type="button" role="option" aria-selected="false" key={`${c.id}`} onClick={() => { setCity(c); setCityHits([]); }} className="flex flex-col items-start rounded-xl bg-ground px-3 py-2 text-left">
+                <b className="text-sm">{c.name}, {c.state}</b><span className="text-xs text-muted">{c.metro_name}</span>
+              </button>
+            ))}
+          </div>
+        )}
+        <div className="grid grid-cols-2 gap-2">
           <label className="text-[13px] font-bold">Kind<select className={input} value={f.kind} onChange={set("kind")}>{KINDS.map((k) => <option key={k}>{k}</option>)}</select></label>
           <label className="text-[13px] font-bold">Price<input className={input} value={f.price} onChange={set("price")} placeholder="Free" /></label>
         </div>
