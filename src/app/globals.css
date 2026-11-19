@@ -13,6 +13,20 @@
   --blue-tint: #dce7f7;
   --blue-text: #28426b;
   --warn: #9a2b1f;
+  --pink-tint: #f7dde4;
+  --pink-text: #7a2e44;
+  --purple-tint: #e6e1f5;
+  --purple-text: #4a3a7a;
+  --yellow-tint: #f7e7c6;
+  --yellow-text: #6b4a0e;
+  --slate: #3b463f;
+  --brown-text: #5e4330;
+  --orange-ink: #3e2a1c;
+  --hero-blob: #2a7d58;
+  --on-green-muted: #cde6d8;
+  --dash: #c3ccc5;
+  --radio: #7d8981;
+  --photo-dash: #e9c9ae;
   --warn-tint: #fbe9e6;
   --ground: #f5f7f2;
   --surface: #ffffff;
@@ -34,6 +48,20 @@
   --color-blue-tint: var(--blue-tint);
   --color-blue-text: var(--blue-text);
   --color-warn: var(--warn);
+  --color-pink-tint: var(--pink-tint);
+  --color-pink-text: var(--pink-text);
+  --color-purple-tint: var(--purple-tint);
+  --color-purple-text: var(--purple-text);
+  --color-yellow-tint: var(--yellow-tint);
+  --color-yellow-text: var(--yellow-text);
+  --color-slate: var(--slate);
+  --color-brown-text: var(--brown-text);
+  --color-orange-ink: var(--orange-ink);
+  --color-hero-blob: var(--hero-blob);
+  --color-on-green-muted: var(--on-green-muted);
+  --color-dash: var(--dash);
+  --color-radio: var(--radio);
+  --color-photo-dash: var(--photo-dash);
   --color-warn-tint: var(--warn-tint);
   --color-ground: var(--ground);
   --color-surface: var(--surface);
@@ -79,4 +107,16 @@ body {
     border: 1px solid var(--line-soft);
     box-shadow: 0 10px 40px rgba(23, 32, 27, 0.08);
   }
+}
+
+/* Visible keyboard focus everywhere (mouse and touch users don't see it). */
+:focus-visible {
+  outline: 3px solid var(--orange);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* Respect "reduce motion" in phone settings. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }

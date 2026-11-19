@@ -41,9 +41,9 @@ export default function Welcome() {
         </div>
 
         <div aria-hidden="true" className="relative mt-3 h-[290px] flex-none overflow-hidden rounded-[30px] bg-green">
-          <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-[#2A7D58]" />
-          <div className="absolute -bottom-[50px] -left-[30px] h-[140px] w-[140px] rounded-full bg-[#2A7D58]" />
-          <Pill initials="PS" tone="bg-[#F7E7C6] text-[#6B4A0E]" name="Priya" route="Jaipur → Richardson" className="left-4 top-[22px]" />
+          <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-hero-blob" />
+          <div className="absolute -bottom-[50px] -left-[30px] h-[140px] w-[140px] rounded-full bg-hero-blob" />
+          <Pill initials="PS" tone="bg-yellow-tint text-yellow-text" name="Priya" route="Jaipur → Richardson" className="left-4 top-[22px]" />
           <span className="absolute right-4 top-[74px] rotate-[4deg] rounded-full bg-orange px-3.5 py-2 text-[13px] font-bold text-ink">Both from Rajasthan</span>
           <Pill initials="VB" tone="bg-green-tint text-green" name="Vikram" route="Bikaner → Garland" className="right-4 top-[118px]" />
           <Pill initials="MP" tone="bg-blue-tint text-blue-text" name="Meera" route="Pune → Plano" className="left-[30px] top-[198px]" />

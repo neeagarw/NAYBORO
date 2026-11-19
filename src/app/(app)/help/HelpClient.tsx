@@ -69,7 +69,7 @@ export function HelpClient({ userId, email: initialEmail, initialTopic }: { user
           </div>
         </div>
         {topic === "safety" && (
-          <div className="flex items-start gap-2.5 rounded-2xl bg-orange-tint px-3.5 py-3 text-sm leading-[1.45] text-[#3E2A1C]">
+          <div className="flex items-start gap-2.5 rounded-2xl bg-orange-tint px-3.5 py-3 text-sm leading-[1.45] text-orange-ink">
             <span className="flex-none text-orange-icon"><ShieldIcon size={20} check={false} /></span>
             <span>About a specific person? The fastest way is to open their profile or chat, tap ⋯ and choose <b>Report</b>. In danger? Call 911 first.</span>
           </div>

@@ -71,7 +71,7 @@ with sync_playwright() as p:
     shot(A, "s01_people")
     A.get_by_role("button", name=re.compile(r"^Jaipur · 6$")).click()
     expect(main.get_by_text("FROM JAIPUR, AROUND DFW")).to_be_visible()
-    expect(main.get_by_role("link", name=re.compile("Kavya S\\."))).to_be_visible()
+    expect(main.get_by_role("link", name=re.compile("Kavya S\\.")).first).to_be_visible()
     A.get_by_role("button", name="For you").click()
 
     # Rohit's profile: Rajasthan in common, tennis in common
@@ -149,7 +149,7 @@ with sync_playwright() as p:
     A.goto(B + "/explore/ask")
     A.get_by_label("Your question").fill("Any weekend cricket groups around Garland?")
     expect(A.get_by_text("Suggested from your question.")).to_be_visible()
-    A.get_by_role("button", name="Post anonymously").click()
+    A.get_by_role("button", name="Anonymous").click()
     expect(A.get_by_text("Garland area · name and hometown hidden")).to_be_visible()
     shot(A, "s09_ask")
     A.get_by_role("button", name="Post question").click()
@@ -286,7 +286,7 @@ with sync_playwright() as p:
     A.get_by_role("button", name=re.compile(r"^Events")).click()
     A.get_by_label("Title").fill("Garba night at Plano Event Center")
     A.get_by_label("Starts").fill("2026-12-12T19:00")
-    A.get_by_label("Place").fill("Plano Event Center"); A.get_by_label("City").select_option(label="Plano")
+    A.get_by_label("Place").fill("Plano Event Center"); A.get_by_label("City").select_option(label="Plano (DFW)")
     A.get_by_label("Kind").select_option("Festival"); A.get_by_label("Price").fill("$20")
     A.get_by_label("Organiser").fill("DFW Garba Collective"); A.get_by_label("Link to details").fill("https://example.com/garba")
     shot(A, "s15_admin_event")

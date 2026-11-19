@@ -5,11 +5,12 @@ import { useRouter } from "next/navigation";
 import { getClient } from "@/lib/supabase/client";
 import { LogoMark } from "@/components/Logo";
 import { nearestArea, shrinkImage } from "@/lib/geo";
+import { UI } from "@/config/app";
 
 // Port of design/mockups/profile-setup.html: Roots → Interests → Now → You → Done.
 
 export type Place = { id: number; city: string; region: string; country: string };
-export type Area = { id: number; name: string; state: string; zips: string[]; lat: number | null; lng: number | null };
+export type Area = { id: number; name: string; state: string; zips: string[]; lat: number | null; lng: number | null; metro_name: string; match_km: number };
 export type InterestGroup = { title: string; items: { id: number; label: string }[] };
 export type Level = "city" | "state" | "country";
 export type Initial = {
@@ -23,10 +24,9 @@ function newPhotoPath(userId: string) {
 }
 
 const STEPS = ["Roots", "Interests", "Now", "You"];
-const VISIBLE = 5;
-const MIN_INTERESTS = 3;
+const VISIBLE = UI.interestsVisible;
 
-export function SetupFlow({ userId, areas, groups, initial }: { userId: string; areas: Area[]; groups: InterestGroup[]; initial: Initial | null }) {
+export function SetupFlow({ userId, areas, groups, initial, minInterests: MIN_INTERESTS, maxHometowns }: { userId: string; areas: Area[]; groups: InterestGroup[]; initial: Initial | null; minInterests: number; maxHometowns: number }) {
   const router = useRouter();
   const editing = !!initial;
 
@@ -61,6 +61,8 @@ export function SetupFlow({ userId, areas, groups, initial }: { userId: string; 
   const introRef = useRef<HTMLTextAreaElement>(null);
 
   const searching = roots.length === 0 || adding;
+  const metroNames = [...new Set(areas.map((a) => a.metro_name))].join(" and ");
+  const example = areas[0] ? `e.g. ${areas[0].name}${areas[0].zips[0] ? ` or ${areas[0].zips[0]}` : ""}` : "City or ZIP";
   const labels = useMemo(() => new Map(groups.flatMap((g) => g.items.map((i) => [i.id, i.label] as const))), [groups]);
 
   // Hometown search: prefix match on places, up to 5.
@@ -69,8 +71,8 @@ export function SetupFlow({ userId, areas, groups, initial }: { userId: string; 
     if (!q) return;
     let live = true;
     const t = setTimeout(async () => {
-      const { data } = await getClient().from("places").select("id,city,region,country").ilike("city", `${q.replace(/[%_]/g, "")}%`).order("city").limit(8);
-      if (live) setResults((data ?? []).filter((p) => !roots.some((r) => r.id === p.id)).slice(0, 5));
+      const { data } = await getClient().from("places").select("id,city,region,country").ilike("city", `${q.replace(/[%_]/g, "")}%`).order("city").limit(UI.hometownResults + 3);
+      if (live) setResults((data ?? []).filter((p) => !roots.some((r) => r.id === p.id)).slice(0, UI.hometownResults));
     }, 150);
     return () => { live = false; clearTimeout(t); };
   }, [query, roots]);
@@ -95,7 +97,7 @@ export function SetupFlow({ userId, areas, groups, initial }: { userId: string; 
         const hit = nearestArea({ lat: pos.coords.latitude, lng: pos.coords.longitude }, areas);
         setLocating(false);
         if (hit) { setNow(hit); setTyping(false); }
-        else { setTyping(true); setLocNote("Nayboro is only in Dallas–Fort Worth for now. Pick the closest city below."); }
+        else { setTyping(true); setLocNote(`Nayboro is only in ${metroNames} for now. Pick the closest city below.`); }
       },
       () => { setLocating(false); setTyping(true); setLocNote("We couldn't get your location. Type your city or ZIP instead."); },
       { enableHighAccuracy: false, timeout: 10000, maximumAge: 600000 },
@@ -106,7 +108,7 @@ export function SetupFlow({ userId, areas, groups, initial }: { userId: string; 
     const f = e.target.files?.[0];
     if (!f) return;
     try {
-      const blob = await shrinkImage(f);
+      const blob = await shrinkImage(f, UI.photoMaxPx);
       setPhoto({ blob, url: URL.createObjectURL(blob) });
     } catch {
       setError("We couldn't read that photo. Try a different one.");
@@ -196,7 +198,7 @@ export function SetupFlow({ userId, areas, groups, initial }: { userId: string; 
                   {query.trim() && results && results.length === 0 && <div className="p-3.5 text-sm text-muted">No match yet. Try a nearby bigger city.</div>}
                   {query.trim() && results?.map((p) => (
                     <button key={p.id} onClick={() => { setRoots([...roots, p]); setAdding(false); setQuery(""); }} className="flex min-h-[60px] w-full items-center gap-3.5 rounded-[14px] px-3.5 py-2.5 text-left hover:bg-ground">
-                      <span className="h-[22px] w-[22px] flex-none rounded-full border-2 border-[#7D8981]" />
+                      <span className="h-[22px] w-[22px] flex-none rounded-full border-2 border-radio" />
                       <span><b className="block text-base">{p.city}</b><small className="text-[13px] text-muted">{p.region}, {p.country}</small></span>
                     </button>
                   ))}
@@ -204,7 +206,7 @@ export function SetupFlow({ userId, areas, groups, initial }: { userId: string; 
               </div>
             )}
 
-            {!searching && roots.length < 3 && (
+            {!searching && roots.length < maxHometowns && (
               <button onClick={() => { setAdding(true); setTimeout(() => searchRef.current?.focus(), 30); }} className="flex min-h-11 items-center gap-1.5 self-start text-sm font-bold text-green">
                 <PlusIcon />Grew up in more than one place? Add another
               </button>
@@ -269,10 +271,10 @@ export function SetupFlow({ userId, areas, groups, initial }: { userId: string; 
           <>
             <Heading title="Where do you live now?" lead="We only need your city, so we can show you people and questions close by." />
             <div className="flex flex-col gap-4 rounded-3xl bg-green p-[18px] text-white">
-              <span className="text-xs font-bold tracking-[1px] text-[#CDE6D8]">WHAT OTHERS SEE</span>
+              <span className="text-xs font-bold tracking-[1px] text-on-green-muted">WHAT OTHERS SEE</span>
               <div className="flex items-center gap-3">
                 <Avatar photo={photo?.url} first={first} />
-                <div><div className="text-lg font-bold">{displayName}</div><div className="text-[13px] text-[#CDE6D8]">{firstThree}</div></div>
+                <div><div className="text-lg font-bold">{displayName}</div><div className="text-[13px] text-on-green-muted">{firstThree}</div></div>
               </div>
               <div className="flex items-center gap-3 rounded-2xl bg-white px-4 py-3.5 text-ink">
                 <div><small className="block text-[11px] font-bold tracking-[.8px] text-muted">FROM</small><b className="text-[17px]">{shownRoot}</b></div>
@@ -290,7 +292,7 @@ export function SetupFlow({ userId, areas, groups, initial }: { userId: string; 
                 {locNote && <p className="text-[13px] font-semibold text-orange-text">{locNote}</p>}
                 <label htmlFor="citySearch" className="text-[13px] font-bold">Your city or ZIP</label>
                 <div className="flex h-[52px] items-center rounded-2xl border-2 border-line bg-surface px-4 focus-within:border-green">
-                  <input id="citySearch" ref={cityRef} type="text" autoComplete="off" value={cityQuery} onChange={(e) => setCityQuery(e.target.value)} placeholder="e.g. Garland or 75040" className="min-w-0 flex-1 bg-transparent text-base outline-none" />
+                  <input id="citySearch" ref={cityRef} type="text" autoComplete="off" value={cityQuery} onChange={(e) => setCityQuery(e.target.value)} placeholder={example} className="min-w-0 flex-1 bg-transparent text-base outline-none" />
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {filteredCities.map((c) => (
@@ -298,7 +300,7 @@ export function SetupFlow({ userId, areas, groups, initial }: { userId: string; 
                       {c.name}, {c.state}
                     </button>
                   ))}
-                  {filteredCities.length === 0 && <span className="text-[13px] text-muted">We&apos;re only in Dallas–Fort Worth for now.</span>}
+                  {filteredCities.length === 0 && <span className="text-[13px] text-muted">We&apos;re only in {metroNames} for now.</span>}
                 </div>
               </div>
             )}
@@ -320,7 +322,7 @@ export function SetupFlow({ userId, areas, groups, initial }: { userId: string; 
           <>
             <Heading title="A little about you" lead="This is what people see when you say hi. Keep it friendly and short." />
             <div className="flex items-center gap-4">
-              <div className="flex h-[88px] w-[88px] flex-none items-center justify-center overflow-hidden rounded-[26px] border-2 border-dashed border-[#E9C9AE] bg-orange-tint text-orange-icon">
+              <div className="flex h-[88px] w-[88px] flex-none items-center justify-center overflow-hidden rounded-[26px] border-2 border-dashed border-photo-dash bg-orange-tint text-orange-icon">
                 {/* eslint-disable-next-line @next/next/no-img-element -- local preview of an unsaved photo */}
                 {photo ? <img src={photo.url} alt="Your photo" className="h-full w-full object-cover" /> : <PersonIcon />}
               </div>
@@ -357,7 +359,7 @@ export function SetupFlow({ userId, areas, groups, initial }: { userId: string; 
                   }} className="h-9 rounded-full border border-line bg-surface px-3 text-[13px] font-semibold">{s.trim()}...</button>
                 ))}
               </div>
-              <textarea id="intro" ref={introRef} maxLength={160} value={intro} onChange={(e) => setIntro(e.target.value)} placeholder="e.g. Weekend tennis, always up for chai. New to Garland." className="min-h-[110px] w-full resize-none rounded-2xl border-2 border-line bg-surface px-4 py-3.5 text-base leading-normal outline-none focus:border-green" />
+              <textarea id="intro" ref={introRef} maxLength={160} value={intro} onChange={(e) => setIntro(e.target.value)} placeholder={`e.g. Weekend tennis, always up for chai. New to ${now?.name ?? "the area"}.`} className="min-h-[110px] w-full resize-none rounded-2xl border-2 border-line bg-surface px-4 py-3.5 text-base leading-normal outline-none focus:border-green" />
               <span className="text-xs text-muted">Please don&apos;t share your address, phone number or details about children.</span>
             </div>
 
@@ -392,7 +394,7 @@ export function SetupFlow({ userId, areas, groups, initial }: { userId: string; 
       <div className="flex flex-col gap-2 border-t border-line-soft bg-ground px-5 pb-6 pt-3">
         {step === 1 && (
           <div className="flex items-center gap-2.5">
-            <span>{[0, 1, 2].map((i) => <i key={i} className={`mr-1 inline-block h-2 w-[22px] rounded ${i < picked.length ? "bg-orange" : "bg-line"}`} />)}</span>
+            <span>{Array.from({ length: MIN_INTERESTS }, (_, i) => i).map((i) => <i key={i} className={`mr-1 inline-block h-2 w-[22px] rounded ${i < picked.length ? "bg-orange" : "bg-line"}`} />)}</span>
             <span className="text-[13px] font-semibold text-green">{picked.length >= MIN_INTERESTS ? `${picked.length} picked. You can change these later.` : `Pick ${MIN_INTERESTS - picked.length} more to continue`}</span>
           </div>
         )}

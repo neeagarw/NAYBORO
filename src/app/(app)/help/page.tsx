@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { HelpClient } from "./HelpClient";
 import { TOPICS } from "./topics";
 
-export const metadata = { title: "Contact us · Nayboro" };
+export const metadata = { title: "Contact us" };
 
 // Port of design/mockups/contact.html. Opened from the account menu and from "Tell us" on Events.
 export default function HelpPage({ searchParams }: PageProps<"/help">) {

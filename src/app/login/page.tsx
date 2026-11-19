@@ -3,7 +3,7 @@ import { ScreenSkeleton } from "@/components/Skeleton";
 import { LoginForm } from "./LoginForm";
 import { safeNext } from "@/lib/safe-next";
 
-export const metadata = { title: "Log in · Nayboro" };
+export const metadata = { title: "Log in" };
 
 // searchParams is request-time data, so it is read inside a Suspense boundary (Cache Components).
 export default function LoginPage({ searchParams }: PageProps<"/login">) {

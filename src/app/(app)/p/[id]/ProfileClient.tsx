@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { getClient } from "@/lib/supabase/client";
-import { Sheet, MenuItem, friendly, useToast, BackIcon, MoreIcon, ShieldIcon, ChatIcon, FlagIcon, BlockIcon, toneFor } from "@/components/ui";
+import { REPORT_REASONS, PHONE_VERIFICATION_LIVE } from "@/config/app";
+import { Sheet, MenuItem, friendly, useToast, bothLine, BackIcon, MoreIcon, ShieldIcon, ChatIcon, FlagIcon, BlockIcon, toneFor } from "@/components/ui";
 
 export type Card = {
   id: string; display_name: string; first_name: string; photo_path: string | null; intro: string | null;
@@ -14,12 +15,9 @@ export type Card = {
   hello_state: "none" | "sent" | "received" | "connected"; hello_id: string | null; conversation_id: string | null;
 };
 
-const SPORTS = new Set(["Tennis", "Cricket", "Badminton", "Pickleball", "Running", "Yoga", "Gym buddies", "Cycling", "Volleyball", "Hiking", "Swimming", "Table tennis", "Football", "Basketball"]);
-// Turn on once phone sign-in exists, so the badge means something.
-const PHONE_VERIFICATION_LIVE = false;
-const REASONS = ["Fake profile", "Harassment or hate", "Scam or asking for money", "Inappropriate photo or content", "Something else"];
+const REASONS = REPORT_REASONS.profile;
 
-export function ProfileClient({ card: c, photoUrl, myArea, myRegion }: { card: Card; photoUrl: string | null; myArea: string; myRegion: string }) {
+export function ProfileClient({ card: c, photoUrl, myArea, myRegion, verbs }: { card: Card; photoUrl: string | null; myArea: string; myRegion: string; verbs: Record<string, string> }) {
   const router = useRouter();
   const [toast, toastNode] = useToast();
   const [state, setState] = useState(c.hello_state);
@@ -32,10 +30,10 @@ export function ProfileClient({ card: c, photoUrl, myArea, myRegion }: { card: C
   const tiles: { icon: "pin" | "ball" | "star"; text: string }[] = [];
   if (c.roots_match?.startsWith("city:")) tiles.push({ icon: "pin", text: `Both from ${c.roots_match.slice(5)}` });
   else if (c.roots_match?.startsWith("region:")) tiles.push({ icon: "pin", text: `Both from ${c.roots_match.slice(7)}` });
-  c.shared_interests.slice(0, tiles.length ? 1 : 2).forEach((i) => tiles.push({ icon: SPORTS.has(i) ? "ball" : "star", text: SPORTS.has(i) ? `Both play ${i.toLowerCase()}` : `Both into ${i.toLowerCase()}` }));
+  c.shared_interests.slice(0, tiles.length ? 1 : 2).forEach((i) => tiles.push({ icon: verbs[i] === "play" ? "ball" : "star", text: bothLine(i, verbs) }));
 
   const starters = [
-    c.shared_interests[0] && (SPORTS.has(c.shared_interests[0]) ? `Up for ${c.shared_interests[0].toLowerCase()} this weekend?` : `Fellow ${c.shared_interests[0].toLowerCase()} fan here! Want to meet up?`),
+    c.shared_interests[0] && (verbs[c.shared_interests[0]] === "play" ? `Up for ${c.shared_interests[0].toLowerCase()} this weekend?` : `Fellow ${c.shared_interests[0].toLowerCase()} fan here! Want to meet up?`),
     c.roots_match && `Hi from a fellow ${c.roots_match.startsWith("city:") ? c.roots_match.slice(5) : myRegion} person in ${myArea}!`,
     c.shared_event && `Are you going to the ${c.shared_event.title.toLowerCase()}?`,
   ].filter(Boolean) as string[];
@@ -43,8 +41,7 @@ export function ProfileClient({ card: c, photoUrl, myArea, myRegion }: { card: C
 
   async function sendHello() {
     setBusy(true);
-    const me = (await getClient().auth.getUser()).data.user!.id;
-    const { error } = await getClient().from("hellos").insert({ from_id: me, to_id: c.id, message: text.trim() });
+    const { error } = await getClient().rpc("say_hi", { p_to: c.id, p_message: text.trim() });
     setBusy(false);
     if (error) return toast(friendly(error, "Couldn't send. Please try again."));
     setSheet(null); setState("sent"); toast(`Hello sent to ${c.first_name}`);
@@ -75,7 +72,7 @@ export function ProfileClient({ card: c, photoUrl, myArea, myRegion }: { card: C
         <button aria-label={`More options for ${c.first_name}`} onClick={() => setSheet("more")} className="flex h-11 w-11 items-center justify-center rounded-[14px] border border-line bg-surface"><MoreIcon /></button>
       </div>
 
-      <main className="flex flex-1 flex-col gap-3.5 overflow-y-auto px-5 pb-6 pt-1">
+      <main tabIndex={0} aria-label={`${c.display_name}'s profile`} className="flex flex-1 flex-col gap-3.5 overflow-y-auto px-5 pb-6 pt-1">
         <section aria-labelledby="name" className="flex flex-col items-center gap-2.5 rounded-3xl border border-line-soft bg-surface px-[18px] py-[22px] text-center">
           {photoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element -- signed URL from private storage

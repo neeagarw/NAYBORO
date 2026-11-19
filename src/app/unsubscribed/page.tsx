@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { LogoMark } from "@/components/Logo";
 
-export const metadata = { title: "Email alerts · Nayboro" };
+export const metadata = { title: "Email alerts" };
 
 export default function UnsubscribedPage({ searchParams }: PageProps<"/unsubscribed">) {
   return (

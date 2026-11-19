@@ -1,5 +1,8 @@
 -- Nayboro seed data for local development and launch. Runs after migrations (supabase db reset).
 
+-- Launch metro. A new city = one row here + its areas below; nothing in the app changes.
+insert into metros (code, name, timezone, near_km, match_km) values ('DFW', 'Dallas–Fort Worth', 'America/Chicago', 25, 40);
+
 -- lat/lng = approximate city centre, used on the device to match a location to the nearest area.
 insert into areas (name, state, metro, zips, lat, lng) values
   ('Garland','TX','DFW','{75040,75041,75042,75043,75044}', 32.9126, -96.6389),
@@ -25,11 +28,11 @@ insert into places (city, region, country) values
   ('Bhubaneswar','Odisha','India'),('Kathmandu','Bagmati','Nepal'),('Dhaka','Dhaka','Bangladesh'),('Colombo','Western Province','Sri Lanka'),
   ('Manila','Metro Manila','Philippines'),('Lagos','Lagos','Nigeria'),('Nairobi','Nairobi','Kenya'),('Mexico City','CDMX','Mexico');
 
-insert into interests (label, group_name, sort)
-select label, grp, ord from (values
-  ('Sport and fitness', array['Tennis','Cricket','Badminton','Pickleball','Running','Yoga','Gym buddies','Cycling','Volleyball','Hiking','Swimming','Table tennis','Football','Basketball']),
-  ('Food and drink',    array['Chai meetups','Cooking','Potlucks','Eating out','Baking','Recipe swaps','Coffee']),
-  ('Family and home',   array['Playdates','School carpool','Family outings','Parent meetups','Gardening','Pets']),
-  ('Culture and hobbies', array['Festivals','Board games','Book club','Music','Photography','Dance','Movies','Travel','Volunteering']),
-  ('Life and work',     array['Career chats','Immigration questions','Investing','Startups','Language exchange','Morning walks','Travel buddies'])
-) g(grp, items), unnest(items) with ordinality as u(label, ord);
+insert into interests (label, group_name, group_sort, sort, verb)
+select label, grp, gs, ord, case when grp = 'Sport and fitness' then 'play' else 'into' end from (values
+  (1, 'Sport and fitness', array['Tennis','Cricket','Badminton','Pickleball','Running','Yoga','Gym buddies','Cycling','Volleyball','Hiking','Swimming','Table tennis','Football','Basketball']),
+  (2, 'Food and drink',    array['Chai meetups','Cooking','Potlucks','Eating out','Baking','Recipe swaps','Coffee']),
+  (3, 'Family and home',   array['Playdates','School carpool','Family outings','Parent meetups','Gardening','Pets']),
+  (4, 'Culture and hobbies', array['Festivals','Board games','Book club','Music','Photography','Dance','Movies','Travel','Volunteering']),
+  (5, 'Life and work',     array['Career chats','Immigration questions','Investing','Startups','Language exchange','Morning walks','Travel buddies'])
+) g(gs, grp, items), unnest(items) with ordinality as u(label, ord);

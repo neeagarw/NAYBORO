@@ -2,15 +2,7 @@
 
 import { Sheet } from "@/components/ui";
 
-// Copy from design/mockups/chat.html ("Chatting safely").
-const TIPS: [string, string][] = [
-  ["Keep personal details private", "Your address, phone number and workplace can wait until you trust someone."],
-  ["Never send money or codes", "No one should ask for money, gift cards, bank details or verification codes."],
-  ["Watch for pressure", "Rushing you, guilt-tripping or pushing to move to WhatsApp fast are red flags."],
-  ["Be careful with links and files", "Don't open unknown links or share photos of your passport, visa or ID."],
-  ["You don't owe a reply", "It's fine to stop chatting, mute or block at any time."],
-  ["Report anything off", "Harassment, scams or fake profiles: report them from the ⋯ menu."],
-];
+import { SAFETY_TIPS as TIPS } from "@/config/app";
 
 export function SafetyTips({ open, onClose }: { open: boolean; onClose: () => void }) {
   return (
@@ -24,7 +16,7 @@ export function SafetyTips({ open, onClose }: { open: boolean; onClose: () => vo
           </li>
         ))}
       </ol>
-      <div className="rounded-[14px] bg-orange-tint p-3 text-[13px] leading-[1.45] text-[#3E2A1C]">If someone threatens you, call 911 first. Then report them so our team can act.</div>
+      <div className="rounded-[14px] bg-orange-tint p-3 text-[13px] leading-[1.45] text-orange-ink">If someone threatens you, call 911 first. Then report them so our team can act.</div>
       <button onClick={onClose} className="h-[54px] rounded-[18px] bg-green text-base font-bold text-white">Got it</button>
     </Sheet>
   );

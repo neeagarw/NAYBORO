@@ -8,11 +8,10 @@ export function kmBetween(a: { lat: number; lng: number }, b: { lat: number; lng
   return 2 * R * Math.asin(Math.sqrt(h));
 }
 
-/** Nearest area within maxKm, or null. Runs on the device: coordinates never leave the phone. */
-export function nearestArea<T extends { lat: number | null; lng: number | null }>(
+/** Nearest area within its metro's match_km, or null. Runs on the device: coordinates never leave the phone. */
+export function nearestArea<T extends { lat: number | null; lng: number | null; match_km: number }>(
   here: { lat: number; lng: number },
   areas: T[],
-  maxKm = 40,
 ): T | null {
   let best: T | null = null;
   let bestKm = Infinity;
@@ -24,11 +23,11 @@ export function nearestArea<T extends { lat: number | null; lng: number | null }
       bestKm = d;
     }
   }
-  return bestKm <= maxKm ? best : null;
+  return best && bestKm <= best.match_km ? best : null;
 }
 
 /** Shrink a photo to a square-ish JPEG (max 640px) before upload. */
-export async function shrinkImage(file: File, max = 640): Promise<Blob> {
+export async function shrinkImage(file: File, max: number): Promise<Blob> {
   const bitmap = await createImageBitmap(file);
   const scale = Math.min(1, max / Math.max(bitmap.width, bitmap.height));
   const canvas = document.createElement("canvas");

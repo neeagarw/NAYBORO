@@ -5,14 +5,16 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { getClient } from "@/lib/supabase/client";
 import { BackIcon, Tag, ago, friendly, useToast } from "@/components/ui";
+import { EVENT_KINDS } from "@/config/app";
+import { fmtIn, localToUtcIso } from "@/lib/time";
 
 export type Report = { target_type: "profile" | "question" | "answer" | "message"; target_id: string; report_count: number; reasons: string[]; first_reported: string; owner_id: string | null; owner_name: string | null; owner_suspended: boolean; content: string | null; hidden: boolean | null };
 export type Contact = { id: string; topic: string; body: string; reply_email: string; name: string | null; created_at: string; handled_at: string | null };
 export type Paused = { id: string; name: string; suspended_at: string };
-export type EventRow = { id: string; title: string; starts_at: string; place_name: string; price_label: string; kind: string; host_name: string; url: string };
-export type AreaRow = { id: number; name: string };
+export type EventRow = { id: string; title: string; starts_at: string; place_name: string; price_label: string; kind: string; host_name: string; url: string; timezone: string };
+export type AreaRow = { id: number; name: string; metro: string; timezone: string };
 
-const KINDS = ["Sports", "Food", "Family", "Festival", "Culture", "Community"];
+const KINDS = EVENT_KINDS;
 const TYPE_LABEL: Record<Report["target_type"], string> = { profile: "Profile", question: "Question", answer: "Answer", message: "Message" };
 
 export function AdminClient({ reports, contact, paused, events, areas }: { reports: Report[]; contact: Contact[]; paused: Paused[]; events: EventRow[]; areas: AreaRow[] }) {
@@ -118,6 +120,7 @@ function Events({ events, areas, busy, run }: { events: EventRow[]; areas: AreaR
   const [f, setF] = useState(empty);
   const set = (k: keyof typeof empty) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setF({ ...f, [k]: e.target.value });
   const ready = f.title.trim() && f.start && f.place.trim() && f.host.trim() && /^https?:\/\//i.test(f.url.trim());
+  const tz = areas.find((a) => String(a.id) === f.area)?.timezone ?? "UTC";
   const input = "h-11 w-full rounded-xl border-2 border-line bg-surface px-3 text-[15px] outline-none focus:border-green";
 
   return (
@@ -126,7 +129,7 @@ function Events({ events, areas, busy, run }: { events: EventRow[]; areas: AreaR
         onSubmit={(e) => {
           e.preventDefault();
           run(() => getClient().rpc("admin_add_event", {
-            p_title: f.title, p_starts: new Date(f.start).toISOString(), p_ends: f.end ? new Date(f.end).toISOString() : null,
+            p_title: f.title, p_starts: localToUtcIso(f.start, tz), p_ends: f.end ? localToUtcIso(f.end, tz) : null,
             p_place: f.place, p_area: Number(f.area), p_price: f.price, p_kind: f.kind, p_host: f.host, p_url: f.url,
           }), "Event added");
           setF(empty);
@@ -134,19 +137,19 @@ function Events({ events, areas, busy, run }: { events: EventRow[]; areas: AreaR
         className="flex flex-col gap-2.5 rounded-[20px] border border-line-soft bg-surface p-4"
       >
         <b className="text-[15px]">Add an event</b>
-        <span className="text-xs text-muted">Times are in your phone&apos;s time zone. We list events and link to the organiser; we don&apos;t host.</span>
-        <label className="text-[13px] font-bold">Title<input className={input} value={f.title} onChange={set("title")} placeholder="Saturday morning cricket meetup" /></label>
+        <span className="text-xs text-muted">Times are local to the event&apos;s city ({tz.replace("_", " ")}). We list events and link to the organiser; we don&apos;t host.</span>
+        <label className="text-[13px] font-bold">Title<input className={input} value={f.title} onChange={set("title")} placeholder="What is it?" /></label>
         <div className="grid grid-cols-2 gap-2">
           <label className="text-[13px] font-bold">Starts<input type="datetime-local" className={input} value={f.start} onChange={set("start")} /></label>
           <label className="text-[13px] font-bold">Ends (optional)<input type="datetime-local" className={input} value={f.end} onChange={set("end")} /></label>
         </div>
-        <label className="text-[13px] font-bold">Place<input className={input} value={f.place} onChange={set("place")} placeholder="Holford Park, Garland" /></label>
+        <label className="text-[13px] font-bold">Place<input className={input} value={f.place} onChange={set("place")} placeholder="Venue or park, and city" /></label>
         <div className="grid grid-cols-3 gap-2">
-          <label className="text-[13px] font-bold">City<select className={input} value={f.area} onChange={set("area")}>{areas.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}</select></label>
+          <label className="text-[13px] font-bold">City<select className={input} value={f.area} onChange={set("area")}>{areas.map((a) => <option key={a.id} value={a.id}>{a.name} ({a.metro})</option>)}</select></label>
           <label className="text-[13px] font-bold">Kind<select className={input} value={f.kind} onChange={set("kind")}>{KINDS.map((k) => <option key={k}>{k}</option>)}</select></label>
           <label className="text-[13px] font-bold">Price<input className={input} value={f.price} onChange={set("price")} placeholder="Free" /></label>
         </div>
-        <label className="text-[13px] font-bold">Organiser<input className={input} value={f.host} onChange={set("host")} placeholder="Garland Weekend Cricket" /></label>
+        <label className="text-[13px] font-bold">Organiser<input className={input} value={f.host} onChange={set("host")} placeholder="Who runs it" /></label>
         <label className="text-[13px] font-bold">Link to details<input className={input} value={f.url} onChange={set("url")} placeholder="https://..." /></label>
         <button disabled={!ready || busy} className="h-12 rounded-2xl bg-green text-base font-bold text-white disabled:bg-line disabled:text-muted">Add event</button>
       </form>
@@ -154,7 +157,7 @@ function Events({ events, areas, busy, run }: { events: EventRow[]; areas: AreaR
         <div key={e.id} className="flex items-center justify-between gap-3 rounded-[20px] border border-line-soft bg-surface p-4">
           <span className="flex min-w-0 flex-col gap-0.5">
             <b className="truncate">{e.title}</b>
-            <span className="text-xs text-muted">{new Date(e.starts_at).toLocaleString([], { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })} · {e.place_name}</span>
+            <span className="text-xs text-muted">{fmtIn(e.starts_at, e.timezone, { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })} · {e.place_name}</span>
           </span>
           <AdminBtn warn disabled={busy} onClick={() => confirm(`Delete "${e.title}"?`) && run(() => getClient().rpc("admin_delete_event", { p: e.id }), "Event deleted")}>Delete</AdminBtn>
         </div>

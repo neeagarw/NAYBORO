@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { LogoMark } from "@/components/Logo";
 
-export const metadata = { title: "Not found · Nayboro" };
+export const metadata = { title: "Not found" };
 
 export default function NotFound() {
   return (

@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getClient } from "@/lib/supabase/client";
-import { Avatar, ShieldIcon, useToast } from "@/components/ui";
+import { Avatar, ShieldIcon, useToast, signPhotosClient } from "@/components/ui";
+import { UI } from "@/config/app";
 import { SafetyTips } from "@/components/SafetyTips";
 
 export type Hello = { id: string; from_id: string; display_name: string; photo_path: string | null; shown_root: string | null; message: string; common: string };
@@ -21,21 +22,34 @@ export function when(iso: string) {
   return d.toLocaleDateString([], { month: "short", day: "numeric" });
 }
 
-export function ChatsClient({ hellos, chats, sent, photos }: { hellos: Hello[]; chats: Chat[]; sent: Sent[]; photos: Record<string, string> }) {
+export function ChatsClient({ me, hellos, chats: initialChats, sent, photos: initialPhotos }: { me: string; hellos: Hello[]; chats: Chat[]; sent: Sent[]; photos: Record<string, string> }) {
   const router = useRouter();
   const [toast, toastNode] = useToast();
   const [gone, setGone] = useState<string[]>([]);
   const [tips, setTips] = useState(false);
+  const [chats, setChats] = useState(initialChats);
+  const [photos, setPhotos] = useState(initialPhotos);
+  const [more, setMore] = useState(initialChats.length === UI.chatsPage);
 
-  // Live updates: a new hello or message refreshes the list.
+  // Live updates, scoped to this person: hellos sent to me, and messages in my own chats only
+  // (never a subscription to the whole messages table).
+  const convIds = initialChats.slice(0, 100).map((c) => c.conversation_id).join(",");
   useEffect(() => {
     const sb = getClient();
-    const ch = sb.channel("chats-list")
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, () => router.refresh())
-      .on("postgres_changes", { event: "*", schema: "public", table: "hellos" }, () => router.refresh())
-      .subscribe();
+    let ch = sb.channel(`chats-${me}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "hellos", filter: `to_id=eq.${me}` }, () => router.refresh());
+    if (convIds) ch = ch.on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `conversation_id=in.(${convIds})` }, () => router.refresh());
+    ch.subscribe();
     return () => { sb.removeChannel(ch); };
-  }, [router]);
+  }, [router, me, convIds]);
+
+  async function loadMore() {
+    const { data } = await getClient().rpc("my_chats", { p_limit: UI.chatsPage, p_offset: chats.length });
+    const rows = (data ?? []) as Chat[];
+    setPhotos({ ...photos, ...(await signPhotosClient(rows.map((r) => r.photo_path))) });
+    setChats([...chats, ...rows]);
+    setMore(rows.length === UI.chatsPage);
+  }
 
   async function accept(h: Hello) {
     const { data, error } = await getClient().rpc("accept_hello", { h: h.id });
@@ -58,7 +72,7 @@ export function ChatsClient({ hellos, chats, sent, photos }: { hellos: Hello[]; 
           <div className="flex items-start gap-3">
             <Link href={`/p/${h.from_id}`}><Avatar id={h.from_id} name={h.display_name} url={h.photo_path ? photos[h.photo_path] : null} size={44} radius={14} /></Link>
             <span className="flex flex-col gap-[3px]">
-              <span className="text-[15px] font-bold">{h.display_name} <span className="font-medium text-[#5E4330]">· {h.shown_root}</span></span>
+              <span className="text-[15px] font-bold">{h.display_name} <span className="font-medium text-brown-text">· {h.shown_root}</span></span>
               <span className="self-start rounded-full bg-white px-2.5 py-1 text-xs font-bold text-green">{h.common}</span>
               <span className="text-sm leading-[1.4]">&ldquo;{h.message}&rdquo;</span>
             </span>
@@ -88,6 +102,8 @@ export function ChatsClient({ hellos, chats, sent, photos }: { hellos: Hello[]; 
           {c.unread && <span className="h-2.5 w-2.5 flex-none rounded-full bg-orange-logo" aria-label="Unread" />}
         </Link>
       ))}
+
+      {more && <button onClick={loadMore} className="h-12 rounded-2xl border-2 border-line bg-surface text-sm font-bold text-green">Show older chats</button>}
 
       {sent.length > 0 && <span className="text-xs font-bold tracking-[1px] text-muted">WAITING FOR A REPLY</span>}
       {sent.map((s) => (

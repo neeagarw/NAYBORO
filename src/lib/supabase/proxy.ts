@@ -45,7 +45,8 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (user && path === "/login") {
+  // Signed-in people skip the welcome and login pages.
+  if (user && (path === "/login" || path === "/")) {
     const url = request.nextUrl.clone();
     url.pathname = "/people";
     url.search = "";

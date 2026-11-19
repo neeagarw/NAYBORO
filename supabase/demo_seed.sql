@@ -38,7 +38,7 @@ select demo_person('d0000000-0000-0000-0000-000000000015','Pooja','Agarwal','Jai
 select demo_person('d0000000-0000-0000-0000-000000000016','Rahul','Khandelwal','Jaipur','city','Dallas','Startups and coffee.', array['Startups','Coffee'], array['Hindi','English']);
 
 -- Questions (dates relative to now so the feed reads like the mockup)
-create or replace function demo_q(p_author text, p_anon boolean, p_topic question_topic, p_body text, p_hours int, p_scope question_scope default 'near')
+create or replace function demo_q(p_author text, p_anon boolean, p_topic text, p_body text, p_hours int, p_scope question_scope default 'near')
 returns uuid language plpgsql as $$
 declare qid uuid;
 begin

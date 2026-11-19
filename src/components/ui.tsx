@@ -1,10 +1,38 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { getClient } from "@/lib/supabase/client";
+import { UI } from "@/config/app";
+
+/** Signs private avatar paths in the browser (for pages loaded after the first). */
+export async function signPhotosClient(paths: (string | null | undefined)[]) {
+  const unique = [...new Set(paths.filter((p): p is string => !!p))];
+  if (!unique.length) return {} as Record<string, string>;
+  const { data } = await getClient().storage.from("avatars").createSignedUrls(unique, UI.signedUrlSeconds);
+  const out: Record<string, string> = {};
+  for (const d of data ?? []) if (d.path && d.signedUrl) out[d.path] = d.signedUrl;
+  return out;
+}
 
 // Small building blocks shared by every screen. Styles copied from design/mockups.
 
-const TONES = ["bg-green-tint text-green", "bg-blue-tint text-blue-text", "bg-[#F7DDE4] text-[#7A2E44]", "bg-[#F7E7C6] text-[#6B4A0E]"];
+const TONES = ["bg-green-tint text-green", "bg-blue-tint text-blue-text", "bg-pink-tint text-pink-text", "bg-yellow-tint text-yellow-text"];
+
+/** Colour classes for a tone name stored in the database (topics.tone). */
+export const TONE_CLASS: Record<string, string> = {
+  green: "bg-green-tint text-green", blue: "bg-blue-tint text-blue-text", pink: "bg-pink-tint text-pink-text",
+  purple: "bg-purple-tint text-purple-text", orange: "bg-orange-tint text-orange-text", yellow: "bg-yellow-tint text-yellow-text",
+  grey: "bg-line-soft text-slate",
+};
+
+/** "Plays tennis" / "Into book club", from the interest's verb in the database. */
+export function doesLine(label: string, verbs: Record<string, string>) {
+  return verbs[label] === "play" ? `Plays ${label.toLowerCase()}` : `Into ${label.toLowerCase()}`;
+}
+/** "Both play tennis" / "Both into book club". */
+export function bothLine(label: string, verbs: Record<string, string>) {
+  return verbs[label] === "play" ? `Both play ${label.toLowerCase()}` : `Both into ${label.toLowerCase()}`;
+}
 
 /** Stable colour per person, like the mockups' .av.g/.b/.p/.y. */
 export function toneFor(id: string) {
@@ -22,7 +50,7 @@ export function Avatar({ id, name, url, size = 48, radius = 16, anon = false }: 
   const style = { width: size, height: size, borderRadius: radius, fontSize: Math.round(size * 0.31) };
   if (anon) {
     return (
-      <span style={style} className="flex flex-none items-center justify-center bg-line-soft text-[#3B463F]">
+      <span style={style} className="flex flex-none items-center justify-center bg-line-soft text-slate">
         <MaskIcon size={Math.round(size * 0.5)} />
       </span>
     );

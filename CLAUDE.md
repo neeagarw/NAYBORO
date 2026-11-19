@@ -13,6 +13,8 @@ other communities later (hometown data is global on purpose).
 - **Screenshots:** `design/screenshots/` (older 4-tab version; where they differ, the HTML wins).
 - **Spec, data model, open questions:** `docs/SPEC.md`.
 - **Database:** `supabase/migrations/`. Never edit an applied migration; add a new one.
+- **No hard-coding.** Anything that varies by city, community or policy lives in the database: `metros` (name, time zone, radii), `areas`, `topics` (colour, keywords), `interests` (verb, group order), `rate_limits`, `app_settings`. The app reads them via `getAppConfig()` (`src/lib/config.ts`). Product copy and UI constants live in `src/config/app.ts`. Colours are tokens in `globals.css`, never raw hex. Dates use the metro time zone (`src/lib/time.ts`).
+- **Scale rules:** every list is paged; every new foreign key or "recent activity" lookup gets an index; live updates are always filtered to the person; check new queries with `supabase/tests/load_test.sql` (`-v n=100000`).
 - **Screens read through functions:** `people_for_me`, `profile_card`, `inbox_hellos`, `my_chats`, `chat_header`, `questions_for_me`, `answers_for`, `events_for_me`. Add privacy logic there, not in React.
 - **`supabase/demo_seed.sql` is local-test data only. Never run it on the production database.**
 
@@ -57,5 +59,5 @@ This Next.js version has breaking changes: read `node_modules/next/dist/docs/` b
 - Write a Supabase migration for every schema change, with RLS policies in the same file.
 - Add a case to `supabase/tests/privacy_checks.sql` for every new privacy rule.
 - Run `npm run build` and `npm run lint` and fix errors before saying a task is done.
-- For any flow change, extend and run `e2e/run.sh` (local Postgres + PostgREST + Chrome, no Supabase account needed).
+- For any flow change, extend and run `e2e/run.sh` (it also runs the accessibility and 4-screen-size quality gate) (local Postgres + PostgREST + Chrome, no Supabase account needed).
 - Never commit `.env.local` or any key.

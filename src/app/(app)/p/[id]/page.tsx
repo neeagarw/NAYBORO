@@ -3,9 +3,10 @@ import { ScreenSkeleton } from "@/components/Skeleton";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { signPhotos } from "@/lib/photos";
+import { getAppConfig } from "@/lib/config";
 import { ProfileClient, type Card } from "./ProfileClient";
 
-export const metadata = { title: "Profile · Nayboro" };
+export const metadata = { title: "Profile" };
 
 // Port of design/mockups/profile.html (someone else's profile).
 export default function ProfilePage({ params }: PageProps<"/p/[id]">) {
@@ -20,7 +21,8 @@ async function Profile({ params }: { params: PageProps<"/p/[id]">["params"] }) {
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
   const supabase = await createClient();
-  const [{ data: card }, { data: area }, { data: auth }] = await Promise.all([
+  const [cfg, { data: card }, { data: area }, { data: auth }] = await Promise.all([
+    getAppConfig(),
     supabase.rpc("profile_card", { p: id }),
     supabase.rpc("me_area").maybeSingle(),
     supabase.auth.getUser(),
@@ -36,6 +38,7 @@ async function Profile({ params }: { params: PageProps<"/p/[id]">["params"] }) {
       photoUrl={c.photo_path ? photos[c.photo_path] : null}
       myArea={(area as { name: string } | null)?.name ?? ""}
       myRegion={place?.region ?? ""}
+      verbs={cfg.verbs}
     />
   );
 }

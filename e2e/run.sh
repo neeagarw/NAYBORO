@@ -32,3 +32,4 @@ trap 'kill $PGRST $GW $NEXT 2>/dev/null' EXIT
 sleep 5
 python3 e2e/setup_flow.py
 python3 e2e/screens_flow.py
+python3 e2e/quality_check.py

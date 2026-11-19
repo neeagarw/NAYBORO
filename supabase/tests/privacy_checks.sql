@@ -20,13 +20,13 @@ select display_name, area_name, shown_root from public_profiles order by 1;
 \echo '2. Neeraj reads Rohit base profile row (expect 0 rows):'
 select count(*) from profiles where id='22222222-2222-2222-2222-222222222222';
 \echo '3. Anonymous question as Neeraj (author hidden):'
-select author_id, author_name, area_label, is_mine from question_feed;
+select author_id, author_name, area_label, is_mine from questions_for_me();
 \echo '4. Event counts (3 -> hidden, 5 -> 5):'
 select title, interested_count from event_feed order by title;
 
 select set_config('request.jwt.claim.sub','22222222-2222-2222-2222-222222222222',false);
 \echo '5. Rohit sees own anon question as is_mine:'
-select author_name, is_mine from question_feed;
+select author_name, is_mine from questions_for_me();
 \echo '6. Rohit says hi to Neeraj:'
 insert into hellos (from_id,to_id,message) values ('22222222-2222-2222-2222-222222222222','11111111-1111-1111-1111-111111111111','Up for doubles?');
 
@@ -164,3 +164,36 @@ select set_config('request.jwt.claim.sub','11111111-1111-1111-1111-111111111111'
 insert into answers (question_id, author_id, body) values (:'rohit_q', '11111111-1111-1111-1111-111111111111', 'Try the Saturday market.');
 reset role;
 select kind, recipient_id = '22222222-2222-2222-2222-222222222222' as to_rohit from notifications where sent_at is null;
+\echo '36. Limits come from the rate_limits table (lower to 1, second answer refused):'
+reset role;
+update rate_limits set max_count = 1 where table_name = 'answers';
+delete from answers where author_id = '22222222-2222-2222-2222-222222222222';
+select id as any_q from questions limit 1 \gset
+set role authenticated;
+select set_config('request.jwt.claim.sub','22222222-2222-2222-2222-222222222222',false);
+insert into answers (question_id, author_id, body) values (:'any_q', '22222222-2222-2222-2222-222222222222', 'First answer ok');
+insert into answers (question_id, author_id, body) values (:'any_q', '22222222-2222-2222-2222-222222222222', 'Second answer refused');
+reset role; update rate_limits set max_count = 30 where table_name = 'answers';
+\echo '37. Topics come from the topics table (unknown topic refused):'
+set role authenticated;
+select set_config('request.jwt.claim.sub','22222222-2222-2222-2222-222222222222',false);
+insert into questions (author_id, body, topic) values ('22222222-2222-2222-2222-222222222222', 'A question with a made-up topic', 'Crypto');
+\echo '38. say_hi: second hello to the same person refused; after "Not now" + retry window it works again:'
+reset role;
+delete from hellos where to_id = '33333333-3333-3333-3333-333333333333' or from_id = '33333333-3333-3333-3333-333333333333';
+delete from blocks;
+set role authenticated;
+select set_config('request.jwt.claim.sub','22222222-2222-2222-2222-222222222222',false);
+select say_hi('33333333-3333-3333-3333-333333333333', 'Hi Aman!');
+select say_hi('33333333-3333-3333-3333-333333333333', 'Hi again!');
+reset role;
+update hellos set status = 'not_now', responded_at = now() - interval '31 days' where to_id = '33333333-3333-3333-3333-333333333333';
+set role authenticated;
+select set_config('request.jwt.claim.sub','22222222-2222-2222-2222-222222222222',false);
+select say_hi('33333333-3333-3333-3333-333333333333', 'Trying again a month later');
+reset role;
+select status, message from hellos where to_id = '33333333-3333-3333-3333-333333333333';
+\echo '39. app_config gives the app its metro, time zone, topics and verbs (no hard-coding):'
+set role authenticated;
+select set_config('request.jwt.claim.sub','22222222-2222-2222-2222-222222222222',false);
+select app_config() -> 'metro' ->> 'timezone' as tz, jsonb_array_length(app_config() -> 'topics') as topics, app_config() -> 'verbs' ->> 'Tennis' as tennis;

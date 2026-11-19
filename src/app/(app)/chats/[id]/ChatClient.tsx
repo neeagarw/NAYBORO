@@ -6,11 +6,12 @@ import { useRouter } from "next/navigation";
 import { getClient } from "@/lib/supabase/client";
 import { Avatar, Sheet, MenuItem, friendly, useToast, BackIcon, MoreIcon, ShieldIcon, XIcon, ArrowIcon } from "@/components/ui";
 import { SafetyTips } from "@/components/SafetyTips";
+import { REPORT_REASONS, UI } from "@/config/app";
 
 export type Header = { other_id: string; display_name: string; first_name: string; photo_path: string | null; subtitle: string; context: string; muted: boolean };
 export type Msg = { id: string; sender_id: string; body: string; created_at: string };
 
-const REASONS = ["Harassment or hate", "Scam or asking for money", "Inappropriate messages", "Fake profile", "Something else"];
+const REASONS = REPORT_REASONS.chat;
 
 function dayLabel(iso: string) {
   const d = new Date(iso), now = new Date();
@@ -30,12 +31,29 @@ export function ChatClient({ conv, me, header: h, photoUrl, initial }: { conv: s
   const [tip, setTip] = useState(true);
   const [sheet, setSheet] = useState<null | "tips" | "more" | "report" | "block">(null);
   const [muted, setMuted] = useState(h.muted);
+  const [older, setOlder] = useState(initial.length === UI.messagesPage);
+  const [loadingOlder, setLoadingOlder] = useState(false);
   const threadRef = useRef<HTMLElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const add = useCallback((m: Msg) => setMsgs((list) => (list.some((x) => x.id === m.id) ? list : [...list, m])), []);
 
-  useEffect(() => { threadRef.current?.scrollTo(0, threadRef.current.scrollHeight); }, [msgs.length]);
+  // Stick to the bottom for new messages, but not when older ones are added at the top.
+  const lastId = msgs[msgs.length - 1]?.id;
+  useEffect(() => { threadRef.current?.scrollTo(0, threadRef.current.scrollHeight); }, [lastId]);
+
+  async function loadOlder() {
+    if (!msgs.length) return;
+    setLoadingOlder(true);
+    const el = threadRef.current; const before = el?.scrollHeight ?? 0;
+    const { data } = await getClient().from("messages").select("id, sender_id, body, created_at")
+      .eq("conversation_id", conv).lt("created_at", msgs[0].created_at).order("created_at", { ascending: false }).limit(UI.messagesPage);
+    const rows = ((data ?? []) as Msg[]).reverse();
+    setMsgs((list) => [...rows, ...list]);
+    setOlder(rows.length === UI.messagesPage);
+    setLoadingOlder(false);
+    requestAnimationFrame(() => { if (el) el.scrollTop = el.scrollHeight - before; });
+  }
 
   // Mark read on open and whenever a message arrives; listen for new messages live.
   useEffect(() => {
@@ -99,6 +117,7 @@ export function ChatClient({ conv, me, header: h, photoUrl, initial }: { conv: s
       </header>
 
       <main ref={threadRef} aria-live="polite" className="flex flex-1 flex-col gap-1.5 overflow-y-auto px-4 pb-4 pt-3.5">
+        {older && <button onClick={loadOlder} disabled={loadingOlder} className="mb-1 self-center rounded-full border border-line bg-surface px-3.5 py-2 text-xs font-bold text-green">{loadingOlder ? "Loading…" : "Load earlier messages"}</button>}
         <span className="mb-1 self-center rounded-full bg-green-tint px-3 py-1.5 text-xs font-semibold text-green">{h.context}</span>
         {msgs.map((m) => {
           const day = dayBreaks[m.id];

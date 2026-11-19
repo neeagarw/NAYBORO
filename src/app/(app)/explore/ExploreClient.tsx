@@ -4,36 +4,31 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getClient } from "@/lib/supabase/client";
-import { Avatar, Sheet, MenuItem, Tag, ago, friendly, useToast, PlusIcon, PinIcon, MaskIcon, MoreIcon } from "@/components/ui";
+import { Avatar, Sheet, MenuItem, Tag, ago, friendly, useToast, signPhotosClient, TONE_CLASS, PlusIcon, PinIcon, MaskIcon, MoreIcon } from "@/components/ui";
+import { REPORT_REASONS, UI } from "@/config/app";
+import { fmtIn, isThisWeekend } from "@/lib/time";
 
 export type Question = { id: string; body: string; details: string | null; topic: string; is_anonymous: boolean; author_id: string | null; author_name: string; area_label: string; is_mine: boolean; answer_count: number; created_at: string };
 export type Answer = { id: string; question_id: string; author_id: string; display_name: string; photo_path: string | null; area_name: string; roots_tag: string | null; body: string; helpful_count: number; i_found_helpful: boolean; is_mine: boolean };
 export type Event = { id: string; title: string; starts_at: string; ends_at: string | null; place_name: string; price_label: string; kind: string; host_name: string; url: string; interested_count: number | null; i_am_interested: boolean };
 
-export const TOPIC_COLORS: Record<string, string> = {
-  Groceries: "bg-green-tint text-green", Schools: "bg-blue-tint text-blue-text", Food: "bg-[#F7DDE4] text-[#7A2E44]",
-  Immigration: "bg-[#E6E1F5] text-[#4A3A7A]", Travel: "bg-orange-tint text-orange-text", Sports: "bg-green-tint text-green",
-  Housing: "bg-[#F7E7C6] text-[#6B4A0E]", "Life here": "bg-line-soft text-[#3B463F]", General: "bg-ground text-muted",
-};
-const TZ = "America/Chicago";
-const REPORT_REASONS = ["Scam or asking for money", "Selling or advertising", "Harassment or hate", "False or harmful information", "Something else"];
-const fmt = (iso: string, o: Intl.DateTimeFormatOptions) => new Date(iso).toLocaleString("en-US", { timeZone: TZ, ...o });
-const timeRange = (e: Event) => {
-  const t = (iso: string) => fmt(iso, { hour: "numeric", minute: "2-digit" });
-  return e.ends_at ? `${t(e.starts_at)} to ${t(e.ends_at)}` : t(e.starts_at);
-};
-/** Saturday or Sunday of the current week (Central time). */
-function isThisWeekend(iso: string) {
-  const now = new Date(new Date().toLocaleString("en-US", { timeZone: TZ }));
-  const d = new Date(new Date(iso).toLocaleString("en-US", { timeZone: TZ }));
-  const sat = new Date(now); sat.setHours(0, 0, 0, 0); sat.setDate(now.getDate() + ((6 - now.getDay() + 7) % 7) - (now.getDay() === 0 ? 7 : 0));
-  const mon = new Date(sat); mon.setDate(sat.getDate() + 2);
-  return d >= sat && d < mon;
-}
+export type TopicCfg = { name: string; tone: string };
 
-export function ExploreClient({ initialTab, questions, answers, events, photos }: {
+export function ExploreClient({ initialTab, questions: firstQs, answers: firstAns, events, photos: firstPhotos, topics, tz, unanswered }: {
   initialTab: "q" | "e"; questions: Question[]; answers: Answer[]; events: Event[]; photos: Record<string, string>;
+  topics: TopicCfg[]; tz: string; unanswered: number;
 }) {
+  const fmt = (iso: string, o: Intl.DateTimeFormatOptions) => fmtIn(iso, tz, o);
+  const timeRange = (e: Event) => {
+    const t = (iso: string) => fmt(iso, { hour: "numeric", minute: "2-digit" });
+    return e.ends_at ? `${t(e.starts_at)} to ${t(e.ends_at)}` : t(e.starts_at);
+  };
+  const toneOf = (name: string) => TONE_CLASS[topics.find((t) => t.name === name)?.tone ?? "grey"];
+  const [questions, setQuestions] = useState(firstQs);
+  const [answers, setAnswers] = useState(firstAns);
+  const [photos, setPhotos] = useState(firstPhotos);
+  const [moreQs, setMoreQs] = useState(firstQs.length === UI.questionsPage);
+  const [loadingQs, setLoadingQs] = useState(false);
   const router = useRouter();
   const [toast, toastNode] = useToast();
   const [tab, setTab] = useState(initialTab);
@@ -52,14 +47,36 @@ export function ExploreClient({ initialTab, questions, answers, events, photos }
     for (const a of answers) (m[a.question_id] ??= []).push(a);
     return m;
   }, [answers]);
-  const unanswered = questions.filter((q) => !byQ[q.id]?.length).length;
-  const topics = [...new Set(questions.map((q) => q.topic))].filter((t) => t !== "General");
-  const qList = questions.filter((q) => qChip === "All" || (qChip === "Unanswered" ? !byQ[q.id]?.length : q.topic === qChip));
+  const qList = questions;
+
+  /** Loads a page of questions (and their answers) for the chosen chip; `before` = load more. */
+  async function loadQs(chipName: string, before?: string) {
+    setLoadingQs(true);
+    const sb = getClient();
+    const { data } = await sb.rpc("questions_for_me", {
+      p_topic: chipName === "All" || chipName === "Unanswered" ? null : chipName,
+      p_unanswered: chipName === "Unanswered", p_before: before ?? null, p_limit: UI.questionsPage,
+    });
+    const qs = (data ?? []) as Question[];
+    const { data: ans } = qs.length ? await sb.rpc("answers_for", { qids: qs.map((q) => q.id) }) : { data: [] };
+    const signed = await signPhotosClient(((ans ?? []) as Answer[]).map((a) => a.photo_path));
+    setPhotos((p) => ({ ...p, ...signed }));
+    setQuestions((prev) => (before ? [...prev, ...qs] : qs));
+    setAnswers((prev) => (before ? [...prev, ...((ans ?? []) as Answer[])] : ((ans ?? []) as Answer[])));
+    setMoreQs(qs.length === UI.questionsPage);
+    setLoadingQs(false);
+  }
+  // Always fetch fresh: the first page from the server may be out of date after answering or asking.
+  function pickChip(n: string) {
+    setQChip(n);
+    setQuestions([]); setAnswers([]);
+    loadQs(n);
+  }
 
   const kinds = [...new Set(events.map((e) => e.kind))];
   const eChips = ["All", "This weekend", "Free", ...kinds, `Interested`];
   const eList = events.filter((e) =>
-    eChip === "All" || (eChip === "This weekend" ? isThisWeekend(e.starts_at) : eChip === "Free" ? e.price_label === "Free" : eChip === "Interested" ? liked.includes(e.id) : e.kind === eChip));
+    eChip === "All" || (eChip === "This weekend" ? isThisWeekend(e.starts_at, tz) : eChip === "Free" ? e.price_label === "Free" : eChip === "Interested" ? liked.includes(e.id) : e.kind === eChip));
 
   function switchTab(t: "q" | "e") {
     setTab(t);
@@ -75,7 +92,10 @@ export function ExploreClient({ initialTab, questions, answers, events, photos }
     setOpen((o) => ({ ...o, [answering.id]: true }));
     setAnswering(null); setAnsText("");
     toast("Answer posted");
-    router.refresh();
+    // Refresh just this question's answers (keeps scroll position and filters).
+    const qid = answering.id;
+    const { data: fresh } = await getClient().rpc("answers_for", { qids: [qid] });
+    setAnswers((prev) => [...prev.filter((x) => x.question_id !== qid), ...((fresh ?? []) as Answer[])]);
   }
   async function report(reason: string) {
     if (!reporting) return;
@@ -111,8 +131,8 @@ export function ExploreClient({ initialTab, questions, answers, events, photos }
         </div>
         <div className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-0.5">
           {tab === "q"
-            ? ["All", "Unanswered", ...topics].map((n) => (
-                <button key={n} aria-pressed={qChip === n} onClick={() => setQChip(n)} className={chipCls(qChip === n)}>
+            ? ["All", "Unanswered", ...topics.filter((t) => t.name !== "General").map((t) => t.name)].map((n) => (
+                <button key={n} aria-pressed={qChip === n} onClick={() => pickChip(n)} className={chipCls(qChip === n)}>
                   {n}{n === "Unanswered" && unanswered > 0 && <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-orange px-[5px] text-xs text-ink">{unanswered}</span>}
                 </button>
               ))
@@ -127,16 +147,16 @@ export function ExploreClient({ initialTab, questions, answers, events, photos }
       <main className="flex flex-1 flex-col gap-3.5 overflow-y-auto px-5 pb-[110px] pt-1.5">
         {tab === "q" && (
           <>
-            {qList.length === 0 && <p className="px-2.5 py-8 text-center text-sm text-muted">Nothing here yet. Ask the first question on this topic.</p>}
+            {qList.length === 0 && !loadingQs && <p className="px-2.5 py-8 text-center text-sm text-muted">Nothing here yet. Ask the first question on this topic.</p>}
             {qList.map((q) => {
               const list = byQ[q.id] ?? [];
               const shown = open[q.id] ? list : list.slice(0, 1);
               return (
                 <article key={q.id} className="flex flex-col gap-3 rounded-[22px] border border-line-soft bg-surface p-4">
                   <div className="flex flex-wrap items-center gap-2 text-[13px] text-muted">
-                    <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${TOPIC_COLORS[q.topic] ?? TOPIC_COLORS.General}`}>{q.topic}</span>
+                    <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${toneOf(q.topic)}`}>{q.topic}</span>
                     <span className="inline-flex items-center gap-[5px]">
-                      {q.is_anonymous && <span className="flex h-5 w-5 items-center justify-center rounded-full bg-line-soft text-[#3B463F]"><MaskIcon size={13} /></span>}
+                      {q.is_anonymous && <span className="flex h-5 w-5 items-center justify-center rounded-full bg-line-soft text-slate"><MaskIcon size={13} /></span>}
                       {q.is_mine && q.is_anonymous ? "You (anonymous)" : q.author_name} · {q.area_label} · {ago(q.created_at)}
                     </span>
                     {!q.is_mine && (
@@ -144,7 +164,7 @@ export function ExploreClient({ initialTab, questions, answers, events, photos }
                     )}
                   </div>
                   <h2 className="m-0 text-lg leading-[1.35]">{q.body}</h2>
-                  {q.details && <p className="-mt-1 text-sm leading-normal text-[#3B463F]">{q.details}</p>}
+                  {q.details && <p className="-mt-1 text-sm leading-normal text-slate">{q.details}</p>}
                   {shown.map((a) => (
                     <div key={a.id} className="flex gap-2.5 rounded-2xl bg-ground p-3">
                       <Link href={a.is_mine ? "/setup" : `/p/${a.author_id}`}><Avatar id={a.author_id} name={a.display_name} url={a.photo_path ? photos[a.photo_path] : null} size={34} radius={12} /></Link>
@@ -172,13 +192,17 @@ export function ExploreClient({ initialTab, questions, answers, events, photos }
                 </article>
               );
             })}
+            {loadingQs && <p className="py-3 text-center text-sm text-muted" role="status">Loading…</p>}
+            {moreQs && !loadingQs && (
+              <button onClick={() => loadQs(qChip, questions[questions.length - 1]?.created_at)} className="h-12 rounded-2xl border-2 border-line bg-surface text-sm font-bold text-green">Load more questions</button>
+            )}
           </>
         )}
 
         {tab === "e" && (
           <>
             {["This weekend", "Coming up"].map((g) => {
-              const part = eList.filter((e) => (g === "This weekend") === isThisWeekend(e.starts_at));
+              const part = eList.filter((e) => (g === "This weekend") === isThisWeekend(e.starts_at, tz));
               if (!part.length) return null;
               return (
                 <section key={g} className="flex flex-col gap-3.5">
@@ -201,7 +225,7 @@ export function ExploreClient({ initialTab, questions, answers, events, photos }
                             <span className="flex gap-1.5 pt-0.5"><Tag tone={e.price_label === "Free" ? "green" : "orange"}>{e.price_label}</Tag><Tag tone="blue">{e.kind}</Tag></span>
                           </div>
                         </div>
-                        <span className="text-[13px] text-[#3B463F]">{n != null && n >= 5 ? `${n} interested` : "Be one of the first to show interest"}</span>
+                        <span className="text-[13px] text-slate">{n != null && n >= 5 ? `${n} interested` : "Be one of the first to show interest"}</span>
                         <div className="grid grid-cols-2 gap-2">
                           <button aria-pressed={on} onClick={() => toggleInterest(e)} className={`flex h-11 items-center justify-center rounded-[14px] border-2 border-green text-sm font-bold ${on ? "bg-green text-white" : "bg-white text-green"}`}>{on ? "★ Interested" : "☆ I'm interested"}</button>
                           <a href={e.url} target="_blank" rel="noopener noreferrer" className="flex h-11 items-center justify-center rounded-[14px] bg-ground text-sm font-bold">Details ↗</a>
@@ -238,7 +262,7 @@ export function ExploreClient({ initialTab, questions, answers, events, photos }
       </Sheet>
       <Sheet open={!!reporting} onClose={() => setReporting(null)} label="Report" title={reporting?.type === "answer" ? "Report this answer" : "Report this question"}>
         <span className="text-[13px] text-muted">The writer won&apos;t know you reported it. Our team reviews every report.</span>
-        {REPORT_REASONS.map((r) => <MenuItem key={r} onClick={() => report(r)}>{r}</MenuItem>)}
+        {REPORT_REASONS.content.map((r) => <MenuItem key={r} onClick={() => report(r)}>{r}</MenuItem>)}
         <button onClick={() => setReporting(null)} className="h-11 text-sm font-bold text-green">Cancel</button>
       </Sheet>
       {toastNode}

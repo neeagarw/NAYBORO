@@ -3,9 +3,10 @@ import { ScreenSkeleton } from "@/components/Skeleton";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { signPhotos } from "@/lib/photos";
+import { UI } from "@/config/app";
 import { ChatClient, type Header, type Msg } from "./ChatClient";
 
-export const metadata = { title: "Chat · Nayboro" };
+export const metadata = { title: "Chat" };
 
 // Port of design/mockups/chat.html.
 export default function ChatPage({ params }: PageProps<"/chats/[id]">) {
@@ -22,7 +23,7 @@ async function Chat({ params }: { params: PageProps<"/chats/[id]">["params"] }) 
   const supabase = await createClient();
   const [{ data: header }, { data: msgs }, { data: auth }] = await Promise.all([
     supabase.rpc("chat_header", { conv: id }),
-    supabase.from("messages").select("id, sender_id, body, created_at").eq("conversation_id", id).order("created_at", { ascending: false }).limit(200),
+    supabase.from("messages").select("id, sender_id, body, created_at").eq("conversation_id", id).order("created_at", { ascending: false }).limit(UI.messagesPage),
     supabase.auth.getUser(),
   ]);
   if (!header) notFound();

@@ -1,0 +1,19 @@
+{
+  "axe": {
+    "people": [],
+    "profile": [],
+    "chats": [],
+    "chat": [],
+    "explore": [],
+    "events": [],
+    "ask": [],
+    "help": [],
+    "admin": [],
+    "setup": [],
+    "not_found": [],
+    "welcome": [],
+    "login": [],
+    "unsubscribed": []
+  },
+  "layout": {}
+}

@@ -53,6 +53,9 @@ Then "Admin" appears in your account menu: open reports, hide questions/answers,
 2. Environment Variables: add every name in `.env.example` (Supabase URL and anon key, service role key, site URL, Resend key and sender, the three secrets). Deploy.
 3. Use the paid plan before launch (the free plan doesn't allow commercial use).
 
+## Adding a new city later (no code change)
+In the SQL Editor: insert one row into `metros` (name, time zone, radii), then its `areas` (name, state, ZIPs, centre point). Add hometowns to `places` if needed. Topics, interests, limits and rules are in `topics`, `interests`, `rate_limits` and `app_settings`.
+
 ## 6. Smoke test on your phone (10 min)
 Open the Vercel URL → Get started → enter your email → type the code → finish setup → People shows "You're set up as…".
 Then Edit profile from the orange button, change something, and save. Log out and log back in.

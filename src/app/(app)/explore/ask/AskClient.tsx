@@ -4,29 +4,18 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { getClient } from "@/lib/supabase/client";
 import { MaskIcon, PlusIcon, XIcon, friendly, useToast } from "@/components/ui";
+import { SELLING_PATTERN } from "@/config/app";
 
-const TOPICS = ["Groceries", "Schools", "Food", "Sports", "Immigration", "Housing", "Travel", "Life here"];
-// Starter keyword list for suggesting a topic (from the mockup). Grow it from real questions.
-const WORDS: [string, string[]][] = [
-  ["Sports", ["cricket", "tennis", "badminton", "pickleball", "run", "gym", "yoga"]],
-  ["Groceries", ["grocery", "groceries", "methi", "curry leaves", "vegetable", "atta", "store"]],
-  ["Schools", ["school", "esl", "teacher", "daycare", "tuition"]],
-  ["Food", ["tiffin", "restaurant", "food", "dal", "thali", "sweets", "catering", "jalebi"]],
-  ["Immigration", ["visa", "h1b", "h-1b", "green card", "oci", "passport", "consulate"]],
-  ["Housing", ["rent", "apartment", "roommate", "lease", "house", "hoa"]],
-  ["Travel", ["flight", "flying", "travel", "companion", "airport"]],
-  ["Life here", ["friends", "lonely", "homesick", "winter", "meet people"]],
-];
-// "No buying, selling or ads". A light check; moderators handle the rest.
-const SELLING = /\b(for sale|selling|buy my|dm for price|discount code|promo code|whatsapp me|earn \$|work from home)\b/i;
+type TopicCfg = { name: string; keywords: string[] };
 
-function guess(t: string) {
+/** Suggests a topic from its keywords (stored in the topics table; grow them from real questions). */
+function guess(t: string, topics: TopicCfg[]) {
   const s = t.toLowerCase();
-  for (const [topic, words] of WORDS) if (words.some((w) => s.includes(w))) return topic;
+  for (const topic of topics) if (topic.keywords.some((w) => s.includes(w))) return topic.name;
   return null;
 }
 
-export function AskClient({ userId, name, roots, area, metro }: { userId: string; name: string; roots: string; area: string; metro: string }) {
+export function AskClient({ userId, name, roots, area, metro, otherAreas, topics }: { userId: string; name: string; roots: string; area: string; metro: string; otherAreas: string[]; topics: TopicCfg[] }) {
   const router = useRouter();
   const [toast, toastNode] = useToast();
   const [text, setText] = useState("");
@@ -39,13 +28,13 @@ export function AskClient({ userId, name, roots, area, metro }: { userId: string
   const [discard, setDiscard] = useState(false);
   const [posting, setPosting] = useState(false);
 
-  const g = guess(text);
+  const g = guess(text, topics);
   const topic = manual ?? g;
-  const selling = SELLING.test(`${text} ${details ?? ""}`);
+  const selling = SELLING_PATTERN.test(`${text} ${details ?? ""}`);
   const ready = text.trim().length >= 10 && (scope !== "other" || city.trim()) && !selling;
   const scopes: [typeof scope, string, string][] = [
     ["near", `Around ${area}`, `People in ${area} and close by`],
-    ["metro", `All of ${metro}`, "Plano, Frisco, Richardson and more"],
+    ["metro", `All of ${metro}`, otherAreas.length ? `${otherAreas.slice(0, 3).join(", ")}${otherAreas.length > 3 ? " and more" : ""}` : `Everyone in ${metro}`],
     ["other", "Another city", "Moving soon? Ask people who already live there"],
   ];
 
@@ -68,7 +57,7 @@ export function AskClient({ userId, name, roots, area, metro }: { userId: string
         <span className="w-11" />
       </div>
       {discard && (
-        <div className="mx-5 mb-2 flex items-center gap-2 rounded-2xl bg-orange-tint py-2 pl-3.5 pr-2 text-sm font-semibold text-[#3E2A1C]">
+        <div className="mx-5 mb-2 flex items-center gap-2 rounded-2xl bg-orange-tint py-2 pl-3.5 pr-2 text-sm font-semibold text-orange-ink">
           <span className="flex-1">Discard this question?</span>
           <button onClick={() => setDiscard(false)} className="h-10 rounded-[14px] bg-white px-4 text-sm font-bold text-green">Keep</button>
           <button onClick={() => router.push("/explore")} className="h-10 rounded-[14px] bg-orange px-4 text-sm font-bold text-ink">Discard</button>
@@ -78,16 +67,16 @@ export function AskClient({ userId, name, roots, area, metro }: { userId: string
       <main className="flex flex-1 flex-col gap-[18px] overflow-y-auto px-5 pb-5 pt-1.5">
         <div className="overflow-hidden rounded-3xl border border-line-soft bg-surface">
           <div className="flex items-center gap-2.5 px-4 pt-3.5">
-            <span className={`flex h-9 w-9 flex-none items-center justify-center rounded-xl font-display text-xs font-extrabold ${anon ? "bg-line-soft text-[#3B463F]" : "bg-orange text-ink"}`}>{anon ? <MaskIcon /> : name[0]}</span>
+            <span className={`flex h-9 w-9 flex-none items-center justify-center rounded-xl font-display text-xs font-extrabold ${anon ? "bg-line-soft text-slate" : "bg-orange text-ink"}`}>{anon ? <MaskIcon /> : name[0]}</span>
             <span className="flex flex-1 flex-col gap-px">
               <b className="text-sm">{anon ? "Anonymous" : name}</b>
               <span className="text-xs text-muted">{anon ? `${area} area · name and hometown hidden` : `${roots} → ${area} · posting as you`}</span>
             </span>
-            <button aria-pressed={anon} aria-label="Post anonymously" onClick={() => setAnon(!anon)} className={`flex h-9 flex-none items-center gap-1.5 rounded-full border px-2.5 text-xs font-bold ${anon ? "border-[#3B463F] bg-[#3B463F] text-white" : "border-line bg-white text-[#3B463F]"}`}>
-              <MaskIcon />{anon ? "On" : "Anonymous"}
+            <button aria-pressed={anon} onClick={() => setAnon(!anon)} className={`flex h-9 flex-none items-center gap-1.5 rounded-full border px-2.5 text-xs font-bold ${anon ? "border-slate bg-slate text-white" : "border-line bg-white text-slate"}`}>
+              <MaskIcon />{anon ? <><span className="sr-only">Anonymous </span>On</> : "Anonymous"}
             </button>
           </div>
-          {anon && <div className="mx-4 mt-2.5 rounded-xl bg-ground px-2.5 py-2 text-xs leading-[1.45] text-[#3B463F]">Others won&apos;t see who you are. Nayboro can still see it, to keep the community safe. Replies to you stay named.</div>}
+          {anon && <div className="mx-4 mt-2.5 rounded-xl bg-ground px-2.5 py-2 text-xs leading-[1.45] text-slate">Others won&apos;t see who you are. Nayboro can still see it, to keep the community safe. Replies to you stay named.</div>}
           <label htmlFor="q" className="sr-only">Your question</label>
           <textarea id="q" maxLength={150} value={text} onChange={(e) => setText(e.target.value)} placeholder="What do you want to know?" className="block h-24 w-full resize-none bg-transparent px-4 pb-1 pt-3 font-display text-[22px] font-bold leading-[1.25] outline-none" />
           <div className="flex items-center justify-between px-4 pb-3 pt-2"><span className="text-xs text-muted">Name a place or a time to get faster answers</span><span className="text-xs font-semibold text-muted">{text.length}/150</span></div>
@@ -115,7 +104,7 @@ export function AskClient({ userId, name, roots, area, metro }: { userId: string
           <span className="text-xs text-muted">{!manual && g ? "Suggested from your question. Tap Change if it looks wrong." : topic ? "You picked this topic." : "Optional. We will file it under General if you skip it."}</span>
           {list && (
             <div className="flex flex-wrap gap-2 border-t border-dashed border-line pt-2">
-              {TOPICS.map((t) => <button key={t} aria-pressed={topic === t} onClick={() => { setManual(t); setList(false); }} className={`min-h-11 rounded-full border-2 px-4 text-sm font-semibold ${topic === t ? "border-orange bg-orange" : "border-line-soft bg-white"}`}>{t}</button>)}
+              {topics.filter((t) => t.name !== "General").map(({ name: t }) => <button key={t} aria-pressed={topic === t} onClick={() => { setManual(t); setList(false); }} className={`min-h-11 rounded-full border-2 px-4 text-sm font-semibold ${topic === t ? "border-orange bg-orange" : "border-line-soft bg-white"}`}>{t}</button>)}
             </div>
           )}
         </div>
@@ -124,14 +113,14 @@ export function AskClient({ userId, name, roots, area, metro }: { userId: string
           <b className="text-sm">Who should see it?</b>
           {scopes.map(([k, t, hint]) => (
             <button key={k} aria-pressed={scope === k} onClick={() => setScope(k)} className={`flex min-h-[60px] w-full items-center gap-3 rounded-2xl border-2 px-3.5 py-2.5 text-left ${scope === k ? "border-green bg-green-tint" : "border-line-soft bg-surface"}`}>
-              <span className={`flex h-[22px] w-[22px] flex-none items-center justify-center rounded-full border-2 bg-white ${scope === k ? "border-green" : "border-[#7D8981]"}`}>{scope === k && <span className="h-2.5 w-2.5 rounded-full bg-green" />}</span>
+              <span className={`flex h-[22px] w-[22px] flex-none items-center justify-center rounded-full border-2 bg-white ${scope === k ? "border-green" : "border-radio"}`}>{scope === k && <span className="h-2.5 w-2.5 rounded-full bg-green" />}</span>
               <span><b className="block text-[15px]">{t}</b><span className="text-xs text-muted">{hint}</span></span>
             </button>
           ))}
           {scope === "other" && (
             <div className="flex flex-col gap-1.5">
               <label htmlFor="city" className="text-[13px] font-bold">Which city?</label>
-              <input id="city" value={city} onChange={(e) => setCity(e.target.value)} placeholder="e.g. Plano or Frisco" className="h-[50px] w-full rounded-[14px] border-2 border-line bg-surface px-3.5 text-base outline-none focus:border-green" />
+              <input id="city" value={city} onChange={(e) => setCity(e.target.value)} placeholder={otherAreas.length > 1 ? `e.g. ${otherAreas[0]} or ${otherAreas[1]}` : "City name"} className="h-[50px] w-full rounded-[14px] border-2 border-line bg-surface px-3.5 text-base outline-none focus:border-green" />
             </div>
           )}
         </div>
