@@ -14,6 +14,8 @@
    npx supabase db push                       # runs supabase/migrations in order
    psql "<connection string from Settings → Database>" -f supabase/seed.sql
    ```
+   Do **not** run `supabase/demo_seed.sql` here: it adds fake people and only works on the local test setup.
+4. Database → Replication (Realtime): make sure `messages` and `hellos` are turned on, so chats update live.
 
 ## 2. Email sign-in with a 6-digit code (10 min)
 1. Authentication → Sign In / Providers → **Email**: on. "Confirm email": on.

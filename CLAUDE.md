@@ -13,6 +13,8 @@ other communities later (hometown data is global on purpose).
 - **Screenshots:** `design/screenshots/` (older 4-tab version; where they differ, the HTML wins).
 - **Spec, data model, open questions:** `docs/SPEC.md`.
 - **Database:** `supabase/migrations/`. Never edit an applied migration; add a new one.
+- **Screens read through functions:** `people_for_me`, `profile_card`, `inbox_hellos`, `my_chats`, `chat_header`, `questions_for_me`, `answers_for`, `events_for_me`. Add privacy logic there, not in React.
+- **`supabase/demo_seed.sql` is local-test data only. Never run it on the production database.**
 
 ## Stack
 Next.js (App Router, TypeScript, `src/`), Tailwind v4 with tokens in `src/app/globals.css`,
@@ -44,6 +46,7 @@ This Next.js version has breaking changes: read `node_modules/next/dist/docs/` b
 - Server: `createClient()` from `@/lib/supabase/server` already calls `connection()`; always use it.
 - Browser: call `getClient()` from `@/lib/supabase/client` only inside event handlers and effects, never during render.
 - Don't call `router.refresh()` right after `router.push()`: it re-shows the old screen. After sign-in use a full page load.
+- Never import a value (list, constant) into a Server Component from a `"use client"` file: it arrives as a client reference, not the value. Put shared values in a plain `.ts` file (see `src/app/(app)/help/topics.ts`).
 - Next.js keeps the last screen of each route alive. Reset state on purpose (a `key`, or close sheets when navigating away).
 
 ## Working style

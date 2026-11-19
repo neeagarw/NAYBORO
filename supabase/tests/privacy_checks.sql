@@ -82,3 +82,26 @@ insert into storage.objects (bucket_id,name) values ('avatars','11111111-1111-11
 \echo '20. Others see Kavya at state level (Rajasthan):'
 select set_config('request.jwt.claim.sub','11111111-1111-1111-1111-111111111111',false);
 select display_name, area_name, shown_root from public_profiles where display_name like 'Kavya%';
+
+-- ───────── screens (People, Explore, Chats) ─────────
+select set_config('request.jwt.claim.sub','11111111-1111-1111-1111-111111111111',false);
+\echo '21. Neeraj''s People list: Kavya (state level) shows as Rajasthan; Aman (blocked) and Rohit (already chatting) absent:'
+select display_name, shown_root, roots_match from people_for_me() order by 1;
+\echo '22. Root counts under 5 are hidden (expect nulls):'
+select city, city_count, region, region_count from my_root_counts();
+\echo '23. Anonymous author stays hidden in questions_for_me:'
+select author_id is null as hidden, author_name from questions_for_me() where is_anonymous;
+\echo '24. Rohit cannot see Neeraj''s chats (expect 0) and cannot mark them read:'
+select set_config('request.jwt.claim.sub','22222222-2222-2222-2222-222222222222',false);
+select count(*) from my_chats() where display_name = 'Aman K.';
+\echo '25. Profile card of a blocked person is null (Aman looking at Neeraj):'
+select set_config('request.jwt.claim.sub','33333333-3333-3333-3333-333333333333',false);
+select profile_card('11111111-1111-1111-1111-111111111111') is null as hidden;
+\echo '26. Hello rate limit: 21st hello in a day is refused (expect error on the last insert):'
+reset role;
+insert into auth.users select ('aaaaaaaa-0000-0000-0000-' || lpad(g::text, 12, '0'))::uuid from generate_series(1,21) g;
+insert into profiles (id, first_name, is_adult) select ('aaaaaaaa-0000-0000-0000-' || lpad(g::text, 12, '0'))::uuid, 'T', true from generate_series(1,21) g;
+set role authenticated;
+select set_config('request.jwt.claim.sub','22222222-2222-2222-2222-222222222222',false);
+insert into hellos (from_id, to_id, message) select '22222222-2222-2222-2222-222222222222', ('aaaaaaaa-0000-0000-0000-' || lpad(g::text, 12, '0'))::uuid, 'hi there' from generate_series(1,19) g;
+insert into hellos (from_id, to_id, message) values ('22222222-2222-2222-2222-222222222222','aaaaaaaa-0000-0000-0000-000000000020','hi there');

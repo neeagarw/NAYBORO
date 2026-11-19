@@ -1,0 +1,105 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
+// Small building blocks shared by every screen. Styles copied from design/mockups.
+
+const TONES = ["bg-green-tint text-green", "bg-blue-tint text-blue-text", "bg-[#F7DDE4] text-[#7A2E44]", "bg-[#F7E7C6] text-[#6B4A0E]"];
+
+/** Stable colour per person, like the mockups' .av.g/.b/.p/.y. */
+export function toneFor(id: string) {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
+  return TONES[h % TONES.length];
+}
+
+export function initials(name: string) {
+  const parts = name.replace(/\./g, "").trim().split(/\s+/);
+  return ((parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? "")).toUpperCase() || "?";
+}
+
+export function Avatar({ id, name, url, size = 48, radius = 16, anon = false }: { id: string; name: string; url?: string | null; size?: number; radius?: number; anon?: boolean }) {
+  const style = { width: size, height: size, borderRadius: radius, fontSize: Math.round(size * 0.31) };
+  if (anon) {
+    return (
+      <span style={style} className="flex flex-none items-center justify-center bg-line-soft text-[#3B463F]">
+        <MaskIcon size={Math.round(size * 0.5)} />
+      </span>
+    );
+  }
+  return (
+    <span style={style} className={`flex flex-none items-center justify-center overflow-hidden font-display font-extrabold ${url ? "bg-line-soft" : toneFor(id)}`}>
+      {/* eslint-disable-next-line @next/next/no-img-element -- short-lived signed URL from private storage */}
+      {url ? <img src={url} alt="" className="h-full w-full object-cover" /> : initials(name)}
+    </span>
+  );
+}
+
+export function Sheet({ open, onClose, title, label, children }: { open: boolean; onClose: () => void; title?: React.ReactNode; label: string; children: React.ReactNode }) {
+  useEffect(() => {
+    if (!open) return;
+    const k = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    document.addEventListener("keydown", k);
+    return () => document.removeEventListener("keydown", k);
+  }, [open, onClose]);
+  if (!open) return null;
+  return (
+    <div className="absolute inset-0 z-20 flex items-end bg-[rgba(23,32,27,.35)]" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div role="dialog" aria-modal="true" aria-label={label} className="flex max-h-[88%] w-full flex-col gap-3 overflow-y-auto rounded-t-[28px] bg-surface px-5 pb-6 pt-2.5">
+        <div className="mx-auto mb-1 h-[5px] w-10 flex-none rounded bg-line" />
+        {title && <h3 className="m-0 font-display text-[22px] font-extrabold">{title}</h3>}
+        {children}
+      </div>
+    </div>
+  );
+}
+
+export function MenuItem({ children, warn, ...p }: React.ButtonHTMLAttributes<HTMLButtonElement> & { warn?: boolean }) {
+  return (
+    <button {...p} className={`flex min-h-[52px] w-full items-center gap-3 rounded-[14px] px-3.5 text-left text-base font-semibold ${warn ? "bg-warn-tint text-warn" : "bg-ground"}`}>
+      {children}
+    </button>
+  );
+}
+
+/** Toast at the bottom of the app frame. */
+export function useToast() {
+  const [msg, setMsg] = useState<string | null>(null);
+  useEffect(() => {
+    if (!msg) return;
+    const t = setTimeout(() => setMsg(null), 2600);
+    return () => clearTimeout(t);
+  }, [msg]);
+  const node = msg ? (
+    <div role="status" className="absolute bottom-24 left-5 right-5 z-30 rounded-2xl bg-green px-3.5 py-3 text-sm font-semibold text-white">{msg}</div>
+  ) : null;
+  return [setMsg, node] as const;
+}
+
+export function Tag({ children, tone = "green", className = "" }: { children: React.ReactNode; tone?: "green" | "orange" | "blue" | "plain"; className?: string }) {
+  const t = { green: "bg-green-tint text-green", orange: "bg-orange-tint text-orange-text", blue: "bg-blue-tint text-blue-text", plain: "bg-ground text-muted" }[tone];
+  return <span className={`whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-bold ${t} ${className}`}>{children}</span>;
+}
+
+/** "2h ago", "Yesterday", "3 days ago". */
+export function ago(iso: string) {
+  const s = (Date.now() - new Date(iso).getTime()) / 1000;
+  if (s < 60) return "Just now";
+  if (s < 3600) return `${Math.floor(s / 60)}m ago`;
+  if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
+  if (s < 172800) return "Yesterday";
+  return `${Math.floor(s / 86400)} days ago`;
+}
+
+const svg = { "aria-hidden": true, fill: "none", stroke: "currentColor", strokeLinecap: "round", strokeLinejoin: "round" } as const;
+export const BackIcon = () => <svg {...svg} width="20" height="20" viewBox="0 0 24 24" strokeWidth="2"><path d="M15 18l-6-6 6-6" /></svg>;
+export const MoreIcon = () => <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8" /><circle cx="12" cy="12" r="1.8" /><circle cx="19" cy="12" r="1.8" /></svg>;
+export const XIcon = ({ size = 18 }: { size?: number }) => <svg {...svg} width={size} height={size} viewBox="0 0 24 24" strokeWidth="2.2"><path d="M7 7l10 10M17 7L7 17" /></svg>;
+export const PlusIcon = ({ size = 18 }: { size?: number }) => <svg {...svg} width={size} height={size} viewBox="0 0 24 24" strokeWidth="2.4"><path d="M12 5v14M5 12h14" /></svg>;
+export const ArrowIcon = ({ size = 20 }: { size?: number }) => <svg {...svg} width={size} height={size} viewBox="0 0 24 24" strokeWidth="2.2"><path d="M5 12h14M13 6l6 6-6 6" /></svg>;
+export const PinIcon = ({ size = 14 }: { size?: number }) => <svg {...svg} width={size} height={size} viewBox="0 0 24 24" strokeWidth="2.2"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z" /><circle cx="12" cy="9.5" r="2.5" /></svg>;
+export const ShieldIcon = ({ size = 18, check = true }: { size?: number; check?: boolean }) => <svg {...svg} width={size} height={size} viewBox="0 0 24 24" strokeWidth="2"><path d="M12 3l7 3v6c0 4.5-3 7.8-7 9-4-1.2-7-4.5-7-9V6z" />{check && <path d="M9 12l2 2 4-4" />}</svg>;
+export const ChatIcon = ({ size = 20 }: { size?: number }) => <svg {...svg} width={size} height={size} viewBox="0 0 24 24" strokeWidth="2"><path d="M4 5h16v11H9l-5 4z" /></svg>;
+export const MaskIcon = ({ size = 16 }: { size?: number }) => <svg {...svg} width={size} height={size} viewBox="0 0 24 24" strokeWidth="2"><path d="M3 10c0-1.7 2.5-3 9-3s9 1.3 9 3c0 3-2 5-4.5 5-1.8 0-2.7-1.3-4.5-1.3S9.3 15 7.5 15C5 15 3 13 3 10z" /></svg>;
+export const FlagIcon = () => <svg {...svg} width="20" height="20" viewBox="0 0 24 24" strokeWidth="2"><path d="M5 21V4h11l-1.5 4L16 12H5" /></svg>;
+export const BlockIcon = () => <svg {...svg} width="20" height="20" viewBox="0 0 24 24" strokeWidth="2"><circle cx="12" cy="12" r="9" /><path d="M5.6 5.6l12.8 12.8" /></svg>;

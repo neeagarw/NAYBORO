@@ -5,7 +5,7 @@ from playwright.sync_api import sync_playwright, expect
 B='http://localhost:3123'; shots=[]
 import subprocess, os
 os.makedirs('e2e/out', exist_ok=True)
-subprocess.run(['psql','-d','e2e','-qc','delete from profiles; delete from auth.users;'],check=True)
+subprocess.run(['psql','-d','e2e','-qc',"delete from profiles where id::text not like 'd0000000%'; delete from auth.users where id::text not like 'd0000000%';"],check=True)
 def shot(pg,name): pg.wait_for_timeout(350); pg.screenshot(path=f'e2e/out/{name}.png'); shots.append(name)
 with sync_playwright() as p:
     import os
@@ -45,9 +45,9 @@ with sync_playwright() as p:
     pg.get_by_role('button', name='Finish').click()
     expect(pg.get_by_text("You're in, Neeraj!")).to_be_visible(); shot(pg,'09_done')
     pg.get_by_role('button', name='Start exploring').click(); expect(pg).to_have_url(re.compile(r'people$'))
-    expect(pg.locator('main').get_by_text('Neeraj A.')).to_be_visible(); expect(pg.locator('main')).to_contain_text('Jaipur → Garland'); shot(pg,'10_people')
+    expect(pg.get_by_text(re.compile(r'^Near Garland'))).to_be_visible(); shot(pg,'10_people')
     # Edit profile is pre-filled
-    pg.get_by_role('button', name='Your account').click(); shot(pg,'11_menu')
+    pg.get_by_role('button', name='Your account').click(); expect(pg.get_by_role('dialog')).to_contain_text('Neeraj A.'); expect(pg.get_by_role('dialog')).to_contain_text('Jaipur → Garland'); shot(pg,'11_menu')
     pg.get_by_role('link', name='Edit profile').click(); expect(pg).to_have_url(re.compile(r'/setup$'))
     expect(pg.get_by_role('button', name='Remove Jaipur')).to_be_visible()
     pg.get_by_role('button', name='Rajasthan Hides your city').click()
@@ -55,7 +55,7 @@ with sync_playwright() as p:
     expect(pg.get_by_label('First name')).to_have_value('Neeraj'); expect(pg.get_by_role('button', name='Save')).to_be_enabled()
     pg.get_by_role('button', name='Save').click(); expect(pg.get_by_role('heading', name='Profile saved')).to_be_visible()
     pg.get_by_role('button', name='Back to Nayboro').click(); expect(pg).to_have_url(re.compile(r'/people$'))
-    expect(pg.locator('main')).to_contain_text('Rajasthan → Garland')
+    pg.get_by_role('button', name='Your account').click(); expect(pg.get_by_role('dialog')).to_contain_text('Rajasthan → Garland'); pg.get_by_role('button', name='Cancel').click()
     # Log out
     pg.get_by_role('button', name='Your account').click(); pg.get_by_role('button', name='Log out').click(); expect(pg).to_have_url(B+'/')
     pg.goto(B+'/people'); expect(pg).to_have_url(re.compile(r'login\?next=%2Fpeople$'))

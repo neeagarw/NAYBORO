@@ -6,8 +6,11 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 mkdir -p e2e/out
 psql -q -c "drop database if exists e2e" -c "create database e2e"
-psql -q -d e2e -v ON_ERROR_STOP=1 -f supabase/tests/00_supabase_stub.sql -f supabase/migrations/*_init.sql -f supabase/migrations/*_setup_flow.sql -f supabase/seed.sql
+MIGRATIONS=$(ls supabase/migrations/*.sql | sort | sed "s/^/-f /")
+psql -q -d e2e -v ON_ERROR_STOP=1 -f supabase/tests/00_supabase_stub.sql $MIGRATIONS -f supabase/seed.sql
 psql -q -d e2e -v ON_ERROR_STOP=1 -f e2e/grants.sql
+# Mockup people, questions and events (local only, never production).
+psql -q -d e2e -v ON_ERROR_STOP=1 -f supabase/demo_seed.sql > /dev/null
 postgrest e2e/postgrest.conf > e2e/out/postgrest.log 2>&1 & PGRST=$!
 python3 e2e/local_supabase.py & GW=$!
 trap 'kill $PGRST $GW 2>/dev/null' EXIT
@@ -22,3 +25,4 @@ NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321 NEXT_PUBLIC_SUPABASE_ANON_KEY=$A
 trap 'kill $PGRST $GW $NEXT 2>/dev/null' EXIT
 sleep 5
 python3 e2e/setup_flow.py
+python3 e2e/screens_flow.py
