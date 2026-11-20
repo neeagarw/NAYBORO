@@ -12,14 +12,22 @@ export default function UnsubscribedPage({ searchParams }: PageProps<"/unsubscri
         <Suspense fallback={null}>
           <Message searchParams={searchParams} />
         </Suspense>
-        <Link href="/people" className="mt-2 flex h-14 w-full items-center justify-center rounded-[18px] bg-green text-[17px] font-bold text-white">Open Nayboro</Link>
+        <Link href="/" className="mt-2 flex h-14 w-full items-center justify-center rounded-[18px] bg-green text-[17px] font-bold text-white">Open Nayboro</Link>
       </main>
     </div>
   );
 }
 
 async function Message({ searchParams }: { searchParams: PageProps<"/unsubscribed">["searchParams"] }) {
-  const { bad } = await searchParams;
+  const { bad, left } = await searchParams;
+  if (left) {
+    return (
+      <>
+        <h1 className="m-0 font-display text-[30px] font-extrabold leading-tight">You&apos;ve left the list</h1>
+        <p className="m-0 text-[15px] leading-normal text-muted">We removed your email from the Nayboro waitlist. Changed your mind? You can join again any time.</p>
+      </>
+    );
+  }
   return bad ? (
     <>
       <h1 className="m-0 font-display text-[30px] font-extrabold leading-tight">That link didn&apos;t work</h1>

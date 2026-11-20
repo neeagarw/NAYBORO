@@ -19,6 +19,9 @@ mockup to a route and to the tables behind it. It also lists what the mockups st
 | 9 | `chat.html` | `/chats/[id]` | `chat_header()`, `messages`, `mark_read()`, Realtime | **Built**, tested end to end with two users |
 | 10 | `contact.html` | `/help` | `contact_messages` | **Built**, tested end to end |
 
+## Pre-launch "Join the community" page
+`/` until launch (`site_mode = 'waitlist'`). Responsive website, not the phone frame: hero + sign-up card (email, hometown optional, city via Find me or City/ZIP search, 18+), How it works, Built to feel safe, closing call to action. After joining: "You're on the list", their metro area, and an invite link to share. Confirmation email with the invite link and a signed "Leave the list" link. Beta testers and admins log in from the header; Admin → Waitlist has the counts, CSV, beta testers and the launch switch.
+
 ## Setup flow (from `profile-setup.html`)
 1. **Roots:** search hometowns (prefix match), pick 1–3. Choose show level: city / state / country, with a live "Others will see" preview.
 2. **Interests:** five groups, 5 visible + "Show N more". At least 3 to continue.

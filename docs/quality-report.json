@@ -13,7 +13,9 @@
     "not_found": [],
     "welcome": [],
     "login": [],
-    "unsubscribed": []
+    "unsubscribed": [],
+    "coming_soon": [],
+    "admin_waitlist": []
   },
   "layout": {}
 }

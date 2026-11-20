@@ -46,7 +46,8 @@ export async function updateSession(request: NextRequest) {
   }
 
   // Signed-in people skip the welcome and login pages.
-  if (user && (path === "/login" || path === "/")) {
+  // ("/?notyet=1" is where the pre-launch gate sends people, so it must not bounce back.)
+  if (user && (path === "/login" || (path === "/" && !request.nextUrl.search))) {
     const url = request.nextUrl.clone();
     url.pathname = "/people";
     url.search = "";

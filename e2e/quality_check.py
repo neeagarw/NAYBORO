@@ -55,6 +55,24 @@ with sync_playwright() as p:
                 if size == "phone": report["axe"][name] = axe(pg)
                 if size in ("small_phone", "desktop"): pg.screenshot(path=f"{OUT}/{name}_{size}.png")
         a.close(); o.close()
+
+    # Pre-launch: the "Join the community" page, and Admin → Waitlist
+    psql("update app_settings set value='\"waitlist\"' where key='site_mode'")
+    try:
+        for size, w, h in SIZES:
+            pg = browser.new_context(viewport={"width": w, "height": h}).new_page()
+            pg.goto(B + "/"); pg.wait_for_load_state("networkidle"); pg.wait_for_timeout(250)
+            problems = overflow(pg)
+            if problems: report["layout"].setdefault(f"coming_soon@{size}", problems)
+            if size == "phone": report["axe"]["coming_soon"] = axe(pg)
+            if size in ("small_phone", "desktop"): pg.screenshot(path=f"{OUT}/coming_soon_{size}.png", full_page=True)
+        ctx = browser.new_context(viewport={"width": 390, "height": 844}); pa = sign_in(ctx)
+        pa.goto(B + "/admin"); pa.get_by_role("button", name=re.compile("^Waitlist")).click(); pa.wait_for_timeout(250)
+        report["axe"]["admin_waitlist"] = axe(pg=pa)
+        problems = overflow(pa)
+        if problems: report["layout"]["admin_waitlist@phone"] = problems
+    finally:
+        psql("update app_settings set value='\"open\"' where key='site_mode'")
     browser.close()
 
 json.dump(report, open(f"{OUT}/report.json", "w"), indent=2)

@@ -27,9 +27,11 @@ export SUPABASE_SERVICE_ROLE_KEY=$(key service_role) NEXT_PUBLIC_SITE_URL=http:/
 export RESEND_API_URL=http://127.0.0.1:54321/resend/emails RESEND_API_KEY=re_test EMAIL_FROM="Nayboro <hello@example.com>"
 export NOTIFY_WEBHOOK_SECRET=whsec_test CRON_SECRET=cron_test UNSUBSCRIBE_SECRET=unsub_test
 npm run build
+if curl -s -o /dev/null localhost:3123; then echo 'Port 3123 is busy: stop the old app first'; exit 1; fi
 npx next start -p 3123 > e2e/out/next.log 2>&1 & NEXT=$!
-trap 'kill $PGRST $GW $NEXT 2>/dev/null' EXIT
+trap 'pkill -P $NEXT 2>/dev/null; kill $PGRST $GW $NEXT 2>/dev/null' EXIT
 sleep 5
+python3 e2e/waitlist_flow.py   # starts pre-launch, ends with the site open
 python3 e2e/setup_flow.py
 python3 e2e/screens_flow.py
 python3 e2e/quality_check.py

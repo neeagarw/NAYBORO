@@ -215,3 +215,45 @@ select count(*) as ocean_hits from locate_area(30.0, -140.0);
 \echo '42. Typed search: "Frem" and ZIP "75040":'
 select name, state, metro_name from search_areas('Frem', 3);
 select name, state, metro_name, zip from search_areas('75040');
+
+-- ───────── waitlist + launch switch ─────────
+reset role;
+\echo '43. Site starts in waitlist mode; a normal user cannot enter, an admin can:'
+select site_mode();
+set role authenticated;
+select set_config('request.jwt.claim.sub','22222222-2222-2222-2222-222222222222',false);
+select can_enter() as rohit_can_enter;
+select set_config('request.jwt.claim.sub','11111111-1111-1111-1111-111111111111',false);
+select can_enter() as neeraj_admin_can_enter;
+\echo '44. Visitors (anon) cannot join the list directly (error) or read it (0 rows):'
+set role anon;
+select * from join_waitlist('x@example.com', 'Jaipur', null, null, null, null);
+select count(*) from waitlist;
+\echo '45. Server joins: new sign-up, same email again (already = true, same code), referral recorded:'
+reset role;
+select id as fremont from areas where name = 'Fremont' and state = 'CA' \gset
+set role service_role;
+select ref_code as code1, city, metro_name, people_in_metro, already from join_waitlist('Maya@Example.com', 'Pune', null, :fremont, null, 'iphash1') \gset
+select :'city' as city, :'metro_name' as metro, :'already' as already;
+select ref_code = :'code1' as same_code, already from join_waitlist('maya@example.com', 'Pune', null, :fremont, null, 'iphash1');
+select already from join_waitlist('ravi@example.com', 'Delhi', null, :fremont, :'code1', 'iphash1');
+reset role;
+select email, referred_by = :'code1' as referred from waitlist where email = 'ravi@example.com';
+\echo '46. Spam limit: 5 sign-ups per network per hour (6th refused):'
+set role service_role;
+select already from join_waitlist('a3@example.com', null, null, null, null, 'iphash1');
+select already from join_waitlist('a4@example.com', null, null, null, null, 'iphash1');
+select already from join_waitlist('a5@example.com', null, null, null, null, 'iphash1');
+select already from join_waitlist('a6@example.com', null, null, null, null, 'iphash1');
+\echo '47. Admin adds Rohit as beta tester, then opens the site:'
+reset role;
+set role authenticated;
+select set_config('request.jwt.claim.sub','11111111-1111-1111-1111-111111111111',false);
+select admin_add_beta('ROHIT@example.com');
+select set_config('request.jwt.claim.sub','22222222-2222-2222-2222-222222222222',false);
+select can_enter() as rohit_beta_can_enter;
+select set_config('request.jwt.claim.sub','11111111-1111-1111-1111-111111111111',false);
+select (admin_waitlist() ->> 'total')::int as total, admin_waitlist() -> 'beta' as beta;
+select admin_set_site_mode('open');
+select set_config('request.jwt.claim.sub','33333333-3333-3333-3333-333333333333',false);
+select can_enter() as anyone_can_enter_when_open;

@@ -21,6 +21,8 @@ async function Setup() {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/login?next=/setup");
+  const { data: allowed } = await supabase.rpc("can_enter");
+  if (!allowed) redirect("/?notyet=1");
 
   const [{ data: myArea }, { data: interests }, { data: profile }, { data: roots }, { data: mine }, { data: settings }] = await Promise.all([
     supabase.from("profiles").select("areas(id,name,state,metros(name))").eq("id", user.id).maybeSingle(),

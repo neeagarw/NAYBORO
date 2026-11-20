@@ -12,15 +12,21 @@ export type Report = { target_type: "profile" | "question" | "answer" | "message
 export type Contact = { id: string; topic: string; body: string; reply_email: string; name: string | null; created_at: string; handled_at: string | null };
 export type Paused = { id: string; name: string; suspended_at: string };
 export type EventRow = { id: string; title: string; starts_at: string; place_name: string; price_label: string; kind: string; host_name: string; url: string; timezone: string };
+export type WaitlistInfo = {
+  mode: "waitlist" | "open"; total: number; last_7_days: number;
+  by_metro: { metro: string; n: number }[];
+  recent: { email: string; hometown: string | null; city: string | null; metro: string | null; created_at: string; invited: number }[];
+  beta: string[];
+};
 export type AreaRow = { id: number; name: string; state: string; metro_name: string; timezone: string };
 
 const KINDS = EVENT_KINDS;
 const TYPE_LABEL: Record<Report["target_type"], string> = { profile: "Profile", question: "Question", answer: "Answer", message: "Message" };
 
-export function AdminClient({ reports, contact, paused, events }: { reports: Report[]; contact: Contact[]; paused: Paused[]; events: EventRow[] }) {
+export function AdminClient({ reports, contact, paused, events, waitlist }: { reports: Report[]; contact: Contact[]; paused: Paused[]; events: EventRow[]; waitlist: WaitlistInfo }) {
   const router = useRouter();
   const [toast, toastNode] = useToast();
-  const [tab, setTab] = useState<"reports" | "messages" | "events" | "paused">("reports");
+  const [tab, setTab] = useState<"reports" | "messages" | "events" | "paused" | "waitlist">("reports");
   const [busy, setBusy] = useState(false);
   const openMsgs = contact.filter((c) => !c.handled_at).length;
 
@@ -34,7 +40,7 @@ export function AdminClient({ reports, contact, paused, events }: { reports: Rep
   }
   const sb = () => getClient();
 
-  const tabs: [typeof tab, string][] = [["reports", `Reports · ${reports.length}`], ["messages", `Messages · ${openMsgs}`], ["events", `Events · ${events.length}`], ["paused", `Paused · ${paused.length}`]];
+  const tabs: [typeof tab, string][] = [["reports", `Reports · ${reports.length}`], ["messages", `Messages · ${openMsgs}`], ["events", `Events · ${events.length}`], ["paused", `Paused · ${paused.length}`], ["waitlist", `Waitlist · ${waitlist.total}`]];
 
   return (
     <div className="app-frame">
@@ -95,6 +101,8 @@ export function AdminClient({ reports, contact, paused, events }: { reports: Rep
             ))}
           </>
         )}
+
+        {tab === "waitlist" && <Waitlist w={waitlist} busy={busy} run={run} />}
 
         {tab === "events" && <Events events={events} busy={busy} run={run} />}
 
@@ -191,4 +199,89 @@ function AdminBtn({ children, warn, ...p }: React.ButtonHTMLAttributes<HTMLButto
 }
 function Empty({ text }: { text: string }) {
   return <p className="rounded-[20px] border border-line-soft bg-surface p-4 text-sm text-muted">{text}</p>;
+}
+
+function Waitlist({ w, busy, run }: { w: WaitlistInfo; busy: boolean; run: (fn: () => PromiseLike<{ error: { message?: string } | null }>, done: string) => void }) {
+  const [email, setEmail] = useState("");
+  const [confirming, setConfirming] = useState(false);
+  const sb = () => getClient();
+  const beta = new Set(w.beta);
+  const open = w.mode === "open";
+
+  function csv() {
+    const q = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    const rows = [["email", "hometown", "city", "metro", "joined", "friends invited", "beta"], ...w.recent.map((r) => [r.email, r.hometown, r.city, r.metro, r.created_at, r.invited, beta.has(r.email) ? "yes" : ""])];
+    const url = URL.createObjectURL(new Blob([rows.map((r) => r.map(q).join(",")).join("\n")], { type: "text/csv" }));
+    const a = Object.assign(document.createElement("a"), { href: url, download: "nayboro-waitlist.csv" });
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  return (
+    <div className="flex flex-col gap-4">
+      <section aria-labelledby="launchH" className={`flex flex-col gap-2 rounded-[22px] p-4 ${open ? "bg-green-tint" : "bg-orange-tint"}`}>
+        <h2 id="launchH" className="m-0 text-base font-extrabold">{open ? "Nayboro is open to everyone" : "Pre-launch: waitlist only"}</h2>
+        <p className="m-0 text-sm text-muted">{open ? "The home page shows the normal welcome and anyone can sign up." : "The home page is the \u201cJoin the community\u201d page. Only admins and beta testers can sign in to the app."}</p>
+        {confirming ? (
+          <div className="flex gap-2">
+            <button disabled={busy} onClick={() => { setConfirming(false); run(() => sb().rpc("admin_set_site_mode", { p_mode: open ? "waitlist" : "open" }), open ? "Back to waitlist mode" : "Nayboro is open"); }} className="h-11 flex-1 rounded-xl bg-ink text-sm font-bold text-white">{open ? "Yes, close sign-ups" : "Yes, open Nayboro"}</button>
+            <button onClick={() => setConfirming(false)} className="h-11 rounded-xl border border-line bg-surface px-4 text-sm font-bold">Cancel</button>
+          </div>
+        ) : (
+          <button onClick={() => setConfirming(true)} className={`h-11 rounded-xl text-sm font-bold ${open ? "border border-line bg-surface" : "bg-green text-white"}`}>{open ? "Go back to waitlist mode" : "Open Nayboro to everyone"}</button>
+        )}
+      </section>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div className="rounded-[18px] border border-line-soft bg-surface p-4"><b className="font-display text-[28px]">{w.total}</b><div className="text-[13px] text-muted">on the list</div></div>
+        <div className="rounded-[18px] border border-line-soft bg-surface p-4"><b className="font-display text-[28px]">{w.last_7_days}</b><div className="text-[13px] text-muted">joined this week</div></div>
+      </div>
+
+      <section aria-labelledby="metroH" className="flex flex-col gap-2">
+        <h2 id="metroH" className="m-0 text-base font-extrabold">Where they live</h2>
+        {w.by_metro.length === 0 && <p className="m-0 text-sm text-muted">No sign-ups yet.</p>}
+        {w.by_metro.map((m) => (
+          <div key={m.metro} className="flex items-center gap-3 text-sm">
+            <span className="w-40 flex-none truncate">{m.metro}</span>
+            <span className="h-2.5 flex-1 overflow-hidden rounded-full bg-line-soft"><span className="block h-full rounded-full bg-green" style={{ width: `${Math.max(4, (m.n / Math.max(1, w.by_metro[0].n)) * 100)}%` }} /></span>
+            <b className="w-10 text-right">{m.n}</b>
+          </div>
+        ))}
+      </section>
+
+      <section aria-labelledby="betaH" className="flex flex-col gap-2">
+        <h2 id="betaH" className="m-0 text-base font-extrabold">Beta testers · {w.beta.length}</h2>
+        <p className="m-0 text-[13px] text-muted">These emails can sign in before launch. Send them to the site and they log in with their email.</p>
+        <form onSubmit={(e) => { e.preventDefault(); if (email.trim()) { run(() => sb().rpc("admin_add_beta", { p_email: email.trim() }), "Beta tester added"); setEmail(""); } }} className="flex gap-2">
+          <label className="sr-only" htmlFor="betaEmail">Beta tester email</label>
+          <input id="betaEmail" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@example.com" className="h-11 min-w-0 flex-1 rounded-xl border-2 border-line bg-surface px-3 text-[15px] outline-none focus:border-green" />
+          <button disabled={busy || !email.trim()} className="h-11 rounded-xl bg-green px-4 text-sm font-bold text-white disabled:opacity-50">Add</button>
+        </form>
+        {w.beta.map((b) => (
+          <div key={b} className="flex items-center justify-between gap-2 rounded-xl border border-line-soft bg-surface px-3 py-1.5 text-sm">
+            <span className="truncate">{b}</span>
+            <button disabled={busy} onClick={() => run(() => sb().rpc("admin_remove_beta", { p_email: b }), "Removed")} className="min-h-11 font-bold text-warn">Remove</button>
+          </div>
+        ))}
+      </section>
+
+      <section aria-labelledby="recentH" className="flex flex-col gap-2">
+        <div className="flex items-center justify-between">
+          <h2 id="recentH" className="m-0 text-base font-extrabold">Latest sign-ups</h2>
+          <button onClick={csv} disabled={!w.recent.length} className="h-10 rounded-xl border border-line bg-surface px-3 text-sm font-bold disabled:opacity-50">Download CSV</button>
+        </div>
+        {w.recent.slice(0, 100).map((r) => (
+          <div key={r.email} className="flex items-start justify-between gap-2 rounded-xl border border-line-soft bg-surface px-3 py-2">
+            <span className="flex min-w-0 flex-col">
+              <b className="truncate text-sm">{r.email}</b>
+              <span className="text-xs text-muted">{[r.city ?? r.metro, r.hometown && `from ${r.hometown}`, r.invited ? `${r.invited} invited` : null, ago(r.created_at)].filter(Boolean).join(" · ")}</span>
+            </span>
+            {beta.has(r.email) ? <Tag tone="green">Beta</Tag> : (
+              <button disabled={busy} onClick={() => run(() => sb().rpc("admin_add_beta", { p_email: r.email }), "Beta tester added")} className="min-h-11 flex-none text-sm font-bold text-green">Let in</button>
+            )}
+          </div>
+        ))}
+      </section>
+    </div>
+  );
 }

@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ScreenSkeleton } from "@/components/Skeleton";
-import { AdminClient, type Report, type Contact, type Paused, type EventRow } from "./AdminClient";
+import { AdminClient, type Report, type Contact, type Paused, type EventRow, type WaitlistInfo } from "./AdminClient";
 
 export const metadata = { title: "Admin" };
 
@@ -20,17 +20,19 @@ async function Admin() {
   const supabase = await createClient();
   const { data: ok } = await supabase.rpc("is_admin");
   if (!ok) notFound();
-  const [{ data: reports }, { data: contact }, { data: paused }, { data: events }] = await Promise.all([
+  const [{ data: reports }, { data: contact }, { data: paused }, { data: events }, { data: waitlist }] = await Promise.all([
     supabase.rpc("admin_reports"),
     supabase.rpc("admin_contact_messages"),
     supabase.rpc("admin_suspended"),
     supabase.from("events").select("id, title, starts_at, place_name, price_label, kind, host_name, url, areas(metros(timezone))").order("starts_at", { ascending: false }).limit(100),
+    supabase.rpc("admin_waitlist"),
   ]);
   return (
     <AdminClient
       reports={(reports ?? []) as Report[]}
       contact={(contact ?? []) as Contact[]}
       paused={(paused ?? []) as Paused[]}
+      waitlist={waitlist as WaitlistInfo}
       events={(events ?? []).map((e) => ({ ...e, timezone: (e.areas as unknown as { metros: { timezone: string } } | null)?.metros.timezone ?? "UTC" })) as EventRow[]}
     />
   );

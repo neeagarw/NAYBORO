@@ -38,6 +38,12 @@ This Next.js version has breaking changes: read `node_modules/next/dist/docs/` b
 11. **Other people's profiles are read only through `public_profiles`.** The base `profiles`, `profile_roots` and `questions` tables are owner-only under RLS.
 12. Every table has Row Level Security. A new table without RLS policies is a bug.
 
+## Pre-launch mode
+- `app_settings.site_mode` is `'waitlist'` (default) or `'open'`; Admin → Waitlist switches it. `/` shows `ComingSoon` in waitlist mode and `Welcome` when open.
+- Gate: `(app)/layout.tsx` and `setup/page.tsx` call `can_enter()` (open, admin, or email in `beta_testers`) and send everyone else to `/?notyet=1`.
+- Sign-ups go only through `POST /api/waitlist` (service role): the database refuses direct inserts. Rate limit = 5 per `ip_hash` per hour; the IP is salted and hashed, never stored. Invalid invite codes are ignored.
+- e2e: `waitlist_flow.py` runs first and leaves the site `'open'` for the other flows.
+
 ## Design
 - Colours: green `#1E6B4A` (primary), orange `#F59E4C` (accent), logo orange `#EE8A35`, ground `#F5F7F2`, ink `#17201B`, muted `#56635B`. Use the Tailwind tokens (`bg-green`, `text-muted`, `bg-orange-tint`…), not raw hex.
 - Fonts: Bricolage Grotesque for headings (`font-display`), Inter for body.

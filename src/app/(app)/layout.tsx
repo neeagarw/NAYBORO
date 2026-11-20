@@ -20,6 +20,10 @@ async function Gate({ children }: { children: React.ReactNode }) {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
+  // Before launch only admins and beta testers get in (Admin → Waitlist).
+  const { data: allowed } = await supabase.rpc("can_enter");
+  if (!allowed) redirect("/?notyet=1");
+
   const { data: profile } = await supabase.from("profiles").select("onboarded_at").eq("id", user.id).maybeSingle();
   if (!profile?.onboarded_at) redirect("/setup");
 
