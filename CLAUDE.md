@@ -39,6 +39,7 @@ This Next.js version has breaking changes: read `node_modules/next/dist/docs/` b
 12. Every table has Row Level Security. A new table without RLS policies is a bug.
 
 ## Pre-launch mode
+- Two setups (`src/lib/store.ts`): `WAITLIST_STORE=sheet` = no database, sign-ups go to a Google Sheet via `apps-script/Code.gs` (docs/DEPLOY.md), and `src/proxy.ts` redirects every app page to `/`; `supabase` = everything below. The coming-soon page looks up cities through `/api/geo`, which uses `src/data/geo.json` (from `scripts/export_geo_json.py`) in sheet mode and the database otherwise. Test sheet mode with `bash e2e/sheet_run.sh`.
 - `app_settings.site_mode` is `'waitlist'` (default) or `'open'`; Admin → Waitlist switches it. `/` shows `ComingSoon` in waitlist mode and `Welcome` when open.
 - Gate: `(app)/layout.tsx` and `setup/page.tsx` call `can_enter()` (open, admin, or email in `beta_testers`) and send everyone else to `/?notyet=1`.
 - Sign-ups go only through `POST /api/waitlist` (service role): the database refuses direct inserts. Rate limit = 5 per `ip_hash` per hour; the IP is salted and hashed, never stored. Invalid invite codes are ignored.

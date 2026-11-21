@@ -58,11 +58,11 @@ export function buildEmail(items: Alert[]) {
   const html = `<!doctype html><html><body style="margin:0;background:#F5F7F2;font-family:Inter,Arial,sans-serif">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:24px 12px">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#fff;border-radius:24px;padding:24px">
-    <tr><td style="font-weight:800;font-size:20px;color:#1E6B4A;padding-bottom:16px">nayboro</td></tr>
+    <tr><td style="font-weight:800;font-size:20px;color:#1F6F6B;padding-bottom:16px">nayboro</td></tr>
     <tr><td style="font-size:16px;color:#17201B;padding-bottom:14px">Hi ${esc(first.first_name)},</td></tr>
     ${rows}
     <tr><td>${more}</td></tr>
-    <tr><td style="padding-top:8px"><a href="${url}" style="display:block;text-align:center;background:#1E6B4A;color:#fff;text-decoration:none;font-weight:700;font-size:16px;padding:14px;border-radius:16px">${cta}</a></td></tr>
+    <tr><td style="padding-top:8px"><a href="${url}" style="display:block;text-align:center;background:#1F6F6B;color:#fff;text-decoration:none;font-weight:700;font-size:16px;padding:14px;border-radius:16px">${cta}</a></td></tr>
     <tr><td style="font-size:12px;color:#56635B;padding-top:20px;line-height:1.5">Keep personal details private until you trust someone.<br>
       You get these because you have a Nayboro account. <a href="${unsub}" style="color:#56635B">Turn off email alerts</a>.</td></tr>
   </table></td></tr></table></body></html>`;
@@ -110,10 +110,10 @@ export function buildWaitlistEmail(p: { email: string; city: string | null; metr
   const html = `<!doctype html><html><body style="margin:0;background:#F5F7F2;font-family:Inter,Arial,sans-serif">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:24px 12px">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#fff;border-radius:24px;padding:24px">
-    <tr><td style="font-weight:800;font-size:20px;color:#1E6B4A;padding-bottom:16px">nayboro</td></tr>
+    <tr><td style="font-weight:800;font-size:20px;color:#1F6F6B;padding-bottom:16px">nayboro</td></tr>
     <tr><td style="font-size:22px;font-weight:800;color:#17201B;padding-bottom:10px">You're on the list${where ? "!" : "."}</td></tr>
     <tr><td style="font-size:15px;color:#3B463F;line-height:1.5;padding-bottom:16px">We'll email you as soon as Nayboro opens${esc(where)}. Want it sooner? Invite friends from home: the more people near you join, the sooner we open there.</td></tr>
-    <tr><td><a href="${invite}" style="display:block;text-align:center;background:#1E6B4A;color:#fff;text-decoration:none;font-weight:700;font-size:16px;padding:14px;border-radius:16px">Share your invite link</a></td></tr>
+    <tr><td><a href="${invite}" style="display:block;text-align:center;background:#1F6F6B;color:#fff;text-decoration:none;font-weight:700;font-size:16px;padding:14px;border-radius:16px">Share your invite link</a></td></tr>
     <tr><td style="font-size:13px;color:#56635B;padding-top:10px;word-break:break-all">${invite}</td></tr>
     <tr><td style="font-size:12px;color:#56635B;padding-top:20px;line-height:1.5">You joined the Nayboro waitlist with ${esc(p.email)}. Didn't mean to? <a href="${leave}" style="color:#56635B">Leave the list</a>.</td></tr>
   </table></td></tr></table></body></html>`;

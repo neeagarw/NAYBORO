@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useId, useState } from "react";
-import { getClient } from "@/lib/supabase/client";
 import { LogoMark } from "@/components/Logo";
 import { APP } from "@/config/app";
 
@@ -16,6 +15,12 @@ type Done = { email: string; refCode: string; city: string | null; metro: string
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_HOMES = 3;
+/** City and hometown lookups go through /api/geo, which works with or without the database. */
+async function geo<T>(params: Record<string, string>): Promise<T[]> {
+  const res = await fetch(`/api/geo?${new URLSearchParams(params)}`).catch(() => null);
+  return res?.ok ? ((await res.json()) as T[]) : [];
+}
+
 const CORAL = "#F2876B", TEAL = "#1F6F6B", WHITE = "#FFFFFF";
 
 /** "Dallas–Fort Worth, TX" for a metro, "Marfa, TX" for a city outside any metro. */
@@ -24,7 +29,7 @@ function cityLabel(c: City, preferMetro: boolean) {
   return `${c.name}, ${c.state}`;
 }
 
-export function ComingSoon({ refCode, signedInEmail, guessedCity, year }: { refCode: string | null; signedInEmail: string | null; guessedCity: City | null; year: number }) {
+export function ComingSoon({ refCode, signedInEmail, guessedCity, year, showLogin }: { refCode: string | null; signedInEmail: string | null; guessedCity: City | null; year: number; showLogin: boolean }) {
   const [done, setDone] = useState<Done | null>(null);
 
   return (
@@ -58,7 +63,7 @@ export function ComingSoon({ refCode, signedInEmail, guessedCity, year }: { refC
           <nav aria-label="Footer" className="flex flex-wrap gap-5">
             <Link href="/privacy" className="underline decoration-1 underline-offset-4 text-teal">Privacy policy</Link>
             <a href={`mailto:${APP.contactEmail}`} className="underline decoration-1 underline-offset-4 text-teal">Contact</a>
-            <Link href="/login" className="underline decoration-1 underline-offset-4 text-muted">Beta tester log in</Link>
+            {showLogin && <Link href="/login" className="underline decoration-1 underline-offset-4 text-muted">Beta tester log in</Link>}
           </nav>
         </footer>
       </div>
@@ -122,8 +127,8 @@ function JoinForm({ refCode, onDone, defaultEmail, guessedCity }: { refCode: str
     if (city || q.length < 2) return;
     let live = true;
     const t = setTimeout(async () => {
-      const { data } = await getClient().rpc("search_areas", { p_q: q, p_limit: 5 });
-      if (live) setCityHits((data ?? []) as City[]);
+      const data = await geo<City>({ kind: "city", q });
+      if (live) setCityHits(data);
     }, 200);
     return () => { live = false; clearTimeout(t); };
   }, [cityText, city]);
@@ -225,8 +230,8 @@ function HomeField({ home, index, removable, onChange, onRemove }: { home: Home;
     if (home.place || q.length < 2) return;
     let live = true;
     const t = setTimeout(async () => {
-      const { data } = await getClient().rpc("search_places", { p_q: q, p_limit: 5 });
-      if (live) setHits((data ?? []) as Place[]);
+      const data = await geo<Place>({ kind: "home", q });
+      if (live) setHits(data);
     }, 150);
     return () => { live = false; clearTimeout(t); };
   }, [home.text, home.place]);
