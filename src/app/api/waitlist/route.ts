@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createHash } from "node:crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { buildWaitlistEmail, sendEmail } from "@/lib/email";
+import { buildWaitlistEmail, sendEmail, signingSecret } from "@/lib/email";
 import { waitlistStore } from "@/lib/store";
 import { areaById } from "@/lib/places";
 import { sheet, SheetError } from "@/lib/sheet";
@@ -17,7 +17,8 @@ const LIMITED = "Too many";
 function ipHash(req: NextRequest) {
   const ip = (req.headers.get("x-forwarded-for") ?? "").split(",")[0].trim() || req.headers.get("x-real-ip") || "";
   if (!ip) return null;
-  const salt = process.env.IP_HASH_SALT ?? process.env.UNSUBSCRIBE_SECRET ?? "";
+  let salt = process.env.IP_HASH_SALT ?? "";
+  if (!salt) { try { salt = signingSecret(); } catch { /* no secret configured: unsalted */ } }
   return createHash("sha256").update(`${salt}:${ip}`).digest("hex").slice(0, 32);
 }
 
@@ -42,7 +43,7 @@ export async function POST(req: NextRequest) {
   const num = (v: unknown) => (typeof v === "number" && Number.isInteger(v) && v > 0 ? v : null);
   const hometown = typeof b.hometown === "string" ? b.hometown.slice(0, 200) : null;
   const ref = typeof b.ref === "string" ? b.ref.slice(0, 16) : null;
-  const mailVia = process.env.RESEND_API_KEY ? "resend" : waitlistStore() === "sheet" && process.env.UNSUBSCRIBE_SECRET ? "sheet" : null;
+  const mailVia = process.env.RESEND_API_KEY ? "resend" : waitlistStore() === "sheet" && (process.env.UNSUBSCRIBE_SECRET || process.env.SHEET_WEBHOOK_SECRET) ? "sheet" : null;
 
   // ── Google Sheet ──
   if (waitlistStore() === "sheet") {

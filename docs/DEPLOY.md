@@ -48,8 +48,7 @@ vercel.com → **Add New → Project → Import** `nayboro`. Framework: Next.js 
 | `WAITLIST_STORE` | `sheet` |
 | `SHEET_WEBHOOK_URL` | the Web app URL from step 1 |
 | `SHEET_WEBHOOK_SECRET` | the secret from step 1 |
-| `UNSUBSCRIBE_SECRET` | run `openssl rand -base64 32` |
-| `IP_HASH_SALT` | run `openssl rand -base64 32` again |
+| `UNSUBSCRIBE_SECRET`, `IP_HASH_SALT` | optional: left out, both are derived from `SHEET_WEBHOOK_SECRET` |
 | `NEXT_PUBLIC_SITE_URL` | `https://nayboro.com` (or the `…vercel.app` address until the domain is set) |
 
 Press **Deploy**. Leave the Supabase variables out: without them only the coming-soon page,

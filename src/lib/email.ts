@@ -11,11 +11,16 @@ const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&
 const clip = (s: string, n = 140) => (s.length > n ? `${s.slice(0, n - 1)}…` : s);
 
 // ───────── unsubscribe links (signed, so nobody can turn off someone else's alerts) ─────────
-function secret() {
+// UNSUBSCRIBE_SECRET if set; in the Google Sheet setup it can be left out and is derived from
+// SHEET_WEBHOOK_SECRET, so the site needs only one secret.
+export function signingSecret() {
   const s = process.env.UNSUBSCRIBE_SECRET;
-  if (!s) throw new Error("UNSUBSCRIBE_SECRET is not set");
-  return s;
+  if (s) return s;
+  const sheet = process.env.SHEET_WEBHOOK_SECRET;
+  if (sheet) return createHmac("sha256", sheet).update("nayboro:signing").digest("base64url");
+  throw new Error("UNSUBSCRIBE_SECRET is not set");
 }
+const secret = signingSecret;
 export function unsubscribeToken(profileId: string) {
   return createHmac("sha256", secret()).update(`unsubscribe:${profileId}`).digest("base64url");
 }
