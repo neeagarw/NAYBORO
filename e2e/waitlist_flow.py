@@ -58,32 +58,47 @@ with sync_playwright() as p:
     s, friend = api_join({"email": "aman@example.com", "adult": True}, ip="192.0.2.50")
     assert s == 200 and len(friend["refCode"]) == 8, friend
     before = len(emails())
-    pg.goto(B + "/?ref=" + friend["refCode"])
-    expect(pg.get_by_role("heading", name="Join the community")).to_be_visible()
+    pg.goto(B + "/r/" + friend["refCode"])                       # short invite link
+    expect(pg).to_have_url(re.compile(r"/\?ref=" + friend["refCode"] + "$"))
+    expect(pg.get_by_role("heading", name="Join the waitlist")).to_be_visible()
     pg.wait_for_load_state("networkidle")
-    expect(pg.get_by_text("Coming soon to your city")).to_be_visible()
+    expect(pg.get_by_text("Coming soon to Dallas-Fort Worth")).to_be_visible()
     pg.screenshot(path=f"{OUT}/waitlist-phone.png", full_page=True)
 
-    pg.get_by_role("button", name="Join the list").click()
+    pg.get_by_role("button", name="Join the waitlist").click()
     expect(pg.locator("form p[role=alert]")).to_have_text("Please check your email address.")
     pg.get_by_label("Email", exact=True).fill("priya@example.com")
-    pg.get_by_role("button", name="Join the list").click()
+    pg.get_by_role("button", name="Join the waitlist").click()
     expect(pg.locator("form p[role=alert]")).to_have_text(re.compile("18 or older"))
 
-    pg.get_by_label("Where are your roots?").fill("Jai")
+    # Two homes: one picked from the list, one typed freely
+    home1 = pg.get_by_role("combobox", name="Where's home for you?")
+    home1.fill("Jai")
     pg.get_by_role("option", name=re.compile("^Jaipur")).first.click()
-    expect(pg.get_by_label("Where are your roots?")).to_have_value(re.compile("^Jaipur"))
-    pg.get_by_label("Where do you live now?").fill("Fremont")
+    expect(home1).to_have_value(re.compile("^Jaipur"))
+    pg.get_by_role("button", name="+ Add another home").click()
+    pg.get_by_role("combobox", name="Home 2").fill("Toronto, Canada")
+    pg.get_by_label("Your city").fill("Fremont")
     pg.get_by_role("option", name=re.compile(r"^Fremont, CA")).first.click()
-    expect(pg.get_by_text("San Francisco Bay Area").first).to_be_visible()
+    expect(pg.get_by_text("Part of San Francisco Bay Area")).to_be_visible()
     pg.get_by_role("checkbox").check()
-    pg.get_by_role("button", name="Join the list").click()
-    expect(pg.get_by_role("heading", name="You're on the list!")).to_be_visible()
+    pg.get_by_role("button", name="Join the waitlist").click()
+    expect(pg.get_by_role("heading", name="You're on the list.")).to_be_visible()
     expect(pg.get_by_role("status").get_by_text("San Francisco Bay Area")).to_be_visible()
     code = psql("select ref_code from waitlist where email='priya@example.com'")
-    expect(pg.get_by_text(f"/?ref={code}")).to_be_visible()
-    pg.screenshot(path=f"{OUT}/waitlist-joined.png", full_page=False)
-    assert psql("select referred_by || '|' || metro || '|' || hometown from waitlist where email='priya@example.com'") == friend["refCode"] + "|41860|Jaipur, Rajasthan", psql("select * from waitlist")
+    expect(pg.get_by_text(f"localhost:3123/r/{code}")).to_be_visible()
+    pg.screenshot(path=f"{OUT}/waitlist-joined.png", full_page=True)
+    assert psql("select referred_by || '|' || metro || '|' || hometown from waitlist where email='priya@example.com'") == friend["refCode"] + "|41860|Jaipur, Rajasthan · Toronto, Canada", psql("select * from waitlist")
+
+    # Optional first name
+    pg.get_by_label("First name").fill("Priya")
+    pg.get_by_role("button", name="Save").click()
+    expect(pg.get_by_text("Thanks, Priya!")).to_be_visible()
+    assert psql("select first_name from waitlist where email='priya@example.com'") == "Priya"
+    req = urllib.request.Request(B + "/api/waitlist", data=json.dumps({"email": "priya@example.com", "refCode": "WRONGCOD", "firstName": "X"}).encode(), method="PATCH", headers={"Content-Type": "application/json"})
+    try: urllib.request.urlopen(req); assert False, "wrong code must not save"
+    except urllib.error.HTTPError as e: assert e.code == 404
+    assert psql("select first_name from waitlist where email='priya@example.com'") == "Priya"
     assert not errs, errs
 
     # Confirmation email with invite link and a signed leave link
@@ -91,7 +106,7 @@ with sync_playwright() as p:
     to = new[0]["to"] if new else None
     assert len(new) == 1 and to in ("priya@example.com", ["priya@example.com"]), new
     html = new[0]["html"]
-    assert f"/?ref={code}" in html and "San Francisco Bay Area" in html
+    assert f"/r/{code}" in html and "San Francisco Bay Area" in html
     leave = re.search(r'href="(http://localhost:3123/api/waitlist/leave[^"]+)"', html).group(1).replace("&amp;", "&")
 
     # Same email again: same code, no second email, says "already"
@@ -119,11 +134,16 @@ with sync_playwright() as p:
     expect(pg.get_by_role("heading", name="You've left the list")).to_be_visible()
     assert psql("select count(*) from waitlist where email='priya@example.com'") == "0"
 
-    # Laptop layout
-    wide = browser.new_context(viewport={"width": 1280, "height": 900}).new_page()
+    # Laptop layout, with "Your city" filled in from the visitor's location (Vercel's IP headers; here Frisco, TX)
+    wide = browser.new_context(viewport={"width": 1600, "height": 1250}, extra_http_headers={"x-vercel-ip-latitude": "33.1507", "x-vercel-ip-longitude": "-96.8236"}).new_page()
     wide.goto(B + "/")
-    expect(wide.get_by_role("heading", name="Join the community")).to_be_visible()
+    expect(wide.get_by_role("heading", name="Join the waitlist")).to_be_visible()
+    expect(wide.get_by_label("Your city")).to_have_value(re.compile(r"^Dallas.Fort Worth, TX$"))
+    expect(wide.get_by_text("We filled this in from your location")).to_be_visible()
+    wide.wait_for_load_state("networkidle")
     wide.screenshot(path=f"{OUT}/waitlist-laptop.png", full_page=True)
+    wide.get_by_role("link", name="Privacy policy").first.click()
+    expect(wide.get_by_role("heading", name="Privacy policy")).to_be_visible()
 
     # ── Before launch, a stranger who signs in is sent back to the waitlist ──
     s_ctx, S = sign_in(browser, "stranger@example.com")
@@ -158,7 +178,7 @@ with sync_playwright() as p:
 
     fresh = browser.new_context().new_page()
     fresh.goto(B + "/")
-    expect(fresh.get_by_role("heading", name="Join the community")).to_have_count(0)
+    expect(fresh.get_by_role("heading", name="Join the waitlist")).to_have_count(0)
     expect(fresh.get_by_role("link", name=re.compile("Get started|Sign up|Join", re.I)).first).to_be_visible()
 
     browser.close()

@@ -15,7 +15,7 @@ export type EventRow = { id: string; title: string; starts_at: string; place_nam
 export type WaitlistInfo = {
   mode: "waitlist" | "open"; total: number; last_7_days: number;
   by_metro: { metro: string; n: number }[];
-  recent: { email: string; hometown: string | null; city: string | null; metro: string | null; created_at: string; invited: number }[];
+  recent: { email: string; first_name: string | null; hometown: string | null; city: string | null; metro: string | null; created_at: string; invited: number }[];
   beta: string[];
 };
 export type AreaRow = { id: number; name: string; state: string; metro_name: string; timezone: string };
@@ -210,7 +210,7 @@ function Waitlist({ w, busy, run }: { w: WaitlistInfo; busy: boolean; run: (fn: 
 
   function csv() {
     const q = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
-    const rows = [["email", "hometown", "city", "metro", "joined", "friends invited", "beta"], ...w.recent.map((r) => [r.email, r.hometown, r.city, r.metro, r.created_at, r.invited, beta.has(r.email) ? "yes" : ""])];
+    const rows = [["email", "first name", "hometown", "city", "metro", "joined", "friends invited", "beta"], ...w.recent.map((r) => [r.email, r.first_name, r.hometown, r.city, r.metro, r.created_at, r.invited, beta.has(r.email) ? "yes" : ""])];
     const url = URL.createObjectURL(new Blob([rows.map((r) => r.map(q).join(",")).join("\n")], { type: "text/csv" }));
     const a = Object.assign(document.createElement("a"), { href: url, download: "nayboro-waitlist.csv" });
     a.click();
@@ -273,7 +273,7 @@ function Waitlist({ w, busy, run }: { w: WaitlistInfo; busy: boolean; run: (fn: 
         {w.recent.slice(0, 100).map((r) => (
           <div key={r.email} className="flex items-start justify-between gap-2 rounded-xl border border-line-soft bg-surface px-3 py-2">
             <span className="flex min-w-0 flex-col">
-              <b className="truncate text-sm">{r.email}</b>
+              <b className="truncate text-sm">{r.first_name ? `${r.first_name} · ` : ""}{r.email}</b>
               <span className="text-xs text-muted">{[r.city ?? r.metro, r.hometown && `from ${r.hometown}`, r.invited ? `${r.invited} invited` : null, ago(r.created_at)].filter(Boolean).join(" · ")}</span>
             </span>
             {beta.has(r.email) ? <Tag tone="green">Beta</Tag> : (

@@ -47,3 +47,17 @@ export async function POST(req: NextRequest) {
   }
   return NextResponse.json({ ok: true, refCode: row.ref_code, city: row.city, metro: row.metro_name, people: row.people_in_metro, already: row.already });
 }
+
+// PATCH /api/waitlist  { email, refCode, firstName }: the optional "First name" box after joining.
+// Needs the invite code too, which only the person who just joined has.
+export async function PATCH(req: NextRequest) {
+  let body: Record<string, unknown>;
+  try { body = await req.json(); } catch { return NextResponse.json({ error: "Bad request." }, { status: 400 }); }
+  const email = String(body.email ?? "").trim().toLowerCase();
+  const ref = String(body.refCode ?? "").slice(0, 16);
+  const name = String(body.firstName ?? "").trim().slice(0, 40);
+  if (!EMAIL.test(email) || !ref) return NextResponse.json({ error: "Bad request." }, { status: 400 });
+  const { data, error } = await createAdminClient().rpc("waitlist_set_name", { p_email: email, p_ref: ref, p_name: name });
+  if (error || !data) return NextResponse.json({ error: "We couldn't save that. Please try again." }, { status: error ? 500 : 404 });
+  return NextResponse.json({ ok: true });
+}

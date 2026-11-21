@@ -7,6 +7,11 @@ export const APP = {
   tagline: "Find your people, wherever you are.",
   description: "Meet people from your hometown who live nearby, get answers from people who have been there, and find things to do together.",
   emergency: "In immediate danger? Call 911 first.",
+  /** Public links on the coming-soon page. Change these to the real ones before launch. */
+  contactEmail: "hello@nayboro.com",
+  instagramUrl: "https://www.instagram.com/nayboro",
+  /** Shown as "Coming soon to …" on the coming-soon page: the first metro we open. */
+  launchMetro: "Dallas-Fort Worth",
 } as const;
 
 /** Page sizes and display limits (UI only; the database enforces its own caps). */

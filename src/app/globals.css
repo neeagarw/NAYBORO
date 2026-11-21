@@ -34,6 +34,16 @@
   --line-soft: #e6ebe5;
   --ink: #17201b;
   --muted: #56635b;
+  /* Coming-soon page (waitlist design) */
+  --teal: #1f6f6b;
+  --teal-dark: #175654;
+  --teal-tint: #e0efec;
+  --teal-line: #d3e3df;
+  --coral: #f2876b;
+  --coral-ink: #2b1810;
+  --mist: #f3f7f5;
+  --mist-card: #f3f7f5;
+  --on-teal-muted: #e3f1ee;
 }
 
 @theme inline {
@@ -69,6 +79,14 @@
   --color-line-soft: var(--line-soft);
   --color-ink: var(--ink);
   --color-muted: var(--muted);
+  --color-teal: var(--teal);
+  --color-teal-dark: var(--teal-dark);
+  --color-teal-tint: var(--teal-tint);
+  --color-teal-line: var(--teal-line);
+  --color-coral: var(--coral);
+  --color-coral-ink: var(--coral-ink);
+  --color-mist: var(--mist);
+  --color-on-teal-muted: var(--on-teal-muted);
   --font-display: "Bricolage Grotesque Variable", "Inter Variable", system-ui, sans-serif;
   --font-sans: "Inter Variable", system-ui, sans-serif;
 }

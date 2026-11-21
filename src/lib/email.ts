@@ -103,7 +103,7 @@ export function checkLeaveToken(email: string, token: string) {
 
 /** "You're on the list" email, with the invite link and a signed one-click "leave the list" link. */
 export function buildWaitlistEmail(p: { email: string; city: string | null; metro: string | null; refCode: string }) {
-  const invite = `${site()}/?ref=${p.refCode}`;
+  const invite = `${site()}/r/${p.refCode}`;
   const leave = `${site()}/api/waitlist/leave?e=${encodeURIComponent(p.email)}&t=${leaveToken(p.email)}`;
   const where = p.metro ? ` in ${p.metro}` : "";
   const subject = "You're on the Nayboro list";

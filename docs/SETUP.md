@@ -57,6 +57,9 @@ Then "Admin" appears in your account menu: open reports, hide questions/answers,
 - **Beta testers:** type an email and press Add, or press "Let in" next to anyone on the list. They sign in from "Beta tester? Log in" with that email.
 - **Launch:** press "Open Nayboro to everyone". The home page switches to the normal welcome and anyone can sign up. You can switch back the same way.
 - Everyone who joins gets a "You're on the list" email with their invite link (`/?ref=CODE`) and a one-click "Leave the list" link. Sign-ups are limited to 5 per network per hour; we store a salted hash of the network address, never the address itself.
+- **Before going live, set the real links** in `src/config/app.ts`: `instagramUrl`, `contactEmail` and `launchMetro` (the "Coming soon to …" pill). The privacy policy is at `/privacy` (`src/app/privacy/page.tsx`): have a lawyer read it.
+- On Vercel, "Your city" is filled in from the visitor's approximate location (Vercel's IP headers, no browser prompt). Nothing about it is stored except the city they submit.
+- Invite links look like `nayboro.com/r/CODE`. After joining, people can add a first name (shown in Admin → Waitlist and the CSV).
 - To email the list on launch day: Download CSV and import it into Resend (Audiences → Import) or any email tool.
 
 ## 5. Vercel (10 min)
