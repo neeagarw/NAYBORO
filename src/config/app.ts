@@ -9,7 +9,7 @@ export const APP = {
   emergency: "In immediate danger? Call 911 first.",
   /** Public links on the coming-soon page. Change these to the real ones before launch. */
   contactEmail: "hello@nayboro.com",
-  instagramUrl: "https://www.instagram.com/nayboro",
+  instagramUrl: "https://www.instagram.com/nayborohq/",
   /** Shown as "Coming soon to …" on the coming-soon page: the first metro we open. */
   launchMetro: "Dallas-Fort Worth",
 } as const;
