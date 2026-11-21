@@ -7,6 +7,9 @@
  * One tab, "Waitlist", one row per person. You can sort, filter and add columns to the right freely;
  * don't rename or reorder the first 10.
  */
+// The sheet's ID (from its URL: docs.google.com/spreadsheets/d/<ID>/edit). Leave '' if this script
+// was opened from the sheet's own Extensions → Apps Script menu.
+var SHEET_ID = '';
 var TAB = 'Waitlist';
 var HEADERS = ['Joined at', 'Email', 'First name', 'City', 'Metro area', 'Home(s)', 'Invite code', 'Invited by', 'Network (scrambled)', 'Friends invited'];
 var COL = { joined: 1, email: 2, name: 3, city: 4, metro: 5, homes: 6, code: 7, invitedBy: 8, net: 9, invites: 10 };
@@ -87,7 +90,7 @@ function leave_(b) {
 }
 
 function tab_() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = SHEET_ID ? SpreadsheetApp.openById(SHEET_ID) : SpreadsheetApp.getActiveSpreadsheet();
   var sh = ss.getSheetByName(TAB) || ss.insertSheet(TAB);
   if (sh.getLastRow() === 0) {
     sh.appendRow(HEADERS);
