@@ -34,7 +34,12 @@ export async function POST(req: NextRequest) {
   const admin = createAdminClient();
   const ip = ipHash(req);
   const since = new Date(Date.now() - WINDOW_MIN * 60_000).toISOString();
-  const { data: fails } = await admin.from("beta_login_attempts").select("id").eq("ip_hash", ip).gte("at", since).limit(MAX_FAILS);
+  const { data: fails, error: setupErr } = await admin.from("beta_login_attempts").select("id").eq("ip_hash", ip).gte("at", since).limit(MAX_FAILS);
+  if (setupErr) {
+    // Only the service role can read this table; anything else means SUPABASE_SERVICE_ROLE_KEY is wrong.
+    console.error("beta-login setup", setupErr.message);
+    return NextResponse.json({ error: "Sign-in isn't set up correctly yet (server key). Please tell the Nayboro team." }, { status: 500 });
+  }
   if ((fails?.length ?? 0) >= MAX_FAILS) return NextResponse.json({ error: "Too many tries. Please wait 15 minutes." }, { status: 429 });
 
   const codeOk = timingSafeEqual(digest(code.toUpperCase()), digest(secret.toUpperCase()));
