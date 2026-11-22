@@ -75,6 +75,20 @@ class H(BaseHTTPRequestHandler):
         j = json.loads(b) if b else {}
         if p.startswith("otp"):
             return self.send(200, {})
+        if p.startswith("admin/users") and m == "POST":   # beta-code sign-in: make sure the account exists
+            email = j["email"]; uid = str(uuid.uuid5(uuid.NAMESPACE_URL, email))
+            subprocess.run(["psql", "-d", "e2e", "-qc",
+                            f"insert into auth.users (id, email) values ('{uid}', '{email}') on conflict do nothing"], check=True)
+            return self.send(200, user_obj(uid, email))
+        if p.startswith("admin/generate_link"):
+            email = j["email"]; uid = str(uuid.uuid5(uuid.NAMESPACE_URL, email))
+            return self.send(200, {**user_obj(uid, email), "action_link": "", "email_otp": "", "hashed_token": "h-" + email,
+                                   "redirect_to": "", "verification_type": "magiclink"})
+        if p.startswith("verify") and str(j.get("token_hash", "")).startswith("h-"):
+            email = j["token_hash"][2:]; uid = str(uuid.uuid5(uuid.NAMESPACE_URL, email))
+            subprocess.run(["psql", "-d", "e2e", "-qc",
+                            f"insert into auth.users (id, email) values ('{uid}', '{email}') on conflict do nothing"], check=True)
+            return self.send(200, session(uid, email))
         if p.startswith("verify"):
             if j.get("token") != "123456": return self.send(403, {"code": 403, "error_code": "otp_expired", "msg": "Token has expired or is invalid"})
             email = j["email"]; uid = str(uuid.uuid5(uuid.NAMESPACE_URL, email))

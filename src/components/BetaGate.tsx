@@ -19,7 +19,7 @@ export function BetaGate({ notListedEmail, joinUrl }: { notListedEmail: string |
             Otherwise, <a href={joinUrl} className="font-bold text-green underline">join the waitlist</a> and we&apos;ll email you when we open.
           </div>
         ) : (
-          <p className="mt-5 text-[15px] leading-normal text-muted">Sign in with the email you were invited with. We&apos;ll send you a 6-digit code.</p>
+          <p className="mt-5 text-[15px] leading-normal text-muted">Sign in with the email you were invited with and your beta code.</p>
         )}
 
         <div className="flex-1" />

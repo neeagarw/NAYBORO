@@ -88,4 +88,8 @@ The `test` branch is deployed as a Vercel Preview at its own address, using Supa
   response carries `X-Robots-Tag: noindex`.
 - Only emails in Admin → Waitlist → Beta testers can get in while `site_mode` is `waitlist`. Don't press
   "Open Nayboro to everyone" on the beta site unless you mean it.
+- **Beta code sign-in:** with `BETA_LOGIN_CODE` set (Preview, Secret), testers sign in with their email + that code;
+  no email is sent. Only emails on the tester list get in; 8 wrong tries per network = 15-minute lockout
+  (`beta_login_attempts`). Anyone who knows the code and a tester's email can sign in as them, so switch back to
+  emailed codes (remove the variable) before opening up. Change the code by rotating the variable and redeploying.
 - Tested by `e2e/beta_flow.py` (part of `e2e/run.sh`).

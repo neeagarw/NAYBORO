@@ -268,3 +268,10 @@ select area_name, area_state from my_waitlist_prefill();
 select set_config('request.jwt.claim.sub','33333333-3333-3333-3333-333333333333',false);
 select count(*) as other_person_rows from my_waitlist_prefill();
 reset role;
+\echo '49. Beta sign-in tries are hidden from signed-in users (expect: permission denied):'
+set role authenticated;
+select set_config('request.jwt.claim.sub','22222222-2222-2222-2222-222222222222',false);
+\set ON_ERROR_STOP 0
+select count(*) from beta_login_attempts;
+\set ON_ERROR_STOP 1
+reset role;

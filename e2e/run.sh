@@ -39,6 +39,6 @@ python3 e2e/quality_check.py
 # Private beta site (BETA_SITE=1): same build, restarted with the flag, site back in pre-launch mode.
 pkill -P $NEXT 2>/dev/null; kill $NEXT 2>/dev/null
 for i in $(seq 20); do curl -s -o /dev/null localhost:3123 || break; pkill -f "next-server" 2>/dev/null; sleep 1; done
-BETA_SITE=1 PUBLIC_SITE_URL=https://nayboro.example npx next start -p 3123 > e2e/out/next-beta.log 2>&1 & NEXT=$!
+BETA_SITE=1 BETA_LOGIN_CODE=TEST-CODE-42 PUBLIC_SITE_URL=https://nayboro.example npx next start -p 3123 > e2e/out/next-beta.log 2>&1 & NEXT=$!
 sleep 5
 python3 e2e/beta_flow.py

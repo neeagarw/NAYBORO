@@ -12,7 +12,7 @@ import { Logo } from "@/components/Logo";
 const RESEND_SECONDS = 30;
 const validEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 
-export function LoginForm({ next, prelaunch = false, joinUrl = "/" }: { next: string; prelaunch?: boolean; joinUrl?: string }) {
+export function LoginForm({ next, prelaunch = false, joinUrl = "/", betaCode = false }: { next: string; prelaunch?: boolean; joinUrl?: string; betaCode?: boolean }) {
   const [step, setStep] = useState<"email" | "code">("email");
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
@@ -26,6 +26,22 @@ export function LoginForm({ next, prelaunch = false, joinUrl = "/" }: { next: st
     const t = setTimeout(() => setWait((w) => w - 1), 1000);
     return () => clearTimeout(t);
   }, [wait]);
+
+  // Private beta: email + shared beta code, no email sent.
+  const [beta, setBeta] = useState("");
+  async function betaSignIn(e: React.FormEvent) {
+    e.preventDefault();
+    const v = email.trim().toLowerCase();
+    if (!validEmail(v)) return setError("Please check this email address.");
+    if (!beta.trim()) return setError("Enter the beta code you were given.");
+    setBusy(true);
+    setError(null);
+    const r = await fetch("/api/beta-login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: v, code: beta }) }).catch(() => null);
+    if (r?.ok) return window.location.assign(next);
+    const j = await r?.json().catch(() => null);
+    setBusy(false);
+    setError(j?.error ?? "We couldn't sign you in. Please try again.");
+  }
 
   async function sendCode(e?: React.FormEvent) {
     e?.preventDefault();
@@ -84,10 +100,10 @@ export function LoginForm({ next, prelaunch = false, joinUrl = "/" }: { next: st
         <Logo size={34} />
 
         {step === "email" ? (
-          <form onSubmit={sendCode} className="flex flex-1 flex-col gap-5" noValidate>
+          <form onSubmit={betaCode ? betaSignIn : sendCode} className="flex flex-1 flex-col gap-5" noValidate>
             <div>
               <h1 className="font-display text-[34px] font-extrabold leading-[1.05] tracking-[-0.5px]">{prelaunch ? "Beta tester sign in" : "Log in or join"}</h1>
-              <p className="mt-1.5 text-[15px] leading-normal text-muted">We&apos;ll email you a 6-digit code. No password to remember.</p>
+              <p className="mt-1.5 text-[15px] leading-normal text-muted">{betaCode ? "Use the email you were invited with and the beta code we gave you." : "We\u2019ll email you a 6-digit code. No password to remember."}</p>
             </div>
             <div className="flex flex-col gap-2">
               <label htmlFor="email" className="text-[13px] font-bold">Email</label>
@@ -102,12 +118,27 @@ export function LoginForm({ next, prelaunch = false, joinUrl = "/" }: { next: st
                 placeholder="you@example.com"
                 className="h-[52px] w-full rounded-2xl border-2 border-line bg-surface px-4 text-base outline-none focus:border-green"
               />
-              {error && <span role="alert" className="text-[13px] font-semibold text-warn">{error}</span>}
+              {!betaCode && error && <span role="alert" className="text-[13px] font-semibold text-warn">{error}</span>}
             </div>
+            {betaCode && (
+              <div className="flex flex-col gap-2">
+                <label htmlFor="betacode" className="text-[13px] font-bold">Beta code</label>
+                <input
+                  id="betacode"
+                  autoComplete="off"
+                  autoCapitalize="characters"
+                  spellCheck={false}
+                  value={beta}
+                  onChange={(e) => { setBeta(e.target.value); setError(null); }}
+                  className="h-[52px] w-full rounded-2xl border-2 border-line bg-surface px-4 text-base uppercase tracking-[2px] outline-none focus:border-green"
+                />
+                {error && <span role="alert" className="text-[13px] font-semibold text-warn">{error}</span>}
+              </div>
+            )}
             <div className="flex-1" />
             <div className="flex flex-col gap-2">
-              <button type="submit" disabled={busy || !email.trim()} className="flex h-14 items-center justify-center rounded-[18px] bg-green text-[17px] font-bold text-white disabled:bg-line disabled:text-muted">
-                {busy ? "Sending..." : "Send me a code"}
+              <button type="submit" disabled={busy || !email.trim() || (betaCode && !beta.trim())} className="flex h-14 items-center justify-center rounded-[18px] bg-green text-[17px] font-bold text-white disabled:bg-line disabled:text-muted">
+                {betaCode ? (busy ? "Signing in..." : "Sign in") : busy ? "Sending..." : "Send me a code"}
               </button>
               {prelaunch ? (
                 <span className="text-center text-xs leading-[1.45] text-muted">Not a beta tester? <a href={joinUrl} className="font-bold text-green underline">Join the waitlist</a> and we&apos;ll email you when we open.</span>
