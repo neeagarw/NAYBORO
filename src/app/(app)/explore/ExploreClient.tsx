@@ -147,7 +147,18 @@ export function ExploreClient({ initialTab, questions: firstQs, answers: firstAn
       <main className="flex flex-1 flex-col gap-3.5 overflow-y-auto px-5 pb-[110px] pt-1.5">
         {tab === "q" && (
           <>
-            {qList.length === 0 && !loadingQs && <p className="px-2.5 py-8 text-center text-sm text-muted">Nothing here yet. Ask the first question on this topic.</p>}
+            {qList.length === 0 && !loadingQs && (
+              <div className="flex flex-col items-center gap-3 px-2.5 py-8 text-center text-sm text-muted">
+                <p>
+                  {qChip === "Unanswered" ? "Every question here has an answer. Nice!"
+                    : qChip === "All" ? "No questions here yet. Be the first to ask."
+                    : `No questions about ${qChip} yet. Be the first to ask.`}
+                </p>
+                {qChip !== "All" && (
+                  <button onClick={() => pickChip("All")} className="flex min-h-11 items-center rounded-[14px] border border-line bg-surface px-4 font-bold text-green">See all questions</button>
+                )}
+              </div>
+            )}
             {qList.map((q) => {
               const list = byQ[q.id] ?? [];
               const shown = open[q.id] ? list : list.slice(0, 1);
