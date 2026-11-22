@@ -32,7 +32,7 @@ async function Chats() {
     ...((sent ?? []) as Sent[]).map((s) => s.photo_path),
   ]);
   return (
-    <AppShell tab="chats" title="Chats" sub="A chat opens when both of you say yes">
+    <AppShell tab="chats" title="Chats" sub="A chat opens once a hi is accepted">
       <ChatsClient key={listKey((chats ?? []) as Chat[], (c) => `${c.conversation_id}:${c.last_at}`)} me={user!.id} hellos={(hellos ?? []) as Hello[]} chats={(chats ?? []) as Chat[]} sent={(sent ?? []) as Sent[]} photos={photos} />
     </AppShell>
   );
