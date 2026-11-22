@@ -23,6 +23,14 @@ function ipHash(req: NextRequest) {
   return createHash("sha256").update(`${salt}:${ip}`).digest("hex").slice(0, 32);
 }
 
+/** Which kind of Supabase key this is (never the key itself): "service_role", "anon", "secret key", ... */
+function keyKind(k?: string) {
+  if (!k) return "missing";
+  if (k.startsWith("sb_secret_")) return "secret key";
+  if (k.startsWith("sb_publishable_")) return "publishable key";
+  try { return JSON.parse(Buffer.from(k.split(".")[1], "base64url").toString()).role ?? "unknown jwt"; } catch { return "not a supabase key"; }
+}
+
 export async function POST(req: NextRequest) {
   const secret = process.env.BETA_LOGIN_CODE?.trim();
   if (!isBetaSite() || !secret) return NextResponse.json({ error: "not available" }, { status: 404 });
@@ -37,7 +45,7 @@ export async function POST(req: NextRequest) {
   const { data: fails, error: setupErr } = await admin.from("beta_login_attempts").select("id").eq("ip_hash", ip).gte("at", since).limit(MAX_FAILS);
   if (setupErr) {
     // Only the service role can read this table; anything else means SUPABASE_SERVICE_ROLE_KEY is wrong.
-    console.error("beta-login setup", setupErr.message);
+    console.error("beta-login setup", setupErr.message, "| server key type:", keyKind(process.env.SUPABASE_SERVICE_ROLE_KEY));
     return NextResponse.json({ error: "Sign-in isn't set up correctly yet (server key). Please tell the Nayboro team." }, { status: 500 });
   }
   if ((fails?.length ?? 0) >= MAX_FAILS) return NextResponse.json({ error: "Too many tries. Please wait 15 minutes." }, { status: 429 });
