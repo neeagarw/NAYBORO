@@ -145,3 +145,11 @@ body {
 .flex-col.overflow-y-auto > * {
   flex-shrink: 0;
 }
+
+/* Filter rows that scroll sideways: a soft fade on the right edge shows there is more (one pattern everywhere). */
+.chip-row {
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 36px), transparent);
+  mask-image: linear-gradient(to right, #000 calc(100% - 36px), transparent);
+  scrollbar-width: none;
+}
+.chip-row::-webkit-scrollbar { display: none; }

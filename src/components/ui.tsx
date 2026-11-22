@@ -25,16 +25,16 @@ export const TONE_CLASS: Record<string, string> = {
   grey: "bg-line-soft text-slate",
 };
 
-/** "Plays tennis" / "Into book club", from the interest's verb in the database. */
+/** "Plays tennis" / "Goes running" / "Does yoga" / "Into book club", from the interest's verb in the database. */
 export function doesLine(label: string, verbs: Record<string, string>) {
-  return verbs[label] === "play" ? `Plays ${label.toLowerCase()}` : `Into ${label.toLowerCase()}`;
+  return `${({ play: "Plays", go: "Goes", do: "Does" } as Record<string, string>)[verbs[label]] ?? "Into"} ${label.toLowerCase()}`;
 }
-/** "Both play tennis" / "Both into book club". */
+/** "Both play tennis" / "Both go running" / "Both do yoga" / "Both into book club". */
 export function bothLine(label: string, verbs: Record<string, string>) {
-  return verbs[label] === "play" ? `Both play ${label.toLowerCase()}` : `Both into ${label.toLowerCase()}`;
+  return `Both ${({ play: "play", go: "go", do: "do" } as Record<string, string>)[verbs[label]] ?? "into"} ${label.toLowerCase()}`;
 }
 
-/** Stable colour per person, like the mockups' .av.g/.b/.p/.y. */
+/** Stable color per person, like the mockups' .av.g/.b/.p/.y. */
 export function toneFor(id: string) {
   let h = 0;
   for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
@@ -55,11 +55,22 @@ export function Avatar({ id, name, url, size = 48, radius = 16, anon = false }: 
       </span>
     );
   }
+  // Initials are always underneath: they show while the photo loads and stay if it fails (never a blank box).
   return (
-    <span style={style} className={`flex flex-none items-center justify-center overflow-hidden font-display font-extrabold ${url ? "bg-line-soft" : toneFor(id)}`}>
-      {/* eslint-disable-next-line @next/next/no-img-element -- short-lived signed URL from private storage */}
-      {url ? <img src={url} alt="" className="h-full w-full object-cover" /> : initials(name)}
+    <span style={style} className={`relative flex flex-none items-center justify-center overflow-hidden font-display font-extrabold ${toneFor(id)}`}>
+      {initials(name)}
+      {url && <AvatarPhoto key={url} url={url} />}
     </span>
+  );
+}
+
+function AvatarPhoto({ url }: { url: string }) {
+  const [state, setState] = useState<"loading" | "ok" | "failed">("loading");
+  if (state === "failed") return null;
+  return (
+    // eslint-disable-next-line @next/next/no-img-element -- short-lived signed URL from private storage
+    <img src={url} alt="" onLoad={() => setState("ok")} onError={() => setState("failed")}
+      className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-200 ${state === "ok" ? "opacity-100" : "opacity-0"}`} />
   );
 }
 

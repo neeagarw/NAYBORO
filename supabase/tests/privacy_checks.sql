@@ -275,3 +275,5 @@ select set_config('request.jwt.claim.sub','22222222-2222-2222-2222-222222222222'
 select count(*) from beta_login_attempts;
 \set ON_ERROR_STOP 1
 reset role;
+\echo '50. Interest sentences read naturally (expect: Plays tennis | Goes running | Does yoga | Into book club):'
+select interest_phrase('Tennis') || ' | ' || interest_phrase('Running') || ' | ' || interest_phrase('Yoga') || ' | ' || interest_phrase('Book club');

@@ -155,7 +155,9 @@ export function SetupFlow({ userId, initialArea, prefillRoot = null, prefillFirs
       ? { label: "Continue", disabled: false, onClick: () => go(3) }
       : { label: locating ? "Finding your city..." : <><PinIcon />Find my city</>, disabled: locating, onClick: findCity };
   else if (step === 3) next = { label: saving ? "Saving..." : editing ? "Save" : "Finish", disabled: saving || !first.trim() || !adult, onClick: finish };
-  else next = { label: editing ? "Back to Nayboro" : "Start exploring", disabled: false, onClick: () => router.push("/people") };
+  // Full page load: the profile just changed, so every screen (and this one, if reopened) starts fresh.
+  // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- deliberate fresh load
+  else next = { label: editing ? "Back to Nayboro" : "Start exploring", disabled: false, onClick: () => window.location.assign("/people") };
 
   const filteredCities = cityQuery.trim().length >= 2 ? cityResults ?? [] : [];
 
@@ -166,7 +168,7 @@ export function SetupFlow({ userId, initialArea, prefillRoot = null, prefillFirs
           {step > 0 ? (
             <button aria-label="Back" onClick={() => go(step - 1)} className="flex h-11 w-11 flex-none items-center justify-center rounded-[14px] border border-line bg-surface"><BackIcon /></button>
           ) : editing ? (
-            <button aria-label="Close" onClick={() => router.back()} className="flex h-11 w-11 flex-none items-center justify-center rounded-[14px] border border-line bg-surface"><BackIcon /></button>
+            <button aria-label="Close" onClick={() => router.push("/people")} className="flex h-11 w-11 flex-none items-center justify-center rounded-[14px] border border-line bg-surface"><BackIcon /></button>
           ) : null}
           <div className="grid flex-1 grid-cols-4 gap-1.5" aria-label="Setup progress">
             {STEPS.map((s, i) => (
@@ -288,7 +290,7 @@ export function SetupFlow({ userId, initialArea, prefillRoot = null, prefillFirs
                 <div><div className="text-lg font-bold">{displayName}</div><div className="text-[13px] text-on-green-muted">{firstThree}</div></div>
               </div>
               <div className="flex items-center gap-3 rounded-2xl bg-white px-4 py-3.5 text-ink">
-                <div><small className="block text-[11px] font-bold tracking-[.8px] text-muted">FROM</small><b className="text-[17px]">{shownRoot}</b></div>
+                <div><small className="block text-xs font-bold text-muted">From</small><b className="text-[17px]">{shownRoot}</b></div>
                 <div aria-hidden="true" className="flex flex-1 items-center gap-1 text-orange-icon"><i className="flex-1 border-t-2 border-dashed border-orange" /><ArrowIcon size={18} /></div>
                 <div className="text-right"><small className="block text-[11px] font-bold tracking-[.8px] text-muted">NOW IN</small><b className="text-[17px]">{now?.name ?? "?"}</b></div>
               </div>
@@ -357,7 +359,7 @@ export function SetupFlow({ userId, initialArea, prefillRoot = null, prefillFirs
               <input id="firstName" type="text" autoComplete="given-name" maxLength={30} value={first} onChange={(e) => setFirst(e.target.value)} className="h-[52px] w-full rounded-2xl border-2 border-line bg-surface px-4 text-base outline-none focus:border-green" />
               <label htmlFor="lastName" className="mt-1.5 text-[13px] font-bold">Last name</label>
               <input id="lastName" type="text" autoComplete="family-name" maxLength={30} value={last} onChange={(e) => setLast(e.target.value)} className="h-[52px] w-full rounded-2xl border-2 border-line bg-surface px-4 text-base outline-none focus:border-green" />
-              <span className="text-xs text-muted">{first.trim() ? `Others see you as ${displayName}.` : "Others see your first name and last initial."}</span>
+              <span className="text-xs text-muted">{first.trim() ? `Others see you as \u201c${displayName}\u201d` : "Others see your first name and last initial."}</span>
             </div>
 
             <div className="flex flex-col gap-2">
@@ -373,7 +375,7 @@ export function SetupFlow({ userId, initialArea, prefillRoot = null, prefillFirs
                     // Move the cursor into the box so typing continues the sentence (like the mockup).
                     introRef.current?.focus();
                     requestAnimationFrame(() => introRef.current?.setSelectionRange(v.length, v.length));
-                  }} className="h-9 rounded-full border border-line bg-surface px-3 text-[13px] font-semibold">{s.trim()}...</button>
+                  }} className="h-10 rounded-full border border-line bg-surface px-3.5 text-[13px] font-semibold">+ {s.trim()}…</button>
                 ))}
               </div>
               <textarea id="intro" ref={introRef} maxLength={160} value={intro} onChange={(e) => setIntro(e.target.value)} placeholder={`e.g. Weekend tennis, always up for chai. New to ${now?.name ?? "the area"}.`} className="min-h-[110px] w-full resize-none rounded-2xl border-2 border-line bg-surface px-4 py-3.5 text-base leading-normal outline-none focus:border-green" />

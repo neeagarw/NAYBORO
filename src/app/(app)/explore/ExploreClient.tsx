@@ -82,10 +82,13 @@ export function ExploreClient({ initialTab, questions: firstQs, answers: firstAn
     if (typeof data === "number") setUnanswered(data);
   }
   useEffect(() => {
+    // A confirmation left by the screen we came from (e.g. "Question posted" after asking).
+    try { const f = sessionStorage.getItem("nayboro.flash"); if (f) { sessionStorage.removeItem("nayboro.flash"); toast(f); } } catch { /* storage blocked */ }
     refreshUnanswered();
     const onShow = () => { if (document.visibilityState === "visible") refreshUnanswered(); };
     document.addEventListener("visibilitychange", onShow);
     return () => document.removeEventListener("visibilitychange", onShow);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run when the screen is shown, not on every toast change
   }, []);
 
   const kinds = [...new Set(events.map((e) => e.kind))];
@@ -145,7 +148,7 @@ export function ExploreClient({ initialTab, questions: firstQs, answers: firstAn
             </button>
           ))}
         </div>
-        <div className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-0.5">
+        <div className="-mx-5 flex gap-2 chip-row overflow-x-auto px-5 pb-0.5">
           {tab === "q"
             ? ["All", "Unanswered", ...topics.filter((t) => t.name !== "General").map((t) => t.name)].map((n) => (
                 <button key={n} aria-pressed={qChip === n} onClick={() => pickChip(n)} className={chipCls(qChip === n)}>
@@ -266,10 +269,19 @@ export function ExploreClient({ initialTab, questions: firstQs, answers: firstAn
                 </section>
               );
             })}
-            {eList.length === 0 && <p className="px-2.5 py-8 text-center text-sm text-muted">No events here this week. New ones are added every few days.</p>}
+            {eList.length === 0 && (
+              <div className="flex flex-col items-center gap-3 px-2.5 py-8 text-center text-sm text-muted">
+                <p>{eChip === "Interested" ? "You haven\u2019t marked any events yet. Tap \u201cI\u2019m interested\u201d on one you like."
+                  : eChip === "This weekend" ? "Nothing listed for this weekend yet. New events are added every few days."
+                  : eChip === "Free" ? "No free events listed right now."
+                  : eChip === "All" ? "No events listed yet. New ones are added every few days."
+                  : `No ${eChip.toLowerCase()} events listed right now.`}</p>
+                {eChip !== "All" && <button onClick={() => setEChip("All")} className="flex min-h-11 items-center rounded-[14px] border border-line bg-surface px-4 font-bold text-green">See all events</button>}
+              </div>
+            )}
             <div className="flex items-center gap-3 rounded-[18px] bg-green-tint p-3.5 text-[13px] leading-[1.45]">
-              <span className="flex-1"><b>Know an event we should list?</b> Local organisers run these. We update the list every few days.</span>
-              <Link href="/help?topic=event" className="inline-flex h-11 flex-none items-center rounded-[14px] bg-white px-4 text-sm font-bold text-green">Tell us</Link>
+              <span className="flex-1"><b>Know an event we should list?</b> Local organizers run these. We update the list every few days.</span>
+              <Link href="/help?topic=event" className="inline-flex h-11 flex-none items-center rounded-[14px] bg-white px-4 text-sm font-bold text-green">Suggest an event</Link>
             </div>
           </>
         )}

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { getClient } from "@/lib/supabase/client";
 import { Avatar, Sheet, MenuItem, friendly, useToast, BackIcon, MoreIcon, ShieldIcon, XIcon, ArrowIcon } from "@/components/ui";
@@ -22,13 +22,25 @@ function dayLabel(iso: string) {
 }
 const time = (iso: string) => new Date(iso).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
 
+const TIP_KEY = "nayboro.chatTipHidden";
+function tipHidden() { try { return localStorage.getItem(TIP_KEY) === "1"; } catch { return false; } }
+function subscribeTip(cb: () => void) {
+  window.addEventListener(TIP_KEY, cb); window.addEventListener("storage", cb);
+  return () => { window.removeEventListener(TIP_KEY, cb); window.removeEventListener("storage", cb); };
+}
+
 export function ChatClient({ conv, me, header: h, photoUrl, initial }: { conv: string; me: string; header: Header; photoUrl: string | null; initial: Msg[] }) {
   const router = useRouter();
   const [toast, toastNode] = useToast();
   const [msgs, setMsgs] = useState<Msg[]>(initial);
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
-  const [tip, setTip] = useState(true);
+  // The safety tip stays hidden once dismissed (this device, every chat). Tips stay one tap away in the ⋯ menu.
+  const tip = !useSyncExternalStore(subscribeTip, tipHidden, () => false);
+  const setTip = (show: boolean) => {
+    try { localStorage.setItem(TIP_KEY, show ? "0" : "1"); } catch { /* storage blocked */ }
+    window.dispatchEvent(new Event(TIP_KEY));
+  };
   const [sheet, setSheet] = useState<null | "tips" | "more" | "report" | "block">(null);
   const [muted, setMuted] = useState(h.muted);
   const [older, setOlder] = useState(initial.length === UI.messagesPage);

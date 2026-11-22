@@ -31,6 +31,23 @@ def overflow(pg):
       const bad = [];
       if (de.scrollWidth > window.innerWidth + 1) bad.push('page scrolls sideways (' + de.scrollWidth + 'px)');
       if (app && app.scrollWidth > app.clientWidth + 1) bad.push('app frame overflows (' + app.scrollWidth + ' > ' + app.clientWidth + ')');
+      // Nothing tappable may sit under a sticky bar or below the end of its scroll area (scrolled fully down).
+      for (const col of document.querySelectorAll('.overflow-y-auto')) {
+        if (!col.offsetParent || col.scrollHeight <= col.clientHeight + 1) continue;
+        col.scrollTop = col.scrollHeight;
+        const box = col.getBoundingClientRect();
+        for (const el of col.querySelectorAll('a, button, input, textarea, select, [role=checkbox]')) {
+          const r = el.getBoundingClientRect();
+          if (!el.offsetParent || r.height === 0 || r.top >= box.bottom || r.bottom <= box.top) continue;   // scrolled past / hidden
+          if (r.bottom > box.bottom + 1 && r.top > box.top) { bad.push('cut off at bottom: ' + (el.getAttribute('aria-label') || el.textContent.trim().slice(0, 30))); continue; }
+          const x = r.left + r.width / 2, y = Math.min(r.bottom - 2, Math.max(r.top + 2, r.top + r.height / 2));
+          if (y > box.bottom || y < box.top || x < 0 || x > window.innerWidth) continue;
+          const hit = document.elementFromPoint(x, y);
+          if (hit && hit !== el && !el.contains(hit) && !hit.contains(el) && !col.contains(hit))
+            bad.push('covered: ' + (el.getAttribute('aria-label') || el.textContent.trim().slice(0, 30)) + ' under ' + (hit.getAttribute('aria-label') || hit.tagName.toLowerCase() + '.' + String(hit.className).slice(0, 25)));
+        }
+        col.scrollTop = 0;
+      }
       // A card squashed inside a scrolling column hides its content (it should scroll instead).
       for (const col of document.querySelectorAll('.overflow-y-auto')) {
         if (getComputedStyle(col).flexDirection !== 'column') continue;

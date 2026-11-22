@@ -27,13 +27,13 @@ export function ProfileClient({ card: c, photoUrl, myArea, myRegion, verbs }: { 
   const [busy, setBusy] = useState(false);
 
   // "You two have in common" tiles. The count on the People card uses the same rules.
-  const tiles: { icon: "pin" | "ball" | "star"; text: string }[] = [];
+  const tiles: { icon: "pin" | "ball" | "move" | "star"; text: string }[] = [];
   if (c.roots_match?.startsWith("city:")) tiles.push({ icon: "pin", text: `Both from ${c.roots_match.slice(5)}` });
   else if (c.roots_match?.startsWith("region:")) tiles.push({ icon: "pin", text: `Both from ${c.roots_match.slice(7)}` });
-  c.shared_interests.slice(0, tiles.length ? 1 : 2).forEach((i) => tiles.push({ icon: verbs[i] === "play" ? "ball" : "star", text: bothLine(i, verbs) }));
+  c.shared_interests.slice(0, tiles.length ? 1 : 2).forEach((i) => tiles.push({ icon: verbs[i] === "play" ? "ball" : verbs[i] === "go" || verbs[i] === "do" ? "move" : "star", text: bothLine(i, verbs) }));
 
   const starters = [
-    c.shared_interests[0] && (verbs[c.shared_interests[0]] === "play" ? `Up for ${c.shared_interests[0].toLowerCase()} this weekend?` : `Fellow ${c.shared_interests[0].toLowerCase()} fan here! Want to meet up?`),
+    c.shared_interests[0] && (verbs[c.shared_interests[0]] !== "into" ? `Up for ${c.shared_interests[0].toLowerCase()} this weekend?` : `Fellow ${c.shared_interests[0].toLowerCase()} fan here! Want to meet up?`),
     c.roots_match && `Hi from a fellow ${c.roots_match.startsWith("city:") ? c.roots_match.slice(5) : myRegion} person in ${myArea}!`,
     c.shared_event && `Are you going to the ${c.shared_event.title.toLowerCase()}?`,
   ].filter(Boolean) as string[];
@@ -87,7 +87,7 @@ export function ProfileClient({ card: c, photoUrl, myArea, myRegion, verbs }: { 
           <div className="flex flex-wrap justify-center gap-1.5">
             {/* "Phone verified" stays hidden until phone sign-in exists (docs/SPEC.md). */}
             {PHONE_VERIFICATION_LIVE && c.phone_verified && <span className="inline-flex items-center gap-1 rounded-full bg-green-tint px-2.5 py-[5px] text-xs font-bold text-green"><ShieldIcon size={14} />Phone verified</span>}
-            {c.is_new && <span className="rounded-full bg-ground px-2.5 py-[5px] text-xs font-bold text-muted">New</span>}
+            {c.is_new && <span className="rounded-full bg-ground px-2.5 py-[5px] text-xs font-bold text-muted">New here</span>}
           </div>
         </section>
 
@@ -189,9 +189,11 @@ export function ProfileClient({ card: c, photoUrl, myArea, myRegion, verbs }: { 
   );
 }
 
-function TileIcon({ kind }: { kind: "pin" | "ball" | "star" }) {
+function TileIcon({ kind }: { kind: "pin" | "ball" | "move" | "star" }) {
   const p = { "aria-hidden": true, width: 18, height: 18, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round" } as const;
   if (kind === "pin") return <svg {...p}><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z" /><circle cx="12" cy="9.5" r="2.5" /></svg>;
+  // "move": an activity you go or do (running, hiking, yoga), not a ball game.
+  if (kind === "move") return <svg {...p}><path d="M3 12h4l3-7 4 14 3-7h4" /></svg>;
   if (kind === "ball") return <svg {...p}><circle cx="12" cy="12" r="9" /><path d="M5.5 6.5c3 2.5 3 8.5 0 11M18.5 6.5c-3 2.5-3 8.5 0 11" /></svg>;
   return <svg {...p}><path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z" /></svg>;
 }

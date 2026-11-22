@@ -158,6 +158,15 @@ with sync_playwright() as p:
     expect(cricket.get_by_role("button", name=re.compile("Interested"))).to_have_attribute("aria-pressed", "true")
     shot(A, "s08_events")
 
+    # Typing with real key presses keeps every space (Ask and Help once dropped the first one)
+    A.goto(B + "/explore/ask")
+    A.get_by_label("Your question").click(); A.keyboard.type("Test hi there friends", delay=40)
+    expect(A.get_by_label("Your question")).to_have_value("Test hi there friends")
+    A.goto(B + "/help")
+    msg = A.locator("textarea:visible").first
+    msg.click(); A.keyboard.type("Test validation only do not send", delay=40)
+    expect(msg).to_have_value("Test validation only do not send")
+
     # Ask an anonymous question
     A.goto(B + "/explore/ask")
     A.get_by_label("Your question").fill("Any weekend cricket groups around Garland?")

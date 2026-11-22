@@ -3,7 +3,7 @@ import { updateSession } from "@/lib/supabase/proxy";
 import { waitlistStore, isBetaSite } from "@/lib/store";
 
 // Google Sheet setup (pre-launch, no database): only the coming-soon page and what it needs are reachable.
-const SHEET_PUBLIC = [/^\/$/, /^\/privacy$/, /^\/unsubscribed$/, /^\/r\//, /^\/api\/waitlist(\/|$)/, /^\/api\/geo$/, /^\/(manifest\.webmanifest|robots\.txt|sitemap\.xml)$/, /^\/(opengraph|twitter)-image/, /^\/(icon|apple-icon)/];
+const SHEET_PUBLIC = [/^\/$/, /^\/privacy$/, /^\/guidelines$/, /^\/unsubscribed$/, /^\/r\//, /^\/api\/waitlist(\/|$)/, /^\/api\/geo$/, /^\/(manifest\.webmanifest|robots\.txt|sitemap\.xml)$/, /^\/(opengraph|twitter)-image/, /^\/(icon|apple-icon)/];
 
 export async function proxy(request: NextRequest) {
   if (waitlistStore() === "sheet") {

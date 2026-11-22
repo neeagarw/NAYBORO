@@ -16,7 +16,11 @@ insert into places (city, region, country) values
   ('Manila','Metro Manila','Philippines'),('Lagos','Lagos','Nigeria'),('Nairobi','Nairobi','Kenya'),('Mexico City','CDMX','Mexico');
 
 insert into interests (label, group_name, group_sort, sort, verb)
-select label, grp, gs, ord, case when grp = 'Sport and fitness' then 'play' else 'into' end from (values
+select label, grp, gs, ord,
+       case when label in ('Running','Cycling','Hiking','Swimming') then 'go'
+            when label = 'Yoga' then 'do'
+            when grp = 'Sport and fitness' and label <> 'Gym buddies' then 'play'
+            else 'into' end from (values
   (1, 'Sport and fitness', array['Tennis','Cricket','Badminton','Pickleball','Running','Yoga','Gym buddies','Cycling','Volleyball','Hiking','Swimming','Table tennis','Football','Basketball']),
   (2, 'Food and drink',    array['Chai meetups','Cooking','Potlucks','Eating out','Baking','Recipe swaps','Coffee']),
   (3, 'Family and home',   array['Playdates','School carpool','Family outings','Parent meetups','Gardening','Pets']),

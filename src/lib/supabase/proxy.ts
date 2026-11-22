@@ -1,9 +1,10 @@
+import { safeNext } from "@/lib/safe-next";
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 /** Pages anyone can open without signing in. */
 // /api routes check their own secrets or signed links; /unsubscribed is reached from an email.
-const PUBLIC = [/^\/$/, /^\/login$/, /^\/auth\//, /^\/api\//, /^\/unsubscribed$/, /^\/privacy$/, /^\/r\//];
+const PUBLIC = [/^\/$/, /^\/login$/, /^\/auth\//, /^\/api\//, /^\/unsubscribed$/, /^\/privacy$/, /^\/guidelines$/, /^\/r\//];
 
 /**
  * Refreshes the Supabase session cookie on every request and sends signed-out
@@ -48,10 +49,9 @@ export async function updateSession(request: NextRequest) {
   // Signed-in people skip the welcome and login pages.
   // ("/?notyet=1" is where the pre-launch gate sends people, so it must not bounce back.)
   if (user && (path === "/login" || (path === "/" && !request.nextUrl.search))) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/people";
-    url.search = "";
-    return NextResponse.redirect(url);
+    // Honour where a sign-in link was going (?next=/chats), otherwise home is People.
+    const dest = safeNext(path === "/login" ? request.nextUrl.searchParams.get("next") : null);
+    return NextResponse.redirect(new URL(dest, request.url));
   }
 
   return response;

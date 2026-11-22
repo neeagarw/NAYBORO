@@ -49,7 +49,7 @@ export function AdminClient({ reports, contact, paused, events, waitlist }: { re
           <Link href="/people" aria-label="Back" className="flex h-11 w-11 items-center justify-center rounded-[14px] border border-line bg-surface"><BackIcon /></Link>
           <h1 className="m-0 font-display text-[28px] font-extrabold">Admin</h1>
         </div>
-        <div className="-mx-5 flex gap-2 overflow-x-auto px-5">
+        <div className="-mx-5 flex gap-2 chip-row overflow-x-auto px-5">
           {tabs.map(([k, label]) => (
             <button key={k} aria-pressed={tab === k} onClick={() => setTab(k)} className={`inline-flex h-10 flex-none items-center whitespace-nowrap rounded-full border px-4 text-sm font-bold ${tab === k ? "border-ink bg-ink text-white" : "border-line bg-surface"}`}>{label}</button>
           ))}
@@ -154,7 +154,7 @@ function Events({ events, busy, run }: { events: EventRow[]; busy: boolean; run:
         className="flex flex-col gap-2.5 rounded-[20px] border border-line-soft bg-surface p-4"
       >
         <b className="text-[15px]">Add an event</b>
-        <span className="text-xs text-muted">Times are local to the event&apos;s city{city ? ` (${tz.replace("_", " ")})` : ""}. We list events and link to the organiser; we don&apos;t host.</span>
+        <span className="text-xs text-muted">Times are local to the event&apos;s city{city ? ` (${tz.replace("_", " ")})` : ""}. We list events and link to the organizer; we don&apos;t host.</span>
         <label className="text-[13px] font-bold">Title<input className={input} value={f.title} onChange={set("title")} placeholder="What is it?" /></label>
         <div className="grid grid-cols-2 gap-2">
           <label className="text-[13px] font-bold">Starts<input type="datetime-local" className={input} value={f.start} onChange={set("start")} /></label>

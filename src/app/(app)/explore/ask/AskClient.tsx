@@ -9,9 +9,12 @@ import { SELLING_PATTERN } from "@/config/app";
 type TopicCfg = { name: string; keywords: string[] };
 
 /** Suggests a topic from its keywords (stored in the topics table; grow them from real questions). */
+// Whole words only (an optional plural "s"/"es"), so "dal" never matches "Dallas".
+const esc = (w: string) => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 function guess(t: string, topics: TopicCfg[]) {
   const s = t.toLowerCase();
-  for (const topic of topics) if (topic.keywords.some((w) => s.includes(w))) return topic.name;
+  for (const topic of topics)
+    if (topic.keywords.some((w) => new RegExp(`(^|[^a-z0-9])${esc(w.toLowerCase())}(e?s)?($|[^a-z0-9])`).test(s))) return topic.name;
   return null;
 }
 
@@ -46,6 +49,7 @@ export function AskClient({ userId, name, roots, area, metro, otherAreas, topics
     });
     setPosting(false);
     if (error) return toast(friendly(error, "Couldn't post. Please try again."));
+    try { sessionStorage.setItem("nayboro.flash", "Question posted"); } catch { /* storage blocked */ }
     router.push("/explore");
   }
 
@@ -76,7 +80,7 @@ export function AskClient({ userId, name, roots, area, metro, otherAreas, topics
               <MaskIcon />{anon ? <><span className="sr-only">Anonymous </span>On</> : "Anonymous"}
             </button>
           </div>
-          {anon && <div className="mx-4 mt-2.5 rounded-xl bg-ground px-2.5 py-2 text-xs leading-[1.45] text-slate">Others won&apos;t see who you are. Nayboro can still see it, to keep the community safe. Replies to you stay named.</div>}
+          {anon && <div className="mx-4 mt-2.5 rounded-xl bg-ground px-2.5 py-2 text-xs leading-[1.45] text-slate">Others won&apos;t see who you are. Nayboro can still see it, to keep the community safe. People who answer still show their own names.</div>}
           <label htmlFor="q" className="sr-only">Your question</label>
           <textarea id="q" maxLength={150} value={text} onChange={(e) => setText(e.target.value)} placeholder="What do you want to know?" className="block h-24 w-full resize-none bg-transparent px-4 pb-1 pt-3 font-display text-[22px] font-bold leading-[1.25] outline-none" />
           <div className="flex items-center justify-between px-4 pb-3 pt-2"><span className="text-xs text-muted">Name a place or a time to get faster answers</span><span className="text-xs font-semibold text-muted">{text.length}/150</span></div>

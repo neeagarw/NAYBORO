@@ -94,10 +94,12 @@ export function ChatsClient({ me, hellos, chats: initialChats, sent, photos: ini
         <Link key={c.conversation_id} href={`/chats/${c.conversation_id}`} className="flex items-center gap-3 rounded-[20px] border border-line-soft bg-surface p-3.5">
           <Avatar id={c.other_id} name={c.display_name} url={c.photo_path ? photos[c.photo_path] : null} />
           <span className="flex min-w-0 flex-1 flex-col gap-[3px]">
-            <span className="flex items-center justify-between gap-2.5"><b className="text-base">{c.display_name}</b><span className="text-xs text-muted">{when(c.last_at)}</span></span>
-            <span className={`truncate text-sm ${c.unread ? "font-semibold text-ink" : "text-muted"}`}>
-              {c.last_body ? `${c.last_from_me ? "You: " : ""}${c.last_body}` : "Say hello 👋"}
-            </span>
+            <span className="flex items-center justify-between gap-2.5"><b className="text-base">{c.display_name}</b>{c.last_body && <span className="text-xs text-muted">{when(c.last_at)}</span>}</span>
+            {c.last_body ? (
+              <span className={`truncate text-sm ${c.unread ? "font-semibold text-ink" : "text-muted"}`}>{`${c.last_from_me ? "You: " : ""}${c.last_body}`}</span>
+            ) : (
+              <span className="truncate text-sm font-semibold text-green">New chat · no messages yet</span>
+            )}
           </span>
           {c.unread && <span className="h-2.5 w-2.5 flex-none rounded-full bg-orange-logo" aria-label="Unread" />}
         </Link>

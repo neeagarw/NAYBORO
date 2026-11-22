@@ -9,7 +9,7 @@ export type AppConfig = {
   metro: Metro | null;
   metro_areas: string[];
   topics: Topic[];
-  verbs: Record<string, "play" | "into">;
+  verbs: Record<string, "play" | "go" | "do" | "into">;
   settings: { min_group_size: number; new_member_days: number; hello_retry_days: number; min_interests: number; max_hometowns: number };
 };
 

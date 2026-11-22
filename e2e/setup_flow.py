@@ -38,8 +38,8 @@ with sync_playwright() as p:
     expect(pg.get_by_role('button', name='Finish')).to_be_disabled()
     pg.set_input_files('#photoInput','e2e/face.jpg')
     pg.get_by_label('First name').fill('Neeraj'); pg.get_by_label('Last name').fill('Agarwala')
-    pg.get_by_role('button', name='Moved here from...').click(); pg.wait_for_timeout(150); pg.keyboard.type('Jaipur. Weekend tennis, always up for chai.')
-    expect(pg.get_by_text('Others see you as Neeraj A.')).to_be_visible()
+    pg.get_by_role('button', name='+ Moved here from…').click(); pg.wait_for_timeout(150); pg.keyboard.type('Jaipur. Weekend tennis, always up for chai.')
+    expect(pg.get_by_text('Others see you as “Neeraj A.”')).to_be_visible()
     expect(pg.get_by_label('Short intro')).to_have_value('Moved here from Jaipur. Weekend tennis, always up for chai.')
     pg.get_by_role('checkbox').check(); shot(pg,'08_you')
     pg.get_by_role('button', name='Finish').click()
@@ -56,6 +56,15 @@ with sync_playwright() as p:
     pg.get_by_role('button', name='Save').click(); expect(pg.get_by_role('heading', name='Profile saved')).to_be_visible()
     pg.get_by_role('button', name='Back to Nayboro').click(); expect(pg).to_have_url(re.compile(r'/people$'))
     pg.get_by_role('button', name='Your account').click(); expect(pg.get_by_role('dialog')).to_contain_text('Rajasthan → Garland'); pg.get_by_role('button', name='Cancel').click()
+    # Re-entering Setup after saving: fully editable every time, and Close always exits (P0-3)
+    for attempt in range(3):
+        pg.get_by_role('button', name='Your account').click(); pg.get_by_role('link', name='Edit profile').click(); expect(pg).to_have_url(re.compile(r'/setup$'))
+        pg.get_by_role('button', name='Jaipur Shows your city' if attempt % 2 == 0 else 'Rajasthan Hides your city').click()
+        pg.get_by_role('button', name='Continue').click(); expect(pg.get_by_role('button', name='Back')).to_be_visible()
+        for _ in range(2): pg.get_by_role('button', name='Continue').click()
+        pg.get_by_role('button', name='Save').click(); expect(pg.get_by_role('heading', name='Profile saved')).to_be_visible()
+        pg.get_by_role('button', name='Back to Nayboro').click(); expect(pg).to_have_url(re.compile(r'/people$'))
+    pg.goto(B + '/setup'); pg.get_by_role('button', name='Close').click(); expect(pg).to_have_url(re.compile(r'/people$'))   # opened by URL: Close still exits
     # Log out
     pg.get_by_role('button', name='Your account').click(); pg.get_by_role('button', name='Log out').click(); expect(pg).to_have_url(B+'/')
     pg.goto(B+'/people'); expect(pg).to_have_url(re.compile(r'login\?next=%2Fpeople$'))

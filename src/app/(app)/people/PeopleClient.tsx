@@ -71,7 +71,7 @@ export function PeopleClient({ initial, hellos, counts, area, metro, myInterests
     foryou: "MORE PEOPLE NEAR YOU", new: "JUST JOINED",
     city: `FROM ${counts?.city?.toUpperCase()}, AROUND ${metro.toUpperCase()}`, region: `FROM ${counts?.region?.toUpperCase()}, AROUND ${metro.toUpperCase()}`,
   };
-  const title = titles[chip] ?? `${verbs[chip] === "play" ? "PLAY" : "INTO"} ${chip.toUpperCase()} NEAR YOU`;
+  const title = titles[chip] ?? `${({ play: "PLAY", go: "GO", do: "DO" } as Record<string, string>)[verbs[chip]] ?? "INTO"} ${chip.toUpperCase()} NEAR YOU`;
 
   async function load(next: string, offset: number) {
     setLoading(true);
@@ -123,7 +123,7 @@ export function PeopleClient({ initial, hellos, counts, area, metro, myInterests
   const h = hellos[0];
   return (
     <>
-      <div className="-mt-1 flex gap-2 overflow-x-auto px-5 pb-2" role="toolbar" aria-label="Filter people">
+      <div className="-mt-1 flex gap-2 chip-row overflow-x-auto px-5 pb-2" role="toolbar" aria-label="Filter people">
         {chips.map(([k, label]) => (
           <button key={k} aria-pressed={chip === k} onClick={() => pick(k)}
             className={`inline-flex h-[42px] flex-none items-center whitespace-nowrap rounded-full border-2 px-4 text-sm font-bold ${chip === k ? "border-green bg-green text-white" : "border-line-soft bg-surface"}`}>{label}</button>
