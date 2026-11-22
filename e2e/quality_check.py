@@ -15,7 +15,7 @@ SIGNED_IN = [("people", "/people"), ("profile", f"/p/{rohit}"), ("chats", "/chat
              ("explore", "/explore"), ("events", "/explore?tab=events"), ("ask", "/explore/ask"), ("help", "/help"),
              ("admin", "/admin"), ("setup", "/setup"), ("not_found", "/p/00000000-0000-0000-0000-000000000000")]
 SIGNED_OUT = [("welcome", "/"), ("login", "/login"), ("unsubscribed", "/unsubscribed")]
-SIZES = [("small_phone", 320, 640), ("phone", 390, 844), ("large_phone", 430, 932), ("desktop", 1280, 900)]
+SIZES = [("small_phone", 320, 640), ("short_window", 490, 650), ("phone", 390, 844), ("large_phone", 430, 932), ("desktop", 1280, 900)]
 
 def axe(pg):
     pg.add_script_tag(content=AXE)
@@ -31,6 +31,14 @@ def overflow(pg):
       const bad = [];
       if (de.scrollWidth > window.innerWidth + 1) bad.push('page scrolls sideways (' + de.scrollWidth + 'px)');
       if (app && app.scrollWidth > app.clientWidth + 1) bad.push('app frame overflows (' + app.scrollWidth + ' > ' + app.clientWidth + ')');
+      // A card squashed inside a scrolling column hides its content (it should scroll instead).
+      for (const col of document.querySelectorAll('.overflow-y-auto')) {
+        if (getComputedStyle(col).flexDirection !== 'column') continue;
+        for (const c of col.children) {
+          if (c.scrollHeight > c.clientHeight + 2 && getComputedStyle(c).flexShrink !== '0' && getComputedStyle(c).overflowY !== 'visible' && !c.classList.contains('overflow-y-auto'))
+            bad.push('squashed: ' + (c.getAttribute('aria-label') || c.className.slice(0, 40)) + ' (' + c.clientHeight + ' < ' + c.scrollHeight + ')');
+        }
+      }
       return bad;
     }""")
 
@@ -81,3 +89,4 @@ print(f"QUALITY: {len(report['axe'])} screens scanned, {issues} accessibility ru
 for screen, vs in report["axe"].items():
     for v in vs: print(f"  axe {screen}: [{v['impact']}] {v['id']} - {v['help']} -> {v['nodes']}")
 for k, v in report["layout"].items(): print(f"  layout {k}: {v}")
+if issues or report["layout"]: raise SystemExit("QUALITY GATE FAILED")

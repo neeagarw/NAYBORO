@@ -138,3 +138,10 @@ body {
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }
+
+/* Scrolling columns: items keep their size and the column scrolls. Without this, on short screens
+   (e.g. a 650px-tall window) cards with overflow-hidden shrink to nothing and hide their content.
+   Unlayered on purpose so it wins over the flex-1 utility's flex-shrink (flex-grow is unchanged). */
+.flex-col.overflow-y-auto > * {
+  flex-shrink: 0;
+}
