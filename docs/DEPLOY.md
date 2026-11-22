@@ -76,3 +76,16 @@ records Vercel shows at your domain registrar. Update `NEXT_PUBLIC_SITE_URL` and
 - **Launch day:** set up Supabase (docs/SETUP.md), import the sheet (File → Download → CSV), and
   switch `WAITLIST_STORE` to `supabase`.
 - Testing this setup locally: `bash e2e/sheet_run.sh` runs the real `Code.gs` against a stand-in sheet.
+
+
+## Private beta site (nayboro-beta.vercel.app)
+
+The `test` branch is deployed as a Vercel Preview at its own address, using Supabase. Preview env vars:
+`WAITLIST_STORE=supabase`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`,
+`BETA_SITE=1`, `PUBLIC_SITE_URL` (the public waitlist site) and `NEXT_PUBLIC_SITE_URL` (the beta address).
+
+- With `BETA_SITE=1` the home page is a tester sign-in page (no waitlist form, `/api/waitlist` is off) and every
+  response carries `X-Robots-Tag: noindex`.
+- Only emails in Admin → Waitlist → Beta testers can get in while `site_mode` is `waitlist`. Don't press
+  "Open Nayboro to everyone" on the beta site unless you mean it.
+- Tested by `e2e/beta_flow.py` (part of `e2e/run.sh`).

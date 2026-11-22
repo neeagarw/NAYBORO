@@ -3,7 +3,8 @@ import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { Welcome } from "@/components/Welcome";
 import { ComingSoon, type City } from "@/components/ComingSoon";
-import { waitlistStore } from "@/lib/store";
+import { waitlistStore, isBetaSite, publicSiteUrl } from "@/lib/store";
+import { BetaGate } from "@/components/BetaGate";
 import { locateArea } from "@/lib/places";
 
 // Home page. Before launch (site_mode = 'waitlist') it's the coming-soon waitlist page;
@@ -31,6 +32,7 @@ async function HomeInner({ searchParams }: { searchParams: PageProps<"/">["searc
   const supabase = await createClient();
   const [{ data: mode }, { data: { user } }] = await Promise.all([supabase.rpc("site_mode"), supabase.auth.getUser()]);
   if (mode === "open") return <Welcome />;
+  if (isBetaSite()) return <BetaGate notListedEmail={sp.notyet ? user?.email ?? null : null} joinUrl={publicSiteUrl()} />;
 
   // Prefill "Your city" from the visitor's approximate location. Vercel adds these headers from the
   // network address (no browser prompt). Used once to find the metro; never stored.

@@ -12,7 +12,7 @@ import { Logo } from "@/components/Logo";
 const RESEND_SECONDS = 30;
 const validEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 
-export function LoginForm({ next, prelaunch = false }: { next: string; prelaunch?: boolean }) {
+export function LoginForm({ next, prelaunch = false, joinUrl = "/" }: { next: string; prelaunch?: boolean; joinUrl?: string }) {
   const [step, setStep] = useState<"email" | "code">("email");
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
@@ -110,7 +110,7 @@ export function LoginForm({ next, prelaunch = false }: { next: string; prelaunch
                 {busy ? "Sending..." : "Send me a code"}
               </button>
               {prelaunch ? (
-                <span className="text-center text-xs leading-[1.45] text-muted">Not a beta tester? <Link href="/" className="font-bold text-green underline">Join the waitlist</Link> and we&apos;ll email you when we open.</span>
+                <span className="text-center text-xs leading-[1.45] text-muted">Not a beta tester? <a href={joinUrl} className="font-bold text-green underline">Join the waitlist</a> and we&apos;ll email you when we open.</span>
               ) : (
                 <span className="text-center text-xs leading-[1.45] text-muted">New here? The same code creates your account. 18+ only.</span>
               )}

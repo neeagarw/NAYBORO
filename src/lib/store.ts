@@ -10,3 +10,17 @@ export function waitlistStore(): "sheet" | "supabase" {
   if (s === "sheet" || s === "supabase") return s;
   return process.env.NEXT_PUBLIC_SUPABASE_URL ? "supabase" : "sheet";
 }
+
+/**
+ * BETA_SITE=1 marks the private beta deployment (e.g. nayboro-beta.vercel.app). Its home page is a
+ * sign-in page for beta testers only: no waitlist form (the public waitlist lives on the main site),
+ * and search engines are told not to index it.
+ */
+export function isBetaSite(): boolean {
+  return process.env.BETA_SITE === "1";
+}
+
+/** The public site, where people join the waitlist. */
+export function publicSiteUrl(): string {
+  return (process.env.PUBLIC_SITE_URL || "https://nayboro.vercel.app").replace(/\/$/, "");
+}
