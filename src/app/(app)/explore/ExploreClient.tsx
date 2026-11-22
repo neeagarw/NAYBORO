@@ -157,7 +157,9 @@ export function ExploreClient({ initialTab, questions: firstQs, answers: firstAn
                     <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${toneOf(q.topic)}`}>{q.topic}</span>
                     <span className="inline-flex items-center gap-[5px]">
                       {q.is_anonymous && <span className="flex h-5 w-5 items-center justify-center rounded-full bg-line-soft text-slate"><MaskIcon size={13} /></span>}
-                      {q.is_mine && q.is_anonymous ? "You (anonymous)" : q.author_name} · {q.area_label} · {ago(q.created_at)}
+                      {q.is_mine && q.is_anonymous ? "You (anonymous)" : q.author_id && !q.is_anonymous ? (
+                        <Link href={q.is_mine ? "/setup" : `/p/${q.author_id}`} className="font-semibold text-ink underline-offset-2 hover:underline">{q.author_name}</Link>
+                      ) : q.author_name} · {q.area_label} · {ago(q.created_at)}
                     </span>
                     {!q.is_mine && (
                       <button aria-label="Report this question" onClick={() => setReporting({ type: "question", id: q.id })} className="-my-2 -mr-2 ml-auto flex h-9 w-9 items-center justify-center rounded-xl text-muted"><MoreIcon /></button>
@@ -170,7 +172,7 @@ export function ExploreClient({ initialTab, questions: firstQs, answers: firstAn
                       <Link href={a.is_mine ? "/setup" : `/p/${a.author_id}`}><Avatar id={a.author_id} name={a.display_name} url={a.photo_path ? photos[a.photo_path] : null} size={34} radius={12} /></Link>
                       <div className="flex min-w-0 flex-col gap-1 text-sm leading-[1.45]">
                         <span className="flex flex-wrap items-center gap-1.5 text-[13px]">
-                          <b>{a.is_mine ? "You" : a.display_name}</b><span className="text-muted">· lives in {a.area_name}</span>
+                          <Link href={a.is_mine ? "/setup" : `/p/${a.author_id}`} className="font-bold underline-offset-2 hover:underline">{a.is_mine ? "You" : a.display_name}</Link><span className="text-muted">· lives in {a.area_name}</span>
                           {a.roots_tag && <Tag className="px-[7px] py-0.5 text-[11px]">{a.roots_tag}</Tag>}
                         </span>
                         <span className="whitespace-pre-wrap">{a.body}</span>

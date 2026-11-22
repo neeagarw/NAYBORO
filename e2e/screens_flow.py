@@ -125,7 +125,13 @@ with sync_playwright() as p:
     h1b = A.locator("article:visible").filter(has_text="Laid off on H-1B")
     expect(h1b).to_contain_text("Anonymous · Garland area")
     expect(h1b.get_by_text("From Rajasthan")).to_be_visible()          # Vikram shares Neeraj's region
+    expect(h1b.locator("div").first.get_by_role("link")).to_have_count(0)   # anonymous author: no profile link
     shot(A, "s07_explore")
+    # Tapping a question author's name opens their profile
+    methi = A.locator("article:visible").filter(has_text="Where can I get fresh methi")
+    methi.locator("div").first.get_by_role("link").first.click()
+    expect(A).to_have_url(re.compile(r"/p/[0-9a-f-]{36}$"))
+    A.goto(B + "/explore")
     A.get_by_role("button", name=re.compile(r"^Unanswered")).click()
     tiffin = A.locator("article:visible").filter(has_text="Any good tiffin service in Plano?")
     tiffin.get_by_role("button", name="Answer").click()
