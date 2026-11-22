@@ -25,7 +25,7 @@ const TYPE_LABEL: Record<Report["target_type"], string> = { profile: "Profile", 
 
 export function AdminClient({ reports, contact, paused, events, waitlist }: { reports: Report[]; contact: Contact[]; paused: Paused[]; events: EventRow[]; waitlist: WaitlistInfo }) {
   const router = useRouter();
-  const [toast, toastNode] = useToast();
+  const [toast, toastNode] = useToast("top");
   const [tab, setTab] = useState<"reports" | "messages" | "events" | "paused" | "waitlist">("reports");
   const [busy, setBusy] = useState(false);
   const openMsgs = contact.filter((c) => !c.handled_at).length;

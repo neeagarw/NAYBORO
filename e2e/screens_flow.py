@@ -83,6 +83,7 @@ with sync_playwright() as p:
     shot(A, "s02_profile")
     A.get_by_role("button", name="Say hi to Rohit").click()
     A.get_by_role("button", name="Up for tennis this weekend?").click()
+    expect(A.get_by_text("27/200")).to_be_visible()                  # character count
     shot(A, "s03_say_hi")
     A.get_by_role("button", name="Send hello").click()
     expect(A.get_by_role("button", name="Hello sent")).to_be_visible()

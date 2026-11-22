@@ -31,6 +31,7 @@ async function People() {
     supabase.from("profile_interests").select("interests(label, sort)").eq("profile_id", user!.id),
     supabase.rpc("me_area").maybeSingle(),
   ]);
+  const { data: me } = await supabase.from("profiles").select("photo_path").eq("id", user!.id).maybeSingle();
 
   const photos = await signPhotos([...((people ?? []) as Person[]).map((p) => p.photo_path), ...((hellos ?? []) as Hello[]).map((h) => h.photo_path)]);
   const c = (counts ?? null) as Counts | null;
@@ -54,6 +55,7 @@ async function People() {
         myInterests={myInterests}
         photos={photos}
         verbs={cfg.verbs}
+        hasPhoto={!!me?.photo_path}
       />
     </AppShell>
   );

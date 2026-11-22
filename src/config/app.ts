@@ -18,6 +18,10 @@ export const APP = {
 export const UI = {
   peoplePage: 40,
   suggestions: 4,
+  /** Longest hello message (matches the database check). */
+  helloMax: 200,
+  /** Show the "Invite friends from home" card while the metro has fewer people than this. */
+  inviteBelow: 10,
   peopleChips: 3,            // interest chips on People
   questionsPage: 20,
   chatsPage: 50,

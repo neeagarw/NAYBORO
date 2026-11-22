@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { getClient } from "@/lib/supabase/client";
-import { REPORT_REASONS, PHONE_VERIFICATION_LIVE } from "@/config/app";
-import { Sheet, MenuItem, friendly, useToast, bothLine, BackIcon, MoreIcon, ShieldIcon, ChatIcon, FlagIcon, BlockIcon, toneFor } from "@/components/ui";
+import { REPORT_REASONS, PHONE_VERIFICATION_LIVE, UI } from "@/config/app";
+import { Sheet, MenuItem, friendly, useToast, bothLine, BackIcon, MoreIcon, ShieldIcon, ChatIcon, FlagIcon, BlockIcon, Avatar } from "@/components/ui";
 
 export type Card = {
   id: string; display_name: string; first_name: string; photo_path: string | null; intro: string | null;
@@ -78,12 +78,7 @@ export function ProfileClient({ card: c, photoUrl, myArea, myRegion, verbs }: { 
             // eslint-disable-next-line @next/next/no-img-element -- signed URL from private storage
             <img src={photoUrl} alt={`${c.first_name}'s photo`} className="h-[104px] w-[104px] rounded-[32px] object-cover" />
           ) : (
-            <>
-              <div role="img" aria-label={`${c.first_name} has no photo`} className={`flex h-[104px] w-[104px] flex-col items-center justify-center gap-0.5 rounded-[32px] text-[10px] font-bold tracking-[.8px] ${toneFor(c.id)}`}>
-                <svg aria-hidden="true" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="8" r="4" /><path d="M4 21c1-4 4.2-6 8-6s7 2 8 6" /></svg>PHOTO
-              </div>
-              <span className="-mt-1 text-xs text-muted">{c.first_name} hasn&apos;t added a photo yet</span>
-            </>
+            <Avatar id={c.id} name={c.display_name} size={104} radius={32} />
           )}
           <h1 id="name" className="mt-1 font-display text-[30px] font-extrabold leading-none">{c.display_name}</h1>
           <div className="flex items-center gap-2 text-[15px] font-semibold">
@@ -166,7 +161,8 @@ export function ProfileClient({ card: c, photoUrl, myArea, myRegion, verbs }: { 
           ))}
         </div>
         <label htmlFor="hiText" className="sr-only">Your message</label>
-        <textarea id="hiText" maxLength={200} value={text} onChange={(e) => setText(e.target.value)} placeholder="Write a short hello" className="min-h-[90px] w-full resize-none rounded-2xl border-2 border-line bg-surface px-3.5 py-3 text-base leading-normal outline-none focus:border-green" />
+        <textarea id="hiText" maxLength={UI.helloMax} aria-describedby="hiCount" value={text} onChange={(e) => setText(e.target.value)} placeholder="Write a short hello" className="min-h-[90px] w-full resize-none rounded-2xl border-2 border-line bg-surface px-3.5 py-3 text-base leading-normal outline-none focus:border-green" />
+        <span id="hiCount" aria-live="polite" className={`-mt-1 self-end text-xs ${text.length >= UI.helloMax ? "font-bold text-warn" : "text-muted"}`}>{text.length}/{UI.helloMax}</span>
         <button onClick={sendHello} disabled={busy || text.trim().length < 2} className="h-14 rounded-[18px] bg-green text-base font-bold text-white disabled:bg-line disabled:text-muted">Send hello</button>
         <button onClick={() => setSheet(null)} className="h-12 text-[15px] font-bold text-green">Cancel</button>
       </Sheet>

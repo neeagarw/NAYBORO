@@ -12,7 +12,7 @@ import { Logo } from "@/components/Logo";
 const RESEND_SECONDS = 30;
 const validEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 
-export function LoginForm({ next }: { next: string }) {
+export function LoginForm({ next, prelaunch = false }: { next: string; prelaunch?: boolean }) {
   const [step, setStep] = useState<"email" | "code">("email");
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
@@ -86,7 +86,7 @@ export function LoginForm({ next }: { next: string }) {
         {step === "email" ? (
           <form onSubmit={sendCode} className="flex flex-1 flex-col gap-5" noValidate>
             <div>
-              <h1 className="font-display text-[34px] font-extrabold leading-[1.05] tracking-[-0.5px]">Log in or join</h1>
+              <h1 className="font-display text-[34px] font-extrabold leading-[1.05] tracking-[-0.5px]">{prelaunch ? "Beta tester sign in" : "Log in or join"}</h1>
               <p className="mt-1.5 text-[15px] leading-normal text-muted">We&apos;ll email you a 6-digit code. No password to remember.</p>
             </div>
             <div className="flex flex-col gap-2">
@@ -109,7 +109,11 @@ export function LoginForm({ next }: { next: string }) {
               <button type="submit" disabled={busy || !email.trim()} className="flex h-14 items-center justify-center rounded-[18px] bg-green text-[17px] font-bold text-white disabled:bg-line disabled:text-muted">
                 {busy ? "Sending..." : "Send me a code"}
               </button>
-              <span className="text-center text-xs leading-[1.45] text-muted">New here? The same code creates your account. 18+ only.</span>
+              {prelaunch ? (
+                <span className="text-center text-xs leading-[1.45] text-muted">Not a beta tester? <Link href="/" className="font-bold text-green underline">Join the waitlist</Link> and we&apos;ll email you when we open.</span>
+              ) : (
+                <span className="text-center text-xs leading-[1.45] text-muted">New here? The same code creates your account. 18+ only.</span>
+              )}
             </div>
           </form>
         ) : (

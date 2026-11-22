@@ -61,5 +61,17 @@ async function Setup() {
   // The key remounts the flow whenever saved data changes, so "Edit profile" always opens
   // on step 1 with fresh values (Next.js otherwise restores the last visit's screen).
   const key = JSON.stringify(initial);
-  return <SetupFlow key={key} userId={user.id} initialArea={initialArea} groups={groups} initial={initial} minInterests={setting("min_interests", 3)} maxHometowns={setting("max_hometowns", 3)} />;
+
+  // A new profile starts with what this person gave when they joined the waitlist (same email).
+  let prefill: { area: Area | null; root: Place | null; first: string } | null = null;
+  if (!initial) {
+    const { data: w } = await supabase.rpc("my_waitlist_prefill").maybeSingle();
+    const r = w as { area_id: number | null; area_name: string; area_state: string; metro_name: string; place_id: number | null; place_city: string; place_region: string; place_country: string; first_name: string | null } | null;
+    if (r) prefill = {
+      area: r.area_id ? { id: r.area_id, name: r.area_name, state: r.area_state, metro_name: r.metro_name } : null,
+      root: r.place_id ? { id: r.place_id, city: r.place_city, region: r.place_region, country: r.place_country } : null,
+      first: r.first_name ?? "",
+    };
+  }
+  return <SetupFlow key={key} userId={user.id} initialArea={initialArea ?? prefill?.area ?? null} prefillRoot={prefill?.root ?? null} prefillFirst={prefill?.first ?? ""} groups={groups} initial={initial} minInterests={setting("min_interests", 3)} maxHometowns={setting("max_hometowns", 3)} />;
 }

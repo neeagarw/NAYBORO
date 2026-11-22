@@ -91,7 +91,7 @@ export function MenuItem({ children, warn, ...p }: React.ButtonHTMLAttributes<HT
 }
 
 /** Toast at the bottom of the app frame. */
-export function useToast() {
+export function useToast(place: "bottom" | "top" = "bottom") {
   const [msg, setMsg] = useState<string | null>(null);
   useEffect(() => {
     if (!msg) return;
@@ -99,7 +99,7 @@ export function useToast() {
     return () => clearTimeout(t);
   }, [msg]);
   const node = msg ? (
-    <div role="status" className="absolute bottom-24 left-5 right-5 z-30 rounded-2xl bg-green px-3.5 py-3 text-sm font-semibold text-white">{msg}</div>
+    <div role="status" className={`absolute left-5 right-5 z-30 rounded-2xl bg-green px-3.5 py-3 text-sm font-semibold text-white ${place === "top" ? "top-3 shadow-lg" : "bottom-24"}`}>{msg}</div>
   ) : null;
   return [setMsg, node] as const;
 }

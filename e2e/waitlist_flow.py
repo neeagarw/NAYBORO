@@ -36,10 +36,13 @@ def finish_setup(pg, first):
     pg.get_by_role("checkbox").check(); pg.get_by_role("button", name="Finish").click()
     expect(pg.get_by_role("heading", name=re.compile("You're in"))).to_be_visible()
 
-def sign_in(browser, email, next_path="/setup"):
+def sign_in(browser, email, next_path="/setup", heading=None):
     ctx = browser.new_context(viewport={"width": 400, "height": 860})
     pg = ctx.new_page()
     pg.goto(B + "/login?next=" + next_path)
+    if heading:
+        expect(pg.get_by_role("heading", name=heading)).to_be_visible()
+        pg.screenshot(path=f"{OUT}/login-prelaunch.png")
     pg.get_by_label("Email", exact=True).fill(email); pg.get_by_role("button", name="Send me a code").click()
     pg.get_by_label("6-digit code").fill("123456")
     return ctx, pg
@@ -146,7 +149,10 @@ with sync_playwright() as p:
     expect(wide.get_by_role("heading", name="Privacy policy")).to_be_visible()
 
     # ── Before launch, a stranger who signs in is sent back to the waitlist ──
-    s_ctx, S = sign_in(browser, "stranger@example.com")
+    status, _ = api_join({"email": "stranger@example.com", "hometown": "Jaipur", "adult": True}, ip="203.0.113.77"); assert status == 200, status
+    psql("update waitlist set place_id = (select id from places where city = 'Jaipur' limit 1), area_id = (select id from areas where name = 'Garland' and state = 'TX'), first_name = 'Sam' where email = 'stranger@example.com'")
+    s_ctx, S = sign_in(browser, "stranger@example.com", heading="Beta tester sign in")
+    # (sign_in typed the code already; the login screen said "Beta tester sign in" before launch)
     expect(S).to_have_url(re.compile(r"/\?notyet=1$"))
     expect(S.get_by_text("isn't open for everyone yet")).to_be_visible()
     expect(S.get_by_label("Email", exact=True)).to_have_value("stranger@example.com")
@@ -170,6 +176,21 @@ with sync_playwright() as p:
     assert "fill0@example.com" in open(d.value.path()).read()
 
     S.goto(B + "/setup"); expect(S).to_have_url(re.compile(r"/setup$"))   # beta tester gets in
+    # Setup starts with the hometown, city and first name from the waitlist
+    expect(S.get_by_text("Jaipur").first).to_be_visible()
+    S.get_by_role("button", name="Continue").click()
+    for i in ["Tennis", "Cricket", "Chai meetups"]: S.get_by_role("button", name=i, exact=True).click()
+    S.get_by_role("button", name="Continue").click()
+    expect(S.get_by_text("Garland").first).to_be_visible()
+    S.get_by_role("button", name="Continue").click()
+    expect(S.get_by_label("First name")).to_have_value("Sam")
+    S.screenshot(path=f"{OUT}/setup-prefilled-you.png")
+    expect(S.get_by_role("button", name="Finish")).to_be_disabled()    # 18+ still required; photo is not
+    S.get_by_role("checkbox").check(); expect(S.get_by_role("button", name="Finish")).to_be_enabled()
+    S.get_by_role("button", name="Finish").click()
+    expect(S.get_by_role("heading", name=re.compile("You're in"))).to_be_visible()
+    S.goto(B + "/people"); expect(S.get_by_role("region", name="Add a photo")).to_be_visible()
+    S.screenshot(path=f"{OUT}/people-photo-tip.png")
 
     A.get_by_role("button", name="Open Nayboro to everyone").click()
     A.get_by_role("button", name="Yes, open Nayboro").click()

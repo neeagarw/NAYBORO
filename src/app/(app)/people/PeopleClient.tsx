@@ -33,8 +33,8 @@ function whyLine(p: Person, area: string, verbs: Verbs) {
   return `Lives in ${p.area_name}`;
 }
 
-export function PeopleClient({ initial, hellos, counts, area, metro, myInterests, photos: initialPhotos, verbs }: {
-  initial: Person[]; hellos: Hello[]; counts: Counts | null; area: string; metro: string; myInterests: string[]; photos: Record<string, string>; verbs: Verbs;
+export function PeopleClient({ initial, hellos, counts, area, metro, myInterests, photos: initialPhotos, verbs, hasPhoto }: {
+  initial: Person[]; hellos: Hello[]; counts: Counts | null; area: string; metro: string; myInterests: string[]; photos: Record<string, string>; verbs: Verbs; hasPhoto: boolean;
 }) {
   const router = useRouter();
   const [toast, toastNode] = useToast();
@@ -47,6 +47,9 @@ export function PeopleClient({ initial, hellos, counts, area, metro, myInterests
   const [lastHidden, setLastHidden] = useState<string | null>(null);
   const [hello, setHello] = useState<{ state: "pending" | "accepted" | "hidden"; conv?: string }>({ state: "pending" });
   const [busy, setBusy] = useState(false);
+  const [photoTip, setPhotoTip] = useState(!hasPhoto);
+  // People who already said hi show only in the "Said hi to you" box, not again below.
+  const helloFrom = useMemo(() => new Set(chip === "foryou" ? hellos.map((x) => x.from_id) : []), [hellos, chip]);
 
   const newCount = initial.filter((p) => p.is_new).length;
   const chips: [string, string][] = [["foryou", "For you"]];
@@ -56,13 +59,13 @@ export function PeopleClient({ initial, hellos, counts, area, metro, myInterests
   myInterests.slice(0, UI.peopleChips).forEach((i) => chips.push([i, i]));
 
   const suggestions = useMemo(
-    () => (chip === "foryou" ? people.filter((p) => p.score > 1 && !hidden.includes(p.id)).slice(0, UI.suggestions) : []),
-    [chip, people, hidden],
+    () => (chip === "foryou" ? people.filter((p) => p.score > 1 && !hidden.includes(p.id) && !helloFrom.has(p.id)).slice(0, UI.suggestions) : []),
+    [chip, people, hidden, helloFrom],
   );
   const list = useMemo(() => {
     const s = new Set(suggestions.map((p) => p.id));
-    return people.filter((p) => !s.has(p.id) && !hidden.includes(p.id));
-  }, [people, suggestions, hidden]);
+    return people.filter((p) => !s.has(p.id) && !hidden.includes(p.id) && !helloFrom.has(p.id));
+  }, [people, suggestions, hidden, helloFrom]);
 
   const titles: Record<string, string> = {
     foryou: "MORE PEOPLE NEAR YOU", new: "JUST JOINED",
@@ -149,6 +152,22 @@ export function PeopleClient({ initial, hellos, counts, area, metro, myInterests
             ) : (
               <Link href={`/chats/${hello.conv}`} className="flex h-11 items-center justify-center rounded-[14px] bg-green text-sm font-bold text-white">Open chat</Link>
             )}
+          </section>
+        )}
+
+        {chip === "foryou" && photoTip && (
+          <section aria-label="Add a photo" className="flex items-center gap-3 rounded-[18px] border border-line-soft bg-surface px-4 py-3">
+            <span className="flex-1 text-sm leading-[1.4]"><b>Add a photo.</b> People with a clear face photo get many more replies.</span>
+            <Link href="/setup" className="flex h-10 flex-none items-center rounded-xl bg-green px-3.5 text-sm font-bold text-white">Add</Link>
+            <button onClick={() => setPhotoTip(false)} aria-label="Hide photo tip" className="flex h-10 w-10 flex-none items-center justify-center rounded-xl text-muted"><XIcon /></button>
+          </section>
+        )}
+
+        {chip === "foryou" && !more && people.length < UI.inviteBelow && (
+          <section aria-label="Invite friends" className="flex flex-col gap-2 rounded-[22px] bg-green-tint px-4 py-4">
+            <b className="text-[15px] text-green">Invite friends from home</b>
+            <span className="text-sm leading-[1.45] text-slate">Nayboro is new around {metro || area}. The more people from home join, the more you&apos;ll find here.</span>
+            <button onClick={invite} className="mt-1 flex h-11 items-center justify-center rounded-[14px] bg-green text-sm font-bold text-white">Share invite link</button>
           </section>
         )}
 

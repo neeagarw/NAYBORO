@@ -27,13 +27,13 @@ function newPhotoPath(userId: string) {
 const STEPS = ["Roots", "Interests", "Now", "You"];
 const VISIBLE = UI.interestsVisible;
 
-export function SetupFlow({ userId, initialArea, groups, initial, minInterests: MIN_INTERESTS, maxHometowns }: { userId: string; initialArea: Area | null; groups: InterestGroup[]; initial: Initial | null; minInterests: number; maxHometowns: number }) {
+export function SetupFlow({ userId, initialArea, prefillRoot = null, prefillFirst = "", groups, initial, minInterests: MIN_INTERESTS, maxHometowns }: { userId: string; initialArea: Area | null; prefillRoot?: Place | null; prefillFirst?: string; groups: InterestGroup[]; initial: Initial | null; minInterests: number; maxHometowns: number }) {
   const router = useRouter();
   const editing = !!initial;
 
   const [step, setStep] = useState(0);
   // roots
-  const [roots, setRoots] = useState<Place[]>(initial?.roots ?? []);
+  const [roots, setRoots] = useState<Place[]>(initial?.roots ?? (prefillRoot ? [prefillRoot] : []));
   const [adding, setAdding] = useState(false);
   const [level, setLevel] = useState<Level>(initial?.level ?? "city");
   const [query, setQuery] = useState("");
@@ -49,7 +49,7 @@ export function SetupFlow({ userId, initialArea, groups, initial, minInterests: 
   const [locNote, setLocNote] = useState<string | null>(null);
   // you
   const [photo, setPhoto] = useState<{ blob: Blob; url: string } | null>(null);
-  const [first, setFirst] = useState(initial?.first ?? "");
+  const [first, setFirst] = useState(initial?.first ?? prefillFirst);
   const [last, setLast] = useState(initial?.last ?? "");
   const [intro, setIntro] = useState(initial?.intro ?? "");
   const [adult, setAdult] = useState(editing);

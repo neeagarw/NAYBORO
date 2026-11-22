@@ -257,3 +257,14 @@ select (admin_waitlist() ->> 'total')::int as total, admin_waitlist() -> 'beta' 
 select admin_set_site_mode('open');
 select set_config('request.jwt.claim.sub','33333333-3333-3333-3333-333333333333',false);
 select can_enter() as anyone_can_enter_when_open;
+\echo '48. Setup prefill: Rohit sees only his own waitlist city and hometown; someone else sees nothing:'
+reset role;
+set role service_role;
+select already from join_waitlist('rohit@example.com', 'Jaipur', null, :fremont, null, 'iphash9');
+reset role;
+set role authenticated;
+select set_config('request.jwt.claim.sub','22222222-2222-2222-2222-222222222222',false);
+select area_name, area_state from my_waitlist_prefill();
+select set_config('request.jwt.claim.sub','33333333-3333-3333-3333-333333333333',false);
+select count(*) as other_person_rows from my_waitlist_prefill();
+reset role;
