@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getClient } from "@/lib/supabase/client";
 import { UI } from "@/config/app";
 
@@ -148,3 +148,33 @@ export const ChatIcon = ({ size = 20 }: { size?: number }) => <svg {...svg} widt
 export const MaskIcon = ({ size = 16 }: { size?: number }) => <svg {...svg} width={size} height={size} viewBox="0 0 24 24" strokeWidth="2"><path d="M3 10c0-1.7 2.5-3 9-3s9 1.3 9 3c0 3-2 5-4.5 5-1.8 0-2.7-1.3-4.5-1.3S9.3 15 7.5 15C5 15 3 13 3 10z" /></svg>;
 export const FlagIcon = () => <svg {...svg} width="20" height="20" viewBox="0 0 24 24" strokeWidth="2"><path d="M5 21V4h11l-1.5 4L16 12H5" /></svg>;
 export const BlockIcon = () => <svg {...svg} width="20" height="20" viewBox="0 0 24 24" strokeWidth="2"><circle cx="12" cy="12" r="9" /><path d="M5.6 5.6l12.8 12.8" /></svg>;
+
+
+/**
+ * A sideways-scrolling filter row with a visible cue: while more chips are off to the right, the edge fades and a
+ * round "more" button scrolls the row along. Both go away at the end. One pattern for every filter row.
+ */
+export function ChipRow({ label, className = "", wrapClass = "", children }: { label?: string; className?: string; wrapClass?: string; children: React.ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [more, setMore] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const check = () => setMore(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
+    const raf = requestAnimationFrame(check);
+    el.addEventListener("scroll", check, { passive: true });
+    const ro = new ResizeObserver(check); ro.observe(el);
+    return () => { cancelAnimationFrame(raf); el.removeEventListener("scroll", check); ro.disconnect(); };
+  }, []);
+  return (
+    <div className={`relative ${wrapClass}`}>
+      <div ref={ref} role={label ? "toolbar" : undefined} aria-label={label} className={`chip-row flex gap-2 overflow-x-auto ${more ? "chip-row-more" : ""} ${className}`}>{children}</div>
+      {more && (
+        <button type="button" aria-label="More filters" onClick={() => ref.current?.scrollBy({ left: ref.current.clientWidth * 0.7, behavior: "smooth" })}
+          className="absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-line bg-surface text-ink shadow-md">
+          <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 6l6 6-6 6" /></svg>
+        </button>
+      )}
+    </div>
+  );
+}

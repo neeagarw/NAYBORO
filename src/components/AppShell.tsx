@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { Logo } from "@/components/Logo";
 import { AccountMenu } from "@/components/AccountMenu";
 import { createClient } from "@/lib/supabase/server";
 
@@ -19,14 +18,14 @@ export async function AppShell({ tab, title, sub, head, children, overlay }: {
 
   return (
     <div className="app-frame">
-      <div className="flex flex-col gap-3 px-5 pb-2 pt-[18px]">
-        <div className="flex items-center justify-between">
-          <Logo />
+      {/* Compact header: title + place on the left, account on the right, so content starts high on a phone. */}
+      <div className="flex flex-col gap-2.5 px-5 pb-2 pt-3">
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="m-0 font-display text-[28px] font-extrabold leading-[1.05] tracking-[-0.5px]">{title}</h1>
+            {sub && <span className="text-sm text-muted">{sub}</span>}
+          </div>
           <AccountMenu name={me?.display_name ?? "You"} route={`${me?.shown_root ?? ""} → ${me?.area_name ?? ""}`} admin={!!admin} />
-        </div>
-        <div>
-          <h1 className="m-0 font-display text-[34px] font-extrabold leading-[1.02] tracking-[-0.5px]">{title}</h1>
-          {sub && <span className="text-sm text-muted">{sub}</span>}
         </div>
         {head}
       </div>

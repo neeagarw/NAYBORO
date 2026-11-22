@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getClient } from "@/lib/supabase/client";
-import { Avatar, Sheet, MenuItem, Tag, ago, friendly, useToast, signPhotosClient, TONE_CLASS, PlusIcon, PinIcon, MaskIcon, MoreIcon } from "@/components/ui";
+import { Avatar, Sheet, MenuItem, Tag, ago, friendly, useToast, signPhotosClient, TONE_CLASS, PlusIcon, PinIcon, MaskIcon, MoreIcon, ChipRow } from "@/components/ui";
 import { REPORT_REASONS, UI } from "@/config/app";
 import { fmtIn, isThisWeekend } from "@/lib/time";
 
@@ -148,7 +148,7 @@ export function ExploreClient({ initialTab, questions: firstQs, answers: firstAn
             </button>
           ))}
         </div>
-        <div className="-mx-5 flex gap-2 chip-row overflow-x-auto px-5 pb-0.5">
+        <ChipRow label={tab === "q" ? "Filter questions" : "Filter events"} wrapClass="-mx-5" className="px-5 pb-0.5">
           {tab === "q"
             ? ["All", "Unanswered", ...topics.filter((t) => t.name !== "General").map((t) => t.name)].map((n) => (
                 <button key={n} aria-pressed={qChip === n} onClick={() => pickChip(n)} className={chipCls(qChip === n)}>
@@ -160,7 +160,7 @@ export function ExploreClient({ initialTab, questions: firstQs, answers: firstAn
                   {n === "Interested" ? `Interested · ${liked.length}` : n}
                 </button>
               ))}
-        </div>
+        </ChipRow>
       </div>
 
       <main className="flex flex-1 flex-col gap-3.5 overflow-y-auto px-5 pb-[110px] pt-1.5">

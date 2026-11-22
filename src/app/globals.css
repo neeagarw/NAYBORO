@@ -146,10 +146,10 @@ body {
   flex-shrink: 0;
 }
 
-/* Filter rows that scroll sideways: a soft fade on the right edge shows there is more (one pattern everywhere). */
-.chip-row {
-  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 36px), transparent);
-  mask-image: linear-gradient(to right, #000 calc(100% - 36px), transparent);
-  scrollbar-width: none;
+/* Filter rows that scroll sideways (see ChipRow in components/ui.tsx): fade + a round button while there is more. */
+.chip-row { scrollbar-width: none; }
+.chip-row-more {
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 72px), transparent calc(100% - 8px));
+  mask-image: linear-gradient(to right, #000 calc(100% - 72px), transparent calc(100% - 8px));
 }
 .chip-row::-webkit-scrollbar { display: none; }

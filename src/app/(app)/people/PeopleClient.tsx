@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { getClient } from "@/lib/supabase/client";
-import { Avatar, Tag, XIcon, PlusIcon, useToast, doesLine, signPhotosClient } from "@/components/ui";
+import { Avatar, Tag, XIcon, PlusIcon, useToast, doesLine, signPhotosClient , ChipRow } from "@/components/ui";
 import { UI } from "@/config/app";
 
 export type Person = {
@@ -32,6 +32,8 @@ function whyLine(p: Person, area: string, verbs: Verbs) {
   if (i) return `${doesLine(i, verbs)}${p.area_name === area ? ` in ${area}` : ""}`;
   return `Lives in ${p.area_name}`;
 }
+
+const noSubscribe = () => () => {};
 
 export function PeopleClient({ initial, hellos, counts, area, metro, myInterests, photos: initialPhotos, verbs, hasPhoto }: {
   initial: Person[]; hellos: Hello[]; counts: Counts | null; area: string; metro: string; myInterests: string[]; photos: Record<string, string>; verbs: Verbs; hasPhoto: boolean;
@@ -112,23 +114,28 @@ export function PeopleClient({ initial, hellos, counts, area, metro, myInterests
     await getClient().from("hellos").update({ status: "not_now", responded_at: new Date().toISOString() }).eq("id", h.id);
     router.refresh();
   }
-  async function invite() {
-    const url = `${location.origin}/?ref=invite`;
-    const text = `Join me on Nayboro to meet people from ${counts?.city ?? "home"} around ${metro}: ${url}`;
-    if (navigator.share) { try { await navigator.share({ title: "Nayboro", text, url }); return; } catch { /* closed */ } }
-    await navigator.clipboard?.writeText(text);
-    toast("Invite link copied");
+  // One invite action everywhere: the link is shown, and Copy / Share are separate, labelled choices.
+  const origin = useSyncExternalStore(noSubscribe, () => location.origin, () => "");
+  const inviteUrl = origin ? `${origin}/?ref=invite` : "";
+  const inviteText = `Join me on Nayboro to meet people from ${counts?.city ?? "home"} around ${metro}: ${inviteUrl}`;
+  async function copyInvite() {
+    try { await navigator.clipboard.writeText(inviteText); toast("Link copied"); } catch { toast("Couldn't copy. Press and hold the link to copy it."); }
   }
+  async function shareInvite() {
+    try { await navigator.share({ title: "Nayboro", text: inviteText, url: inviteUrl }); } catch { /* closed */ }
+  }
+  const canShare = typeof navigator !== "undefined" && "share" in navigator;
+  const showInviteCard = chip === "foryou" && !more && people.length < UI.inviteBelow;
 
   const h = hellos[0];
   return (
     <>
-      <div className="-mt-1 flex gap-2 chip-row overflow-x-auto px-5 pb-2" role="toolbar" aria-label="Filter people">
+      <ChipRow label="Filter people" wrapClass="-mt-1" className="px-5 pb-2">
         {chips.map(([k, label]) => (
           <button key={k} aria-pressed={chip === k} onClick={() => pick(k)}
             className={`inline-flex h-[42px] flex-none items-center whitespace-nowrap rounded-full border-2 px-4 text-sm font-bold ${chip === k ? "border-green bg-green text-white" : "border-line-soft bg-surface"}`}>{label}</button>
         ))}
-      </div>
+      </ChipRow>
 
       <main className="flex flex-1 flex-col gap-3.5 overflow-y-auto px-5 pb-5 pt-1.5">
         {chip === "foryou" && h && hello.state !== "hidden" && (
@@ -163,11 +170,15 @@ export function PeopleClient({ initial, hellos, counts, area, metro, myInterests
           </section>
         )}
 
-        {chip === "foryou" && !more && people.length < UI.inviteBelow && (
+        {showInviteCard && (
           <section aria-label="Invite friends" className="flex flex-col gap-2 rounded-[22px] bg-green-tint px-4 py-4">
             <b className="text-[15px] text-green">Invite friends from home</b>
             <span className="text-sm leading-[1.45] text-slate">Nayboro is new around {metro || area}. The more people from home join, the more you&apos;ll find here.</span>
-            <button onClick={invite} className="mt-1 flex h-11 items-center justify-center rounded-[14px] bg-green text-sm font-bold text-white">Share invite link</button>
+            <span className="select-all break-all rounded-xl bg-surface px-3 py-2.5 text-sm font-semibold text-ink" aria-label="Your invite link">{inviteUrl}</span>
+            <div className="flex gap-2">
+              <button onClick={copyInvite} className="flex h-11 flex-1 items-center justify-center rounded-[14px] bg-green text-sm font-bold text-white">Copy link</button>
+              {canShare && <button onClick={shareInvite} className="flex h-11 flex-1 items-center justify-center rounded-[14px] border-2 border-green bg-surface text-sm font-bold text-green">Share…</button>}
+            </div>
           </section>
         )}
 
@@ -193,12 +204,12 @@ export function PeopleClient({ initial, hellos, counts, area, metro, myInterests
                   </div>
                 );
               })}
-              <div className="flex w-[180px] flex-none snap-start flex-col justify-between gap-2.5 rounded-[20px] bg-orange-tint p-3.5">
+              {!showInviteCard && <div className="flex w-[180px] flex-none snap-start flex-col justify-between gap-2.5 rounded-[20px] bg-orange-tint p-3.5">
                 <span className="flex h-10 w-10 items-center justify-center rounded-[14px] bg-orange-logo text-ink"><PlusIcon /></span>
                 <b className="font-display text-[17px] leading-[1.2]">Know someone from {counts?.city ?? "home"} here?</b>
                 <span className="text-xs text-brown-text">Invite them. Your list grows with every friend.</span>
-                <button onClick={invite} className="flex h-11 items-center justify-center rounded-[14px] bg-white text-sm font-bold text-orange-text">Invite</button>
-              </div>
+                <button onClick={copyInvite} className="flex h-11 items-center justify-center rounded-[14px] bg-white text-sm font-bold text-orange-text">Copy invite link</button>
+              </div>}
             </div>
             {lastHidden && (
               <div className="flex items-center justify-between rounded-[14px] border border-dashed border-dash bg-surface py-1 pl-3 pr-1.5">

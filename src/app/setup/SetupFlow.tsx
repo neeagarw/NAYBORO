@@ -79,7 +79,9 @@ export function SetupFlow({ userId, initialArea, prefillRoot = null, prefillFirs
 
   const displayName = first.trim() ? first.trim() + (last.trim() ? ` ${last.trim()[0].toUpperCase()}.` : "") : "You";
   const shownRoot = roots[0] ? (level === "city" ? roots[0].city : level === "state" ? roots[0].region : roots[0].country) : "Your roots";
-  const firstThree = picked.slice(0, 3).map((id) => labels.get(id)).filter(Boolean).join(" · ");
+  // Catalog order, so the preview doesn't reshuffle when an interest is toggled off and on.
+  const order = useMemo(() => new Map(groups.flatMap((g) => g.items.map((i) => i.id)).map((id, n) => [id, n] as const)), [groups]);
+  const firstThree = [...picked].sort((a, b) => (order.get(a) ?? 0) - (order.get(b) ?? 0)).slice(0, 3).map((id) => labels.get(id)).filter(Boolean).join(" · ");
 
   function go(n: number) {
     setStep(n);

@@ -69,7 +69,7 @@ export function AskClient({ userId, name, roots, area, metro, otherAreas, topics
       )}
 
       <main className="flex flex-1 flex-col gap-[18px] overflow-y-auto px-5 pb-5 pt-1.5">
-        <div className="overflow-hidden rounded-3xl border border-line-soft bg-surface">
+        <div className="overflow-hidden rounded-3xl border-2 border-line-soft bg-surface focus-within:border-green">
           <div className="flex items-center gap-2.5 px-4 pt-3.5">
             <span className={`flex h-9 w-9 flex-none items-center justify-center rounded-xl font-display text-xs font-extrabold ${anon ? "bg-line-soft text-slate" : "bg-orange text-ink"}`}>{anon ? <MaskIcon /> : name[0]}</span>
             <span className="flex flex-1 flex-col gap-px">
@@ -82,7 +82,7 @@ export function AskClient({ userId, name, roots, area, metro, otherAreas, topics
           </div>
           {anon && <div className="mx-4 mt-2.5 rounded-xl bg-ground px-2.5 py-2 text-xs leading-[1.45] text-slate">Others won&apos;t see who you are. Nayboro can still see it, to keep the community safe. People who answer still show their own names.</div>}
           <label htmlFor="q" className="sr-only">Your question</label>
-          <textarea id="q" maxLength={150} value={text} onChange={(e) => setText(e.target.value)} placeholder="What do you want to know?" className="block h-24 w-full resize-none bg-transparent px-4 pb-1 pt-3 font-display text-[22px] font-bold leading-[1.25] outline-none" />
+          <textarea id="q" style={{ outline: "none" }} maxLength={150} value={text} onChange={(e) => setText(e.target.value)} placeholder="What do you want to know?" className="block h-24 w-full resize-none bg-transparent px-4 pb-1 pt-3 font-display text-[22px] font-bold leading-[1.25] outline-none" />
           <div className="flex items-center justify-between px-4 pb-3 pt-2"><span className="text-xs text-muted">Name a place or a time to get faster answers</span><span className="text-xs font-semibold text-muted">{text.length}/150</span></div>
           <div className="border-t border-dashed border-line px-4 pb-2.5 pt-1">
             {details === null ? (
