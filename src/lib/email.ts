@@ -16,8 +16,8 @@ const clip = (s: string, n = 140) => (s.length > n ? `${s.slice(0, n - 1)}…` :
 export function signingSecret() {
   const s = process.env.UNSUBSCRIBE_SECRET;
   if (s) return s;
-  const sheet = process.env.SHEET_WEBHOOK_SECRET;
-  if (sheet) return createHmac("sha256", sheet).update("nayboro:signing").digest("base64url");
+  const base = process.env.SHEET_WEBHOOK_SECRET ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (base) return createHmac("sha256", base).update("nayboro:signing").digest("base64url");
   throw new Error("UNSUBSCRIBE_SECRET is not set");
 }
 const secret = signingSecret;

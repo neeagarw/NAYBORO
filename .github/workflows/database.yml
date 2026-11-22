@@ -1,0 +1,44 @@
+# Sets up / updates the Supabase database from supabase/migrations and supabase/seed.sql.
+# Run it from GitHub → Actions → "Database" → Run workflow.
+# Needs one repository secret: SUPABASE_DB_URL = the Supabase "Session pooler" connection string
+# (Supabase → Connect → Session pooler), with the database password filled in.
+name: Database
+
+on:
+  workflow_dispatch:
+    inputs:
+      seed:
+        description: "Load cities, hometowns and interests if the database is empty"
+        type: boolean
+        default: true
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install psql
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client
+      - name: Apply new migrations
+        env:
+          DB: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          set -euo pipefail
+          psql "$DB" -v ON_ERROR_STOP=1 -qc "create table if not exists public._migrations (name text primary key, applied_at timestamptz default now()); alter table public._migrations enable row level security;"
+          for f in $(ls supabase/migrations/*.sql | sort); do
+            n=$(basename "$f")
+            if [ "$(psql "$DB" -qtAc "select 1 from public._migrations where name='$n'")" = "1" ]; then echo "skip $n"; continue; fi
+            echo "apply $n"
+            psql "$DB" -v ON_ERROR_STOP=1 -q -1 -f "$f"
+            psql "$DB" -v ON_ERROR_STOP=1 -qc "insert into public._migrations(name) values ('$n')"
+          done
+      - name: Load places and interests
+        if: ${{ inputs.seed }}
+        env:
+          DB: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          set -euo pipefail
+          if [ "$(psql "$DB" -qtAc "select count(*) from places")" != "0" ]; then echo "Already loaded, skipping."; else
+            cd supabase && psql "$DB" -v ON_ERROR_STOP=1 -q -1 -f seed.sql && cd ..
+          fi
+          psql "$DB" -qtAc "select 'areas: '||count(*) from areas; select 'metros: '||count(*) from metros; select 'interests: '||count(*) from interests;"
