@@ -132,12 +132,18 @@ with sync_playwright() as p:
     methi.locator("div").first.get_by_role("link").first.click()
     expect(A).to_have_url(re.compile(r"/p/[0-9a-f-]{36}$"))
     A.goto(B + "/explore")
-    A.get_by_role("button", name=re.compile(r"^Unanswered")).click()
+    unans = A.get_by_role("button", name=re.compile(r"^Unanswered"))
+    before = int(re.sub(r"\D", "", unans.inner_text()) or 0); assert before >= 1, before
+    unans.click()
     tiffin = A.locator("article:visible").filter(has_text="Any good tiffin service in Plano?")
     tiffin.get_by_role("button", name="Answer").click()
     A.get_by_label("Answer", exact=True).fill("Try the home kitchen near Legacy and Coit, they deliver lunch boxes.")
     A.get_by_role("button", name="Post answer").click()
     expect(A.get_by_text("Answer posted")).to_be_visible()
+    # The Unanswered badge drops right away and matches the list
+    expect(unans).to_have_text("Unanswered" if before == 1 else f"Unanswered{before - 1}")
+    A.locator("nav:visible").get_by_role("link", name="People").click(); expect(A).to_have_url(re.compile(r"/people$")); A.locator("nav:visible").get_by_role("link", name="Explore").click(); expect(A).to_have_url(re.compile(r"/explore$"))
+    expect(unans).to_have_text("Unanswered" if before == 1 else f"Unanswered{before - 1}")
     A.get_by_role("button", name="All", exact=True).click()
     expect(A.locator("article:visible").filter(has_text="Any good tiffin service in Plano?")).to_contain_text("Try the home kitchen")
 

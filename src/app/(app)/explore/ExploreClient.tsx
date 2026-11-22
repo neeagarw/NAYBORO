@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getClient } from "@/lib/supabase/client";
 import { Avatar, Sheet, MenuItem, Tag, ago, friendly, useToast, signPhotosClient, TONE_CLASS, PlusIcon, PinIcon, MaskIcon, MoreIcon } from "@/components/ui";
@@ -14,7 +14,7 @@ export type Event = { id: string; title: string; starts_at: string; ends_at: str
 
 export type TopicCfg = { name: string; tone: string };
 
-export function ExploreClient({ initialTab, questions: firstQs, answers: firstAns, events, photos: firstPhotos, topics, tz, unanswered }: {
+export function ExploreClient({ initialTab, questions: firstQs, answers: firstAns, events, photos: firstPhotos, topics, tz, unanswered: firstUnanswered }: {
   initialTab: "q" | "e"; questions: Question[]; answers: Answer[]; events: Event[]; photos: Record<string, string>;
   topics: TopicCfg[]; tz: string; unanswered: number;
 }) {
@@ -71,7 +71,22 @@ export function ExploreClient({ initialTab, questions: firstQs, answers: firstAn
     setQChip(n);
     setQuestions([]); setAnswers([]);
     loadQs(n);
+    refreshUnanswered();
   }
+
+  // The "Unanswered" badge: recount whenever this screen is shown again (Next.js keeps it alive between tabs)
+  // and after any change, so it always agrees with the list.
+  const [unanswered, setUnanswered] = useState(firstUnanswered);
+  async function refreshUnanswered() {
+    const { data } = await getClient().rpc("unanswered_count");
+    if (typeof data === "number") setUnanswered(data);
+  }
+  useEffect(() => {
+    refreshUnanswered();
+    const onShow = () => { if (document.visibilityState === "visible") refreshUnanswered(); };
+    document.addEventListener("visibilitychange", onShow);
+    return () => document.removeEventListener("visibilitychange", onShow);
+  }, []);
 
   const kinds = [...new Set(events.map((e) => e.kind))];
   const eChips = ["All", "This weekend", "Free", ...kinds, `Interested`];
@@ -96,6 +111,7 @@ export function ExploreClient({ initialTab, questions: firstQs, answers: firstAn
     const qid = answering.id;
     const { data: fresh } = await getClient().rpc("answers_for", { qids: [qid] });
     setAnswers((prev) => [...prev.filter((x) => x.question_id !== qid), ...((fresh ?? []) as Answer[])]);
+    refreshUnanswered();
   }
   async function report(reason: string) {
     if (!reporting) return;
