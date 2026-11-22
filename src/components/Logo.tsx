@@ -1,7 +1,7 @@
 type Props = { size?: number; withWord?: boolean };
 
 /** The two-house Nayboro mark (orange + green), from design/mockups. */
-export function LogoMark({ size = 30, left = "#EE8A35", right = "#1E6B4A", label = "Nayboro" }: { size?: number; left?: string; right?: string; label?: string | null }) {
+export function LogoMark({ size = 30, left = "#F2876B", right = "#1F6F6B", label = "Nayboro" }: { size?: number; left?: string; right?: string; label?: string | null }) {
   return (
     <svg role={label ? "img" : undefined} aria-label={label ?? undefined} aria-hidden={label ? undefined : true} width={size} height={(size * 100) / 120} viewBox="0 0 120 100">
       <path

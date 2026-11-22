@@ -53,14 +53,14 @@ export function buildEmail(items: Alert[]) {
 
   const rows = items.slice(0, 5).map((i) => {
     const l = line(i);
-    return `<tr><td style="padding:12px 14px;background:#F5F7F2;border-radius:14px">
+    return `<tr><td style="padding:12px 14px;background:#F3F7F5;border-radius:14px">
       <div style="font-weight:700;font-size:15px;color:#17201B">${esc(l.title)}</div>
       ${l.body ? `<div style="font-size:14px;color:#56635B;margin-top:4px">${esc(l.body)}</div>` : ""}
     </td></tr><tr><td style="height:8px"></td></tr>`;
   }).join("");
   const more = n > 5 ? `<p style="font-size:14px;color:#56635B">and ${n - 5} more.</p>` : "";
 
-  const html = `<!doctype html><html><body style="margin:0;background:#F5F7F2;font-family:Inter,Arial,sans-serif">
+  const html = `<!doctype html><html><body style="margin:0;background:#F3F7F5;font-family:Inter,Arial,sans-serif">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:24px 12px">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#fff;border-radius:24px;padding:24px">
     <tr><td style="font-weight:800;font-size:20px;color:#1F6F6B;padding-bottom:16px">nayboro</td></tr>
@@ -112,7 +112,7 @@ export function buildWaitlistEmail(p: { email: string; city: string | null; metr
   const leave = `${site()}/api/waitlist/leave?e=${encodeURIComponent(p.email)}&t=${leaveToken(p.email)}`;
   const where = p.metro ? ` in ${p.metro}` : "";
   const subject = "You're on the Nayboro list";
-  const html = `<!doctype html><html><body style="margin:0;background:#F5F7F2;font-family:Inter,Arial,sans-serif">
+  const html = `<!doctype html><html><body style="margin:0;background:#F3F7F5;font-family:Inter,Arial,sans-serif">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:24px 12px">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#fff;border-radius:24px;padding:24px">
     <tr><td style="font-weight:800;font-size:20px;color:#1F6F6B;padding-bottom:16px">nayboro</td></tr>

@@ -2,14 +2,14 @@
 
 /* Nayboro design tokens. Source of truth: design/mockups/*.html */
 :root {
-  --green: #1e6b4a;
-  --green-dark: #164f37;
-  --green-tint: #e3f0e8;
-  --orange: #f59e4c;
-  --orange-logo: #ee8a35;
-  --orange-tint: #fdebdd;
-  --orange-text: #7a3a0f;
-  --orange-icon: #b4531a;
+  --green: #1f6f6b; /* brand teal (token kept as "green" so every screen follows) */
+  --green-dark: #175654;
+  --green-tint: #e0efec;
+  --orange: #f2876b; /* brand coral (token kept as "orange") */
+  --orange-logo: #f2876b;
+  --orange-tint: #fde7e0;
+  --orange-text: #8a3520;
+  --orange-icon: #b0472b;
   --blue-tint: #dce7f7;
   --blue-text: #28426b;
   --warn: #9a2b1f;
@@ -21,17 +21,17 @@
   --yellow-text: #6b4a0e;
   --slate: #3b463f;
   --brown-text: #5e4330;
-  --orange-ink: #3e2a1c;
-  --hero-blob: #2a7d58;
-  --on-green-muted: #cde6d8;
+  --orange-ink: #3a1d12;
+  --hero-blob: #175654;
+  --on-green-muted: #d5ebe7;
   --dash: #c3ccc5;
   --radio: #7d8981;
-  --photo-dash: #e9c9ae;
+  --photo-dash: #f3c3b4;
   --warn-tint: #fbe9e6;
-  --ground: #f5f7f2;
+  --ground: #f3f7f5;
   --surface: #ffffff;
-  --line: #dde3dc;
-  --line-soft: #e6ebe5;
+  --line: #d6e2de;
+  --line-soft: #e3ebe8;
   --ink: #17201b;
   --muted: #56635b;
   /* Coming-soon page (waitlist design) */

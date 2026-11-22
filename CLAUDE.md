@@ -46,7 +46,7 @@ This Next.js version has breaking changes: read `node_modules/next/dist/docs/` b
 - e2e: `waitlist_flow.py` runs first and leaves the site `'open'` for the other flows.
 
 ## Design
-- Colours: green `#1E6B4A` (primary), orange `#F59E4C` (accent), logo orange `#EE8A35`, ground `#F5F7F2`, ink `#17201B`, muted `#56635B`. Use the Tailwind tokens (`bg-green`, `text-muted`, `bg-orange-tint`…), not raw hex.
+- Colours (since 2026-11-22): teal `#1F6F6B` (primary) and coral `#F2876B` (accent), ground `#F3F7F5`, ink `#17201B`, muted `#56635B`. The token NAMES are still `green*` (= teal) and `orange*` (= coral) so every screen follows; mockups in design/ still show the old green/orange. Use the Tailwind tokens (`bg-green`, `text-muted`, `bg-orange-tint`…), not raw hex. Text on coral is always dark (`text-ink`).
 - Fonts: Bricolage Grotesque for headings (`font-display`), Inter for body.
 - Phone-first: wrap screens in `.app-frame` (max 440px, framed on desktop). Tap targets at least 44px.
 - Bottom nav has three tabs: Explore, People, Chats. The account menu opens from the orange initial button.
