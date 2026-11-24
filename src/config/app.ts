@@ -9,6 +9,10 @@ export const APP = {
   emergency: "In immediate danger? Call 911 first.",
   /** Public links on the coming-soon page. Change these to the real ones before launch. */
   contactEmail: "hello@nayboro.com",
+  /** Bump when the Terms or Privacy policy change in a way people must agree to again (stored per profile). */
+  termsVersion: "2026-11-24",
+  /** Shown as "Last updated" on the legal pages. */
+  termsUpdated: "November 24, 2026",
   instagramUrl: "https://www.instagram.com/nayborohq/",
   /** Shown as "Coming soon to …" on the coming-soon page: the first metro we open. */
   launchMetro: "Dallas-Fort Worth",

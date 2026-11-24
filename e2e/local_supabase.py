@@ -137,6 +137,10 @@ class H(BaseHTTPRequestHandler):
             if not c or parts[2] != c.get("sub"):
                 return self.send(403, {"statusCode": "403", "error": "Unauthorized", "message": "new row violates row-level security policy"})
             return self.send(200, {"Key": "/".join(parts[1:]), "Id": str(uuid.uuid4())})
+        if m == "POST" and parts[:3] == ["object", "list", "avatars"]:   # Delete account: list my photos
+            return self.send(200, [])
+        if m == "DELETE" and parts[:2] == ["object", "avatars"]:
+            return self.send(200, [])
         self.send(404, {"message": "storage route"})
 
 ThreadingHTTPServer(("127.0.0.1", 54321), H).serve_forever()

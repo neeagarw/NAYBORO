@@ -277,3 +277,20 @@ select count(*) from beta_login_attempts;
 reset role;
 \echo '50. Interest sentences read naturally (expect: Plays tennis | Goes running | Does yoga | Into book club):'
 select interest_phrase('Tennis') || ' | ' || interest_phrase('Running') || ' | ' || interest_phrase('Yoga') || ' | ' || interest_phrase('Book club');
+\echo '51. Delete my account removes only the caller (expect: temp gone = t, others untouched = t; anon refused):'
+reset role;
+insert into auth.users (id, email) values ('99999999-9999-9999-9999-999999999999', 'temp-delete@example.com');
+insert into waitlist (email) values ('temp-delete@example.com');
+select count(*) as people_before from auth.users \gset
+set role authenticated;
+select set_config('request.jwt.claim.sub','99999999-9999-9999-9999-999999999999',false);
+select delete_my_account();
+reset role;
+select not exists (select 1 from auth.users where email = 'temp-delete@example.com')
+   and not exists (select 1 from waitlist where email = 'temp-delete@example.com') as temp_gone,
+       (select count(*) from auth.users) = :people_before - 1 as others_untouched;
+set role anon;
+\set ON_ERROR_STOP 0
+select delete_my_account();
+\set ON_ERROR_STOP 1
+reset role;

@@ -68,5 +68,19 @@ with sync_playwright() as p:
     # Log out
     pg.get_by_role('button', name='Your account').click(); pg.get_by_role('button', name='Log out').click(); expect(pg).to_have_url(B+'/')
     pg.goto(B+'/people'); expect(pg).to_have_url(re.compile(r'login\?next=%2Fpeople$'))
+    # Agreement was recorded with the Terms version
+    assert subprocess.run(['psql','-d','e2e','-tAc',"select terms_version is not null and terms_agreed_at is not null from profiles p join auth.users u on u.id=p.id where u.email='neeraj@example.com'"],capture_output=True,text=True).stdout.strip()=='t'
+    # Delete my account: everything goes, and it says so
+    subprocess.run(['psql','-d','e2e','-qc',"insert into waitlist (email) values ('neeraj@example.com') on conflict do nothing"],check=True)
+    pg.get_by_label('Email').fill('neeraj@example.com'); pg.get_by_role('button', name='Send me a code').click()
+    pg.get_by_label('6-digit code').fill('123456'); expect(pg).to_have_url(re.compile(r'/people$'))
+    pg.get_by_role('button', name='Your account').click(); pg.get_by_role('button', name='Delete account').click()
+    expect(pg.get_by_role('heading', name='Delete your account?')).to_be_visible(); shot(pg,'12_delete_confirm')
+    pg.get_by_role('button', name='Keep my account').click(); expect(pg.get_by_role('button', name='Log out')).to_be_visible()   # back out safely
+    pg.get_by_role('button', name='Delete account').click(); pg.get_by_role('button', name='Delete my account forever').click()
+    expect(pg.get_by_role('status').filter(has_text='has been deleted')).to_be_visible(); shot(pg,'13_deleted')
+    left = subprocess.run(['psql','-d','e2e','-tAc',"select (select count(*) from auth.users where email='neeraj@example.com') + (select count(*) from waitlist where email='neeraj@example.com')"],capture_output=True,text=True).stdout.strip()
+    assert left == '0', f'left behind: {left}'
+    pg.goto(B+'/people'); expect(pg).to_have_url(re.compile(r'login\?next=%2Fpeople$'))   # signed out
     print('ALL STEPS PASSED'); print('browser errors:', errs or 'none')
     b.close()

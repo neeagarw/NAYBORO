@@ -31,8 +31,14 @@ async function HomeInner({ searchParams }: { searchParams: PageProps<"/">["searc
 
   const supabase = await createClient();
   const [{ data: mode }, { data: { user } }] = await Promise.all([supabase.rpc("site_mode"), supabase.auth.getUser()]);
-  if (mode === "open") return <Welcome />;
-  if (isBetaSite()) return <BetaGate notListedEmail={sp.notyet ? user?.email ?? null : null} joinUrl={publicSiteUrl()} />;
+  // After "Delete my account": a short confirmation on whichever home page shows.
+  const deleted = sp.deleted ? (
+    <div role="status" className="fixed inset-x-0 top-3 z-50 mx-auto w-fit max-w-[90vw] rounded-2xl bg-green px-4 py-3 text-sm font-semibold text-white shadow-lg">
+      Your account and everything in it has been deleted.
+    </div>
+  ) : null;
+  if (mode === "open") return <>{deleted}<Welcome /></>;
+  if (isBetaSite()) return <>{deleted}<BetaGate notListedEmail={sp.notyet ? user?.email ?? null : null} joinUrl={publicSiteUrl()} /></>;
 
   // Prefill "Your city" from the visitor's approximate location. Vercel adds these headers from the
   // network address (no browser prompt). Used once to find the metro; never stored.
@@ -42,5 +48,5 @@ async function HomeInner({ searchParams }: { searchParams: PageProps<"/">["searc
     city = ((data ?? []) as City[])[0] ?? null;
   }
 
-  return <ComingSoon refCode={ref} signedInEmail={sp.notyet ? user?.email ?? null : null} guessedCity={city} year={year} showLogin />;
+  return <>{deleted}<ComingSoon refCode={ref} signedInEmail={sp.notyet ? user?.email ?? null : null} guessedCity={city} year={year} showLogin /></>;
 }

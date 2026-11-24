@@ -14,6 +14,10 @@ psql("insert into beta_testers values ('neeraj@example.com')")
 # Not indexed, and the waitlist API isn't served here.
 with urllib.request.urlopen(B + "/") as r:
     assert "noindex" in (r.headers.get("X-Robots-Tag") or ""), r.headers.get("X-Robots-Tag")
+    # Security headers on every page
+    assert "frame-ancestors 'none'" in (r.headers.get("Content-Security-Policy") or ""), r.headers.get("Content-Security-Policy")
+    assert r.headers.get("X-Frame-Options") == "DENY" and r.headers.get("X-Content-Type-Options") == "nosniff"
+    assert "camera=()" in (r.headers.get("Permissions-Policy") or "")
 
 def sign_in(browser, email, code="TEST-CODE-42"):
     ctx = browser.new_context(viewport={"width": 400, "height": 860})

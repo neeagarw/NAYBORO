@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { getClient } from "@/lib/supabase/client";
 import { LogoMark } from "@/components/Logo";
 import { shrinkImage } from "@/lib/geo";
-import { UI } from "@/config/app";
+import { APP, UI } from "@/config/app";
 
 // Port of design/mockups/profile-setup.html: Roots → Interests → Now → You → Done.
 
@@ -143,6 +143,7 @@ export function SetupFlow({ userId, initialArea, prefillRoot = null, prefillFirs
       p_first: first.trim(), p_last: last.trim(), p_intro: intro.trim(), p_photo: photoPath,
       p_area: now!.id, p_level: level, p_roots: roots.map((r) => r.id), p_interests: picked, p_adult: adult,
     });
+    if (!error) await getClient().rpc("record_terms", { p_version: APP.termsVersion });   // proof of what was agreed, and when
     setSaving(false);
     if (error) { setError("Something went wrong saving your profile. Please try again."); return; }
     go(4);
@@ -386,7 +387,12 @@ export function SetupFlow({ userId, initialArea, prefillRoot = null, prefillFirs
 
             <label className="flex cursor-pointer items-start gap-3 text-sm leading-[1.45]">
               <input type="checkbox" checked={adult} onChange={(e) => setAdult(e.target.checked)} className="m-0 h-[22px] w-[22px] flex-none accent-green" />
-              <span>I&apos;m 18 or older and I agree to keep Nayboro kind and respectful.</span>
+              <span>
+                I&apos;m 18 or older, and I agree to the{" "}
+                <a href="/terms" target="_blank" rel="noopener" className="font-semibold text-green underline">Terms</a>,{" "}
+                <a href="/privacy" target="_blank" rel="noopener" className="font-semibold text-green underline">Privacy policy</a> and{" "}
+                <a href="/guidelines" target="_blank" rel="noopener" className="font-semibold text-green underline">Community guidelines</a>.
+              </span>
             </label>
             {error && <p role="alert" className="text-[13px] font-semibold text-warn">{error}</p>}
           </>

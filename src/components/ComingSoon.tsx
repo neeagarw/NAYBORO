@@ -62,6 +62,8 @@ export function ComingSoon({ refCode, signedInEmail, guessedCity, year, showLogi
           <span>© {year} {APP.name} · 18+ only</span>
           <nav aria-label="Footer" className="flex flex-wrap gap-5">
             <Link href="/privacy" className="underline decoration-1 underline-offset-4 text-teal">Privacy policy</Link>
+            <Link href="/terms" className="underline decoration-1 underline-offset-4 text-teal">Terms</Link>
+            <Link href="/guidelines" className="underline decoration-1 underline-offset-4 text-teal">Guidelines</Link>
             <a href={`mailto:${APP.contactEmail}`} className="underline decoration-1 underline-offset-4 text-teal">Contact</a>
             {showLogin && <Link href="/login" className="underline decoration-1 underline-offset-4 text-muted">Beta tester log in</Link>}
           </nav>

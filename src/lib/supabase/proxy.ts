@@ -4,7 +4,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 /** Pages anyone can open without signing in. */
 // /api routes check their own secrets or signed links; /unsubscribed is reached from an email.
-const PUBLIC = [/^\/$/, /^\/login$/, /^\/auth\//, /^\/api\//, /^\/unsubscribed$/, /^\/privacy$/, /^\/guidelines$/, /^\/r\//];
+const PUBLIC = [/^\/$/, /^\/login$/, /^\/auth\//, /^\/api\//, /^\/unsubscribed$/, /^\/privacy$/, /^\/guidelines$/, /^\/terms$/, /^\/r\//];
 
 /**
  * Refreshes the Supabase session cookie on every request and sends signed-out

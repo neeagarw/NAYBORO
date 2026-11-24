@@ -140,6 +140,7 @@ export function LoginForm({ next, prelaunch = false, joinUrl = "/", betaCode = f
               <button type="submit" disabled={busy || !email.trim() || (betaCode && !beta.trim())} className="flex h-14 items-center justify-center rounded-[18px] bg-green text-[17px] font-bold text-white disabled:bg-line disabled:text-muted">
                 {betaCode ? (busy ? "Signing in..." : "Sign in") : busy ? "Sending..." : "Send me a code"}
               </button>
+              <span className="text-center text-xs leading-[1.45] text-muted">By continuing you agree to our <Link href="/terms" className="font-semibold text-green underline">Terms</Link> and <Link href="/privacy" className="font-semibold text-green underline">Privacy policy</Link>.</span>
               {prelaunch ? (
                 <span className="text-center text-xs leading-[1.45] text-muted">Not a beta tester? <a href={joinUrl} className="font-bold text-green underline">Join the waitlist</a> and we&apos;ll email you when we open.</span>
               ) : (
