@@ -127,6 +127,17 @@ with sync_playwright() as p:
     expect(h1b.get_by_text("From Rajasthan")).to_be_visible()          # Vikram shares Neeraj's region
     expect(h1b.locator("div").first.get_by_role("link")).to_have_count(0)   # anonymous author: no profile link
     shot(A, "s07_explore")
+    # Instagram-style top bar: hides while scrolling down, comes back on the first scroll up
+    title = A.get_by_role("heading", name="Explore", level=1)
+    A.set_viewport_size({"width": 390, "height": 600})
+    box = "main:visible >> xpath=.."
+    A.locator(box).evaluate("el => el.scrollTo(0, 400)"); A.wait_for_timeout(400)
+    assert A.locator(box).evaluate("el => el.scrollTop") > 100, "explore column should scroll"
+    assert title.evaluate("h => h.getBoundingClientRect().bottom") <= 0, "top bar should hide on scroll down"
+    A.locator(box).evaluate("el => el.scrollTo(0, 300)"); A.wait_for_timeout(400)
+    assert title.evaluate("h => h.getBoundingClientRect().top") >= 0, "top bar should come back on scroll up"
+    A.locator(box).evaluate("el => el.scrollTo(0, 0)")
+    A.set_viewport_size({"width": 400, "height": 860})
     # Tapping a question author's name opens their profile
     methi = A.locator("article:visible").filter(has_text="Where can I get fresh methi")
     methi.locator("div").first.get_by_role("link").first.click()

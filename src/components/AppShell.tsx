@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AccountMenu } from "@/components/AccountMenu";
+import { ScrollHeader } from "@/components/ScrollHeader";
 import { createClient } from "@/lib/supabase/server";
 
 type Tab = "explore" | "people" | "chats";
@@ -32,9 +33,9 @@ export async function AppShell({ tab, title, sub, head, children, overlay }: {
 
   return (
     <div className="app-frame">
-      {/* Like Instagram: the header, tabs and filters scroll away with the list; only the bottom nav stays. */}
+      {/* Like Instagram: everything scrolls; the top bar slides back when you scroll up. Only the bottom nav is fixed. */}
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
-        {header}
+        <ScrollHeader>{header}</ScrollHeader>
         {children}
       </div>
       {overlay}

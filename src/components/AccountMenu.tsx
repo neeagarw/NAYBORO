@@ -2,11 +2,14 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { getClient } from "@/lib/supabase/client";
 
 /** Orange initial button + bottom sheet (Edit profile, Help and feedback, Community guidelines, Log out, Delete account). */
 export function AccountMenu({ name, route, admin = false }: { name: string; route: string; admin?: boolean }) {
   const [open, setOpen] = useState(false);
+  // The menu sits in the sticky header; its sheets render into the screen frame so they cover the whole screen.
+  const [frame, setFrame] = useState<Element | null>(null);
   const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -29,9 +32,10 @@ export function AccountMenu({ name, route, admin = false }: { name: string; rout
   }
   return (
     <>
-      <button onClick={() => setOpen(true)} aria-label="Your account" className="h-10 w-10 rounded-[13px] bg-orange font-display text-sm font-extrabold text-ink">
+      <button onClick={(e) => { setFrame(e.currentTarget.closest(".app-frame")); setOpen(true); }} aria-label="Your account" className="h-10 w-10 rounded-[13px] bg-orange font-display text-sm font-extrabold text-ink">
         {name[0]?.toUpperCase() ?? "?"}
       </button>
+      {frame && createPortal(<>
       {open && confirming && (
         <div className="absolute inset-0 z-10 flex items-end bg-[rgba(23,32,27,.35)]" onClick={(e) => e.target === e.currentTarget && !busy && close()}>
           <div role="dialog" aria-modal="true" aria-labelledby="delTitle" className="flex w-full flex-col gap-3 rounded-t-[28px] bg-surface px-5 pb-6 pt-2.5">
@@ -69,6 +73,7 @@ export function AccountMenu({ name, route, admin = false }: { name: string; rout
           </div>
         </div>
       )}
+      </>, frame)}
     </>
   );
 }
