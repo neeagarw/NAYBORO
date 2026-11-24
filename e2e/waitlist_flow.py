@@ -74,14 +74,13 @@ with sync_playwright() as p:
     pg.get_by_role("button", name="Join the waitlist").click()
     expect(pg.locator("form p[role=alert]")).to_have_text(re.compile("18 or older"))
 
-    # Two homes: one picked from the list, one typed freely
-    home1 = pg.get_by_role("combobox", name="Where's home for you?")
+    # First name up front (optional), one hometown picked from the list
+    pg.get_by_label("First name").fill("Priya")
+    home1 = pg.get_by_role("combobox", name="Hometown")
     home1.fill("Jai")
     pg.get_by_role("option", name=re.compile("^Jaipur")).first.click()
     expect(home1).to_have_value(re.compile("^Jaipur"))
-    pg.get_by_role("button", name="+ Add another home").click()
-    pg.get_by_role("combobox", name="Home 2").fill("Toronto, Canada")
-    pg.get_by_label("Your city").fill("Fremont")
+    pg.get_by_label("Current city").fill("Fremont")
     pg.get_by_role("option", name=re.compile(r"^Fremont, CA")).first.click()
     expect(pg.get_by_text("Part of San Francisco Bay Area")).to_be_visible()
     pg.get_by_role("checkbox").check()
@@ -90,13 +89,11 @@ with sync_playwright() as p:
     expect(pg.get_by_role("status").get_by_text("San Francisco Bay Area")).to_be_visible()
     code = psql("select ref_code from waitlist where email='priya@example.com'")
     expect(pg.get_by_text(f"localhost:3123/r/{code}")).to_be_visible()
+    expect(pg.get_by_text("What happens next")).to_be_visible()
     pg.screenshot(path=f"{OUT}/waitlist-joined.png", full_page=True)
-    assert psql("select referred_by || '|' || metro || '|' || hometown from waitlist where email='priya@example.com'") == friend["refCode"] + "|41860|Jaipur, Rajasthan · Toronto, Canada", psql("select * from waitlist")
+    assert psql("select referred_by || '|' || metro || '|' || hometown from waitlist where email='priya@example.com'") == friend["refCode"] + "|41860|Jaipur, Rajasthan", psql("select * from waitlist")
 
-    # Optional first name
-    pg.get_by_label("First name").fill("Priya")
-    pg.get_by_role("button", name="Save").click()
-    expect(pg.get_by_text("Thanks, Priya!")).to_be_visible()
+    # The first name typed in the form was saved with the sign-up
     assert psql("select first_name from waitlist where email='priya@example.com'") == "Priya"
     req = urllib.request.Request(B + "/api/waitlist", data=json.dumps({"email": "priya@example.com", "refCode": "WRONGCOD", "firstName": "X"}).encode(), method="PATCH", headers={"Content-Type": "application/json"})
     try: urllib.request.urlopen(req); assert False, "wrong code must not save"
@@ -141,8 +138,8 @@ with sync_playwright() as p:
     wide = browser.new_context(viewport={"width": 1600, "height": 1250}, extra_http_headers={"x-vercel-ip-latitude": "33.1507", "x-vercel-ip-longitude": "-96.8236"}).new_page()
     wide.goto(B + "/")
     expect(wide.get_by_role("heading", name="Join the waitlist")).to_be_visible()
-    expect(wide.get_by_label("Your city")).to_have_value(re.compile(r"^Dallas.Fort Worth, TX$"))
-    expect(wide.get_by_text("We filled this in from your location")).to_be_visible()
+    expect(wide.get_by_label("Current city")).to_have_value(re.compile(r"^Dallas.Fort Worth, TX$"))
+    expect(wide.get_by_text("Detected from your location")).to_be_visible()
     wide.wait_for_load_state("networkidle")
     wide.screenshot(path=f"{OUT}/waitlist-laptop.png", full_page=True)
     wide.get_by_role("link", name="Privacy policy").first.click()

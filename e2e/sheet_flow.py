@@ -37,14 +37,13 @@ with sync_playwright() as p:
     pg.goto(B + "/r/" + friend["refCode"])
     expect(pg.get_by_role("heading", name="Join the waitlist")).to_be_visible()
     pg.wait_for_load_state("networkidle")
-    expect(pg.get_by_label("Your city")).to_have_value(re.compile(r"^Dallas.Fort Worth, TX$"))
+    expect(pg.get_by_label("Current city")).to_have_value(re.compile(r"^Dallas.Fort Worth, TX$"))
     expect(pg.get_by_role("link", name="Beta tester log in")).to_have_count(0)   # no app to log in to yet
 
     pg.get_by_label("Email", exact=True).fill("priya@example.com")
-    home = pg.get_by_role("combobox", name="Where's home for you?")
+    pg.get_by_label("First name").fill("Priya")
+    home = pg.get_by_role("combobox", name="Hometown")
     home.fill("Jai"); pg.get_by_role("option", name=re.compile("^Jaipur")).first.click()
-    pg.get_by_role("button", name="+ Add another home").click()
-    pg.get_by_role("combobox", name="Home 2").fill("Toronto, Canada")
     pg.get_by_role("checkbox").check()
     pg.get_by_role("button", name="Join the waitlist").click()
     expect(pg.get_by_role("heading", name="You're on the list.")).to_be_visible()
@@ -53,13 +52,11 @@ with sync_playwright() as p:
     r = row("priya@example.com")
     assert r, rows()
     code = r[6]
-    assert r[3] == "Garland, TX" and r[4].startswith("Dallas") and r[5] == "Jaipur, Rajasthan · Toronto, Canada" and r[7] == friend["refCode"], r
+    assert r[3] == "Garland, TX" and r[4].startswith("Dallas") and r[5] == "Jaipur, Rajasthan" and r[7] == friend["refCode"], r
     assert len(r[8]) == 32 and "203.0" not in r[8]   # scrambled network, never the address
     assert row("aman@example.com")[9] == 1, row("aman@example.com")   # friend credited
     expect(pg.get_by_text(f"localhost:3124/r/{code}")).to_be_visible()
 
-    pg.get_by_label("First name").fill("Priya"); pg.get_by_role("button", name="Save").click()
-    expect(pg.get_by_text("Thanks, Priya!")).to_be_visible()
     assert row("priya@example.com")[2] == "Priya"
     assert api("PATCH", {"email": "priya@example.com", "refCode": "wrongcod", "firstName": "X"})[0] == 404
     assert row("priya@example.com")[2] == "Priya"

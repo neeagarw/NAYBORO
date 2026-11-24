@@ -10,11 +10,10 @@ import { APP } from "@/config/app";
 
 export type City = { id: number; name: string; state: string; metro_name: string; zip?: string | null };
 type Place = { id: number; city: string; region: string; country: string };
-type Home = { key: number; text: string; place: Place | null };
+type Home = { text: string; place: Place | null };
 type Done = { email: string; refCode: string; city: string | null; metro: string | null; already: boolean };
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const MAX_HOMES = 3;
 /** City and hometown lookups go through /api/geo, which works with or without the database. */
 async function geo<T>(params: Record<string, string>): Promise<T[]> {
   const res = await fetch(`/api/geo?${new URLSearchParams(params)}`).catch(() => null);
@@ -90,7 +89,7 @@ function Hero() {
         <div className="mt-3 flex flex-col gap-4">
           <h2 className="m-0 text-[14px] font-bold uppercase tracking-[1.5px] text-on-teal-muted md:text-[15px]">A sneak peek</h2>
           <ul className="m-0 flex list-none flex-col gap-3 p-0">
-            {["People from back home, closer than you think", "Real answers from people nearby", "And much more"].map((t) => (
+            {["People from your hometown, closer than you think", "Real answers from people nearby", "And much more"].map((t) => (
               <li key={t} className="flex items-center gap-4 text-[18px] font-semibold md:text-[20px]">
                 <span aria-hidden="true" className="h-2.5 w-2.5 flex-none rounded-full bg-coral" />{t}
               </li>
@@ -106,19 +105,20 @@ function Hero() {
   );
 }
 
-const INPUT = "h-16 w-full rounded-2xl border-2 border-teal-line bg-white px-5 text-[18px] text-ink outline-none placeholder:text-muted focus:border-teal md:text-[19px]";
-const LABEL = "text-[17px] font-bold md:text-[18px]";
+const INPUT = "h-[60px] w-full rounded-2xl border-2 border-teal-line bg-white px-5 text-[18px] text-ink outline-none placeholder:text-muted focus:border-teal md:text-[19px]";
+const LABEL = "text-[17px] font-semibold md:text-[18px]";
 const HINT = "m-0 text-[15px] text-muted md:text-[16px]";
 const OPTIONS = "mt-2 flex flex-col gap-1 rounded-2xl border border-teal-line bg-white p-1.5 shadow-[0_10px_30px_rgba(23,32,27,.08)]";
 const OPTION = "flex min-h-12 flex-col items-start justify-center rounded-xl px-4 py-2 text-left hover:bg-mist focus:bg-mist focus:outline-none";
 
 function JoinForm({ refCode, onDone, defaultEmail, guessedCity }: { refCode: string | null; onDone: (d: Done) => void; defaultEmail: string; guessedCity: City | null }) {
+  const [first, setFirst] = useState("");
   const [email, setEmail] = useState(defaultEmail);
   const [city, setCity] = useState<City | null>(guessedCity);
   const [cityText, setCityText] = useState(guessedCity ? cityLabel(guessedCity, true) : "");
   const [guessed, setGuessed] = useState(!!guessedCity);
   const [cityHits, setCityHits] = useState<City[]>([]);
-  const [homes, setHomes] = useState<Home[]>([{ key: 0, text: "", place: null }]);
+  const [home, setHome] = useState<Home>({ text: "", place: null });
   const [adult, setAdult] = useState(false);
   const [trap, setTrap] = useState("");
   const [busy, setBusy] = useState(false);
@@ -141,10 +141,10 @@ function JoinForm({ refCode, onDone, defaultEmail, guessedCity }: { refCode: str
     if (!EMAIL.test(em)) return setError("Please check your email address.");
     if (!adult) return setError("Please confirm you're 18 or older.");
     setBusy(true); setError(null);
-    const named = homes.map((h) => (h.place ? `${h.place.city}, ${h.place.region}` : h.text.trim())).filter(Boolean);
+    const named = home.place ? `${home.place.city}, ${home.place.region}` : home.text.trim();
     const res = await fetch("/api/waitlist", {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: em, hometown: named.join(" · ") || null, place_id: homes.find((h) => h.place)?.place?.id ?? null, area_id: city?.id ?? null, ref: refCode, adult, website: trap }),
+      body: JSON.stringify({ email: em, firstName: first.trim() || undefined, hometown: named || null, place_id: home.place?.id ?? null, area_id: city?.id ?? null, ref: refCode, adult, website: trap }),
     });
     const json = await res.json().catch(() => ({}));
     setBusy(false);
@@ -156,7 +156,15 @@ function JoinForm({ refCode, onDone, defaultEmail, guessedCity }: { refCode: str
     <form onSubmit={submit} method="post" action="#join" noValidate className="flex flex-col gap-6" aria-labelledby="joinTitle">
       <div className="flex flex-col gap-2">
         <h2 id="joinTitle" className="m-0 font-display text-[32px] font-extrabold tracking-[-0.8px] md:text-[38px]">Join the waitlist</h2>
-        <p className={HINT}>It takes 20 seconds. We&apos;ll let you know the moment we open.</p>
+        <p className="m-0 text-[17px] text-muted md:text-[18px]">Takes 20 seconds. We&apos;ll email you the moment we open.</p>
+      </div>
+
+      <div className="flex flex-col gap-3">
+        <div className="flex items-baseline justify-between gap-3">
+          <label htmlFor="firstName" className={LABEL}>First name</label>
+          <span className="text-[15px] text-muted">Optional</span>
+        </div>
+        <input id="firstName" className={INPUT} autoComplete="given-name" maxLength={40} value={first} onChange={(e) => setFirst(e.target.value)} placeholder="Your first name" />
       </div>
 
       <label className="flex flex-col gap-3"><span className={LABEL}>Email</span>
@@ -164,7 +172,7 @@ function JoinForm({ refCode, onDone, defaultEmail, guessedCity }: { refCode: str
       </label>
 
       <div className="flex flex-col gap-3">
-        <label htmlFor="city" className={LABEL}>Your city</label>
+        <label htmlFor="city" className={LABEL}>Current city</label>
         <div>
           <input id="city" className={INPUT} autoComplete="off" role="combobox" aria-expanded={cityHits.length > 0} aria-controls="cityOptions" aria-autocomplete="list"
             value={cityText} placeholder="City or ZIP"
@@ -181,38 +189,29 @@ function JoinForm({ refCode, onDone, defaultEmail, guessedCity }: { refCode: str
           )}
         </div>
         <p className={HINT}>
-          {guessed ? "We filled this in from your location. Change it if it's not right."
+          {guessed ? "Detected from your location. Edit if it's not right."
             : city ? <>Part of <b className="font-semibold text-ink">{city.metro_name}</b>. We only use your city, never your address.</>
             : "Type your city or ZIP. We only use your city, never your address."}
         </p>
       </div>
 
       <div className="flex flex-col gap-3">
-        <span id="homesLabel" className={LABEL}>Where&apos;s home for you?</span>
-        {homes.map((h, i) => (
-          <HomeField key={h.key} home={h} index={i} removable={homes.length > 1}
-            onChange={(next) => setHomes((all) => all.map((x) => (x.key === h.key ? next : x)))}
-            onRemove={() => setHomes((all) => all.filter((x) => x.key !== h.key))} />
-        ))}
-        {homes.length < MAX_HOMES && (
-          <button type="button" onClick={() => setHomes((all) => [...all, { key: Math.max(...all.map((x) => x.key)) + 1, text: "", place: null }])}
-            className="mt-2 inline-flex min-h-11 items-center self-start text-[17px] font-bold text-teal md:text-[19px]">
-            + Add another home
-          </button>
-        )}
-        <p className={HINT}>A city, state or country. Lots of people have more than one.</p>
+        <span id="homeLabel" className={LABEL}>Hometown</span>
+        <HomeField home={home} onChange={setHome} />
+        <p className={HINT}>Where you grew up. We&apos;ll connect you with people from there.</p>
       </div>
 
       {/* Bots fill every field; people never see this one. */}
       <label className="absolute -left-[9999px]" aria-hidden="true">Website<input tabIndex={-1} autoComplete="off" value={trap} onChange={(e) => setTrap(e.target.value)} /></label>
 
-      <label className="flex cursor-pointer items-center gap-4 text-[18px] font-medium md:text-[19px]">
+      <hr className="m-0 border-0 border-t border-teal-line" />
+      <label className="flex cursor-pointer items-center gap-4 text-[18px] md:text-[19px]">
         <input type="checkbox" checked={adult} onChange={(e) => setAdult(e.target.checked)} className="m-0 h-6 w-6 flex-none accent-teal" />
-        I&apos;m 18 or older
+        I confirm I&apos;m 18 or older
       </label>
 
       {error && <p role="alert" className="m-0 text-[15px] font-semibold text-warn">{error}</p>}
-      <button disabled={busy} className="flex h-[68px] items-center justify-center rounded-[18px] bg-teal text-[19px] font-bold text-white disabled:opacity-60 md:text-[21px]">
+      <button disabled={busy} className="flex h-[66px] items-center justify-center rounded-[18px] bg-teal text-[19px] font-bold text-white disabled:opacity-60 md:text-[21px]">
         {busy ? "Joining…" : "Join the waitlist"}
       </button>
       <p className="m-0 text-center text-[15px] leading-normal text-muted md:text-[16px]">
@@ -222,7 +221,7 @@ function JoinForm({ refCode, onDone, defaultEmail, guessedCity }: { refCode: str
   );
 }
 
-function HomeField({ home, index, removable, onChange, onRemove }: { home: Home; index: number; removable: boolean; onChange: (h: Home) => void; onRemove: () => void }) {
+function HomeField({ home, onChange }: { home: Home; onChange: (h: Home) => void }) {
   const [hits, setHits] = useState<Place[]>([]);
   const id = useId();
   const text = home.place ? `${home.place.city}, ${home.place.region}` : home.text;
@@ -240,15 +239,9 @@ function HomeField({ home, index, removable, onChange, onRemove }: { home: Home;
 
   return (
     <div>
-      <div className="flex gap-2">
-        <input className={INPUT} autoComplete="off" role="combobox" aria-expanded={hits.length > 0} aria-controls={`${id}-opts`} aria-autocomplete="list"
-          aria-labelledby={index ? undefined : "homesLabel"} aria-label={index ? `Home ${index + 1}` : undefined}
-          value={text} placeholder={index ? "Another home" : "e.g. Jaipur, India"}
-          onChange={(e) => { onChange({ ...home, text: e.target.value, place: null }); if (e.target.value.trim().length < 2) setHits([]); }} />
-        {removable && (
-          <button type="button" onClick={onRemove} aria-label={`Remove home ${index + 1}`} className="flex h-16 w-14 flex-none items-center justify-center rounded-2xl text-[26px] text-muted hover:bg-mist">×</button>
-        )}
-      </div>
+      <input className={INPUT} autoComplete="off" role="combobox" aria-expanded={hits.length > 0} aria-controls={`${id}-opts`} aria-autocomplete="list"
+        aria-labelledby="homeLabel" value={text}
+        onChange={(e) => { onChange({ text: e.target.value, place: null }); if (e.target.value.trim().length < 2) setHits([]); }} />
       {!home.place && hits.length > 0 && (
         <div id={`${id}-opts`} role="listbox" aria-label="Places" className={OPTIONS}>
           {hits.map((p) => (
@@ -263,64 +256,56 @@ function HomeField({ home, index, removable, onChange, onRemove }: { home: Home;
 }
 
 function Joined({ done }: { done: Done }) {
-  const [name, setName] = useState("");
-  const [saved, setSaved] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
-  const [nameError, setNameError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   // Only shown after a sign-up, so this always runs in the browser.
   const [origin] = useState(() => (typeof window === "undefined" ? "" : window.location.origin));
   const link = `${origin}/r/${done.refCode}`;
   const shown = link.replace(/^https?:\/\//, "");
 
-  async function save(e: React.FormEvent) {
-    e.preventDefault();
-    if (!name.trim()) return;
-    setSaving(true); setNameError(null);
-    const res = await fetch("/api/waitlist", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: done.email, refCode: done.refCode, firstName: name }) });
-    setSaving(false);
-    if (res.ok) setSaved(name.trim()); else setNameError("We couldn't save that. Please try again.");
-  }
-
   async function copy() {
     try { await navigator.clipboard.writeText(link); setCopied(true); }
     catch { if (navigator.share) await navigator.share({ title: APP.name, url: link }).catch(() => {}); }
   }
 
+  const steps: React.ReactNode[] = [
+    "Check your inbox for a confirmation email.",
+    "We'll invite people in waves as we open in your city.",
+    <>Follow us on <a href={APP.instagramUrl} target="_blank" rel="noopener noreferrer" className="font-semibold text-teal underline underline-offset-2">Instagram</a> for sneak peeks.</>,
+  ];
+
   return (
     <div className="flex flex-col gap-6" role="status" aria-live="polite">
-      <span className="flex h-[70px] w-[70px] items-center justify-center rounded-[20px] bg-teal-tint text-teal" aria-hidden="true">
-        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
+      <span className="flex h-16 w-16 items-center justify-center rounded-[18px] bg-teal-tint text-teal" aria-hidden="true">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
       </span>
       <div className="flex flex-col gap-3">
         <h2 className="m-0 font-display text-[32px] font-extrabold tracking-[-0.8px] md:text-[38px]">{done.already ? "You're already on the list." : "You're on the list."}</h2>
-        <p className="m-0 text-[17px] text-muted md:text-[19px]">
+        <p className="m-0 text-[17px] leading-relaxed text-muted md:text-[19px]">
           We&apos;ll email you when Nayboro opens in {done.metro ? <b className="font-semibold text-ink">{done.metro}</b> : "your city"}.
         </p>
       </div>
 
-      {saved ? (
-        <p className="m-0 rounded-[28px] bg-mist px-7 py-6 text-[17px]">Thanks, <b>{saved}</b>! Our emails will say hi.</p>
-      ) : (
-        <form onSubmit={save} className="flex flex-col gap-3 rounded-[28px] bg-mist p-6 md:p-7">
-          <span className="text-[14px] font-bold uppercase tracking-[1.5px] text-muted md:text-[15px]">Optional · helps us get ready</span>
-          <label className="flex flex-col gap-3"><span className={LABEL}>First name</span>
-            <input className={INPUT} autoComplete="given-name" maxLength={40} value={name} onChange={(e) => setName(e.target.value)} placeholder="So our emails can say hi" />
-          </label>
-          {nameError && <p role="alert" className="m-0 text-[15px] font-semibold text-warn">{nameError}</p>}
-          <button disabled={saving || !name.trim()} className="mt-1 h-[58px] self-start rounded-2xl border-2 border-teal bg-white px-7 text-[18px] font-bold text-teal disabled:opacity-60">
-            {saving ? "Saving…" : "Save"}
-          </button>
-        </form>
-      )}
+      <hr className="m-0 border-0 border-t border-teal-line" />
 
       <div className="flex flex-col gap-3">
         <h3 className="m-0 font-display text-[24px] font-extrabold md:text-[28px]">Want in sooner?</h3>
-        <p className="m-0 text-[17px] leading-relaxed text-muted md:text-[19px]">Share your link with friends here. Every friend who joins moves you up the list.</p>
+        <p className="m-0 text-[17px] leading-relaxed text-muted md:text-[18px]">Share your link with friends. Every friend who joins moves you up the list.</p>
         <div className="mt-1 flex flex-col gap-3 sm:flex-row">
-          <code className="flex h-16 w-full min-w-0 items-center sm:flex-1 overflow-hidden text-ellipsis whitespace-nowrap rounded-2xl border-2 border-dashed border-teal-line px-5 font-sans text-[17px] font-medium text-ink md:text-[19px]">{shown}</code>
+          <code className="flex h-16 w-full min-w-0 items-center overflow-hidden text-ellipsis whitespace-nowrap rounded-2xl border-2 border-dashed border-teal-line bg-mist px-5 font-sans text-[17px] font-medium text-ink sm:flex-1 md:text-[18px]">{shown}</code>
           <button onClick={copy} className="h-16 flex-none rounded-2xl bg-coral px-7 text-[18px] font-bold text-coral-ink md:text-[19px]">{copied ? "Link copied" : "Copy link"}</button>
         </div>
+      </div>
+
+      <div className="flex flex-col gap-4 rounded-[24px] bg-mist p-6 md:p-7">
+        <h3 className="m-0 text-[14px] font-bold uppercase tracking-[1.5px] text-muted md:text-[15px]">What happens next</h3>
+        <ol className="m-0 flex list-none flex-col gap-3.5 p-0">
+          {steps.map((t, i) => (
+            <li key={i} className="flex items-start gap-4 text-[17px] leading-snug md:text-[18px]">
+              <span aria-hidden="true" className="mt-px flex h-7 w-7 flex-none items-center justify-center rounded-full bg-teal text-[14px] font-bold text-white">{i + 1}</span>
+              <span>{t}</span>
+            </li>
+          ))}
+        </ol>
       </div>
     </div>
   );

@@ -6,7 +6,7 @@ import { waitlistStore } from "@/lib/store";
 import { areaById } from "@/lib/places";
 import { sheet, SheetError } from "@/lib/sheet";
 
-// POST /api/waitlist  { email, hometown?, place_id?, area_id?, ref?, adult: true }
+// POST /api/waitlist  { email, firstName?, hometown?, place_id?, area_id?, ref?, adult: true }
 // PATCH /api/waitlist { email, refCode, firstName }
 // Runs on the server so it can rate-limit by network (a salted hash of the IP, never the IP itself)
 // and send the confirmation email. Sign-ups go to the Google Sheet or the database (src/lib/store.ts).
@@ -43,6 +43,7 @@ export async function POST(req: NextRequest) {
   const num = (v: unknown) => (typeof v === "number" && Number.isInteger(v) && v > 0 ? v : null);
   const hometown = typeof b.hometown === "string" ? b.hometown.slice(0, 200) : null;
   const ref = typeof b.ref === "string" ? b.ref.slice(0, 16) : null;
+  const firstName = typeof b.firstName === "string" ? b.firstName.trim().slice(0, 40) : "";
   const mailVia = process.env.RESEND_API_KEY ? "resend" : waitlistStore() === "sheet" && (process.env.UNSUBSCRIBE_SECRET || process.env.SHEET_WEBHOOK_SECRET) ? "sheet" : null;
 
   // ── Google Sheet ──
@@ -53,6 +54,8 @@ export async function POST(req: NextRequest) {
       // The email needs the invite code, which the sheet makes: build it with a placeholder and fill it in there.
       const mail = mailVia === "sheet" ? buildWaitlistEmail({ email, city, metro, refCode: "{{CODE}}" }) : null;
       const row = await sheet.join({ email, city, metro, homes: hometown, ref, ipHash: ipHash(req), mail: mail && { subject: mail.subject, html: mail.html, text: mail.text } });
+      // Saved only on a new sign-up, so nobody can rename someone else's row by re-entering their email.
+      if (!row.already && firstName) await sheet.setName(email, row.ref_code, firstName).catch((e) => console.error("waitlist name", e.message));
       if (!row.already && mailVia === "resend") await sendEmail(buildWaitlistEmail({ email, city, metro, refCode: row.ref_code })).catch((e) => console.error("waitlist email failed", e.message));
       return NextResponse.json({ ok: true, refCode: row.ref_code, city, metro, people: null, already: row.already });
     } catch (e) {
@@ -67,6 +70,10 @@ export async function POST(req: NextRequest) {
   });
   if (error) return fail(error.message);
   const row = (data as { ref_code: string; city: string | null; metro_name: string | null; people_in_metro: number | null; already: boolean }[])[0];
+  if (!row.already && firstName) {
+    const { error: nameError } = await createAdminClient().rpc("waitlist_set_name", { p_email: email, p_ref: row.ref_code, p_name: firstName });
+    if (nameError) console.error("waitlist name", nameError.message);
+  }
   if (!row.already && mailVia === "resend") {
     try { await sendEmail(buildWaitlistEmail({ email, city: row.city, metro: row.metro_name, refCode: row.ref_code })); }
     catch (e) { console.error("waitlist email failed", (e as Error).message); }
@@ -74,7 +81,7 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({ ok: true, refCode: row.ref_code, city: row.city, metro: row.metro_name, people: row.people_in_metro, already: row.already });
 }
 
-// The optional "First name" box after joining. Needs the invite code too, which only the person who just joined has.
+// Sets the first name later (older pages asked for it after joining). Needs the invite code too, which only the person who just joined has.
 export async function PATCH(req: NextRequest) {
   const b = await body(req);
   if (!b) return NextResponse.json({ error: "Bad request." }, { status: 400 });
