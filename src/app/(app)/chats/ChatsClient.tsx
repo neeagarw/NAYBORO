@@ -65,7 +65,7 @@ export function ChatsClient({ me, hellos, chats: initialChats, sent, photos: ini
 
   const waiting = hellos.filter((h) => !gone.includes(h.id));
   return (
-    <main className="flex flex-1 flex-col gap-3.5 overflow-y-auto px-5 pb-5 pt-1.5">
+    <main className="flex flex-1 flex-col gap-3.5 px-5 pb-5 pt-1.5">
       {waiting.length > 0 && <span className="text-xs font-bold tracking-[1px] text-muted">SAID HI TO YOU · {waiting.length}</span>}
       {waiting.map((h) => (
         <section key={h.id} className="flex flex-col gap-2.5 rounded-[20px] bg-orange-tint p-3.5">

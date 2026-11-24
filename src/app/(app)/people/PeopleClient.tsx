@@ -137,7 +137,7 @@ export function PeopleClient({ initial, hellos, counts, area, metro, myInterests
         ))}
       </ChipRow>
 
-      <main className="flex flex-1 flex-col gap-3.5 overflow-y-auto px-5 pb-5 pt-1.5">
+      <main className="flex flex-1 flex-col gap-3.5 px-5 pb-5 pt-1.5">
         {chip === "foryou" && h && hello.state !== "hidden" && (
           <section aria-label="Said hi to you" className="flex flex-col gap-2.5 rounded-[22px] bg-orange-tint px-4 pb-4 pt-1.5">
             <div className="flex items-center justify-between">

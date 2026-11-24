@@ -4,11 +4,9 @@ import { createClient } from "@/lib/supabase/server";
 
 type Tab = "explore" | "people" | "chats";
 
-/** Header (logo, account button, title) + scrolling body + bottom nav with the Chats badge. */
-export async function AppShell({ tab, title, sub, head, children, overlay, scrollAll }: {
+/** Header (title, account button) + body, scrolling together, + bottom nav with the Chats badge. */
+export async function AppShell({ tab, title, sub, head, children, overlay }: {
   tab: Tab; title: string; sub?: React.ReactNode; head?: React.ReactNode; children: React.ReactNode; overlay?: React.ReactNode;
-  /** Scroll the header with the content (nothing pinned at the top). */
-  scrollAll?: boolean;
 }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -34,17 +32,11 @@ export async function AppShell({ tab, title, sub, head, children, overlay, scrol
 
   return (
     <div className="app-frame">
-      {scrollAll ? (
-        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
-          {header}
-          {children}
-        </div>
-      ) : (
-        <>
-          {header}
-          {children}
-        </>
-      )}
+      {/* Like Instagram: the header, tabs and filters scroll away with the list; only the bottom nav stays. */}
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+        {header}
+        {children}
+      </div>
       {overlay}
       <BottomNav tab={tab} badge={badge ?? 0} />
     </div>
