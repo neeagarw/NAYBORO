@@ -54,7 +54,7 @@ const SECTIONS: LegalSection[] = [
     `You agree to cover our reasonable costs if a claim against us arises from content you posted or your breaking these terms.`,
   ]},
   { title: "Law and disputes", items: [
-    "These terms are governed by the laws of the State of Texas. Disputes will be handled in the state or federal courts in Dallas County, Texas, unless the law where you live says otherwise.",
+    "These terms are governed by the laws of the State of Delaware, without regard to its conflict-of-law rules. Disputes will be handled in the state or federal courts located in Delaware, unless the law where you live gives you the right to bring them where you live.",
   ]},
   { title: "Changes and contact", items: [
     "We may update these terms. If a change is important, we'll tell you in the app or by email before it takes effect, and ask you to agree again.",
