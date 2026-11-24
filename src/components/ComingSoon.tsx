@@ -34,7 +34,7 @@ export function ComingSoon({ refCode, signedInEmail, guessedCity, year, showLogi
   return (
     <div className="min-h-dvh bg-mist text-ink">
       <div className="mx-auto max-w-[1400px] px-5 md:px-8 xl:px-0">
-        <header className="flex items-center justify-between py-6 md:py-9">
+        <header className="flex items-center justify-between py-5 xl:py-6 short:py-3">
           <span className="inline-flex items-center gap-2.5 font-display text-[26px] font-extrabold tracking-[-0.5px] md:text-[30px]">
             <LogoMark size={46} left={CORAL} right={TEAL} label={null} />nayboro
           </span>
@@ -50,9 +50,9 @@ export function ComingSoon({ refCode, signedInEmail, guessedCity, year, showLogi
           </div>
         )}
 
-        <main className="grid items-stretch gap-6 lg:grid-cols-[723fr_647fr] lg:gap-[30px]">
+        <main className="grid items-stretch gap-6 md:grid-cols-[723fr_647fr] md:gap-5 xl:gap-[30px]">
           <Hero />
-          <div id="join" className="rounded-[32px] border border-teal-line bg-white p-6 sm:p-10 md:rounded-[44px] md:p-[50px]">
+          <div id="join" className="rounded-[32px] border border-teal-line bg-white p-6 sm:p-9 md:rounded-[36px] md:p-8 xl:rounded-[44px] xl:p-10 short:p-7 short:xl:px-9">
             {done ? <Joined done={done} /> : <JoinForm refCode={refCode} onDone={setDone} defaultEmail={signedInEmail ?? ""} guessedCity={guessedCity} />}
           </div>
         </main>
@@ -74,23 +74,23 @@ export function ComingSoon({ refCode, signedInEmail, guessedCity, year, showLogi
 
 function Hero() {
   return (
-    <section aria-labelledby="hero" className="relative flex min-h-[560px] flex-col overflow-hidden rounded-[32px] bg-teal px-7 pb-40 pt-9 text-white md:rounded-[44px] md:px-[60px] md:pt-[60px] lg:min-h-[880px]">
+    <section aria-labelledby="hero" className="relative flex flex-col overflow-hidden rounded-[32px] bg-teal px-7 pb-32 pt-8 text-white md:rounded-[36px] md:px-9 md:pb-40 md:pt-10 xl:rounded-[44px] xl:px-[60px] xl:pt-[52px] short:pb-28 short:pt-8 short:xl:pt-10">
       <span aria-hidden="true" className="absolute -right-[142px] -top-[125px] h-[300px] w-[300px] rounded-full bg-teal-dark md:h-[380px] md:w-[380px]" />
       <span aria-hidden="true" className="absolute -bottom-[200px] -left-[150px] h-[340px] w-[340px] rounded-full bg-teal-dark md:-bottom-[290px] md:-left-[165px] md:h-[480px] md:w-[480px]" />
 
-      <div className="relative flex flex-col gap-7">
+      <div className="relative flex flex-col gap-6 xl:gap-7 short:gap-5">
         <span className="self-start rounded-full bg-coral px-5 py-2 text-[15px] font-semibold text-coral-ink md:text-[17px]">Coming soon to {APP.launchMetro}</span>
-        <h1 id="hero" className="m-0 font-display text-[46px] font-extrabold leading-[1.02] tracking-[-1.5px] sm:text-[58px] md:text-[68px] md:tracking-[-2.5px]">
+        <h1 id="hero" className="m-0 font-display text-[44px] font-extrabold leading-[1.02] tracking-[-1.5px] sm:text-[54px] md:text-[46px] lg:text-[58px] xl:text-[68px] xl:tracking-[-2.5px] short:lg:text-[50px] short:xl:text-[56px]">
           Your people are closer than you think.
         </h1>
-        <p className="m-0 max-w-[36rem] text-[19px] leading-[1.6] text-on-teal-muted md:text-[22px]">
+        <p className="m-0 max-w-[36rem] text-[19px] leading-[1.55] text-on-teal-muted xl:text-[21px] short:xl:text-[19px]">
           Something new is on the way. Join the waitlist to get early access when we open in your city.
         </p>
-        <div className="mt-3 flex flex-col gap-4">
+        <div className="mt-1 flex flex-col gap-4 xl:mt-3">
           <h2 className="m-0 text-[14px] font-bold uppercase tracking-[1.5px] text-on-teal-muted md:text-[15px]">A sneak peek</h2>
           <ul className="m-0 flex list-none flex-col gap-3 p-0">
             {["People from your hometown, closer than you think", "Real answers from people nearby", "And much more"].map((t) => (
-              <li key={t} className="flex items-center gap-4 text-[18px] font-semibold md:text-[20px]">
+              <li key={t} className="flex items-center gap-4 text-[17px] font-semibold xl:text-[19px]">
                 <span aria-hidden="true" className="h-2.5 w-2.5 flex-none rounded-full bg-coral" />{t}
               </li>
             ))}
@@ -98,16 +98,16 @@ function Hero() {
         </div>
       </div>
 
-      <span aria-hidden="true" className="absolute bottom-[56px] right-[56px] md:bottom-[68px] md:right-[66px]">
+      <span aria-hidden="true" className="absolute bottom-[36px] right-[36px] origin-bottom-right scale-[.6] md:bottom-[44px] md:right-[44px] md:scale-75 xl:bottom-[60px] xl:right-[60px] xl:scale-100 short:scale-[.6] short:xl:bottom-[44px] short:xl:right-[44px]">
         <LogoMark size={128} left={CORAL} right={WHITE} label={null} />
       </span>
     </section>
   );
 }
 
-const INPUT = "h-[60px] w-full rounded-2xl border-2 border-teal-line bg-white px-5 text-[18px] text-ink outline-none placeholder:text-muted focus:border-teal md:text-[19px]";
-const LABEL = "text-[17px] font-semibold md:text-[18px]";
-const HINT = "m-0 text-[15px] text-muted md:text-[16px]";
+const INPUT = "h-14 w-full rounded-2xl border-2 border-teal-line bg-white px-5 text-[17px] text-ink outline-none placeholder:text-muted focus:border-teal xl:h-[58px] xl:text-[18px] short:h-12 short:xl:h-12 short:text-[16px] short:xl:text-[16px]";
+const LABEL = "text-[16px] font-semibold xl:text-[17px] short:text-[15px] short:xl:text-[15px]";
+const HINT = "m-0 text-[14px] text-muted xl:text-[15px] short:text-[13px] short:xl:text-[13px]";
 const OPTIONS = "mt-2 flex flex-col gap-1 rounded-2xl border border-teal-line bg-white p-1.5 shadow-[0_10px_30px_rgba(23,32,27,.08)]";
 const OPTION = "flex min-h-12 flex-col items-start justify-center rounded-xl px-4 py-2 text-left hover:bg-mist focus:bg-mist focus:outline-none";
 
@@ -153,13 +153,15 @@ function JoinForm({ refCode, onDone, defaultEmail, guessedCity }: { refCode: str
   }
 
   return (
-    <form onSubmit={submit} method="post" action="#join" noValidate className="flex flex-col gap-6" aria-labelledby="joinTitle">
-      <div className="flex flex-col gap-2">
-        <h2 id="joinTitle" className="m-0 font-display text-[32px] font-extrabold tracking-[-0.8px] md:text-[38px]">Join the waitlist</h2>
-        <p className="m-0 text-[17px] text-muted md:text-[18px]">Takes 20 seconds. We&apos;ll email you the moment we open.</p>
+    <form onSubmit={submit} method="post" action="#join" noValidate className="flex flex-col gap-5 short:gap-4" aria-labelledby="joinTitle">
+      <div className="flex flex-col gap-2 short:gap-1">
+        <h2 id="joinTitle" className="m-0 font-display text-[30px] font-extrabold tracking-[-0.8px] xl:text-[36px] short:text-[28px] short:xl:text-[30px]">Join the waitlist</h2>
+        <p className="m-0 text-[16px] text-muted xl:text-[17px] short:text-[15px] short:xl:text-[15px]">Takes 20 seconds. We&apos;ll email you the moment we open.</p>
       </div>
 
-      <div className="flex flex-col gap-3">
+      {/* On laptop-height windows, name and email share a row so the button stays in view. */}
+      <div className="flex flex-col gap-5 short:gap-4 short:lg:grid short:lg:grid-cols-2">
+      <div className="flex flex-col gap-2">
         <div className="flex items-baseline justify-between gap-3">
           <label htmlFor="firstName" className={LABEL}>First name</label>
           <span className="text-[15px] text-muted">Optional</span>
@@ -167,11 +169,12 @@ function JoinForm({ refCode, onDone, defaultEmail, guessedCity }: { refCode: str
         <input id="firstName" className={INPUT} autoComplete="given-name" maxLength={40} value={first} onChange={(e) => setFirst(e.target.value)} placeholder="Your first name" />
       </div>
 
-      <label className="flex flex-col gap-3"><span className={LABEL}>Email</span>
+      <label className="flex flex-col gap-2"><span className={LABEL}>Email</span>
         <input className={INPUT} type="email" inputMode="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" required />
       </label>
+      </div>
 
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-2">
         <label htmlFor="city" className={LABEL}>Current city</label>
         <div>
           <input id="city" className={INPUT} autoComplete="off" role="combobox" aria-expanded={cityHits.length > 0} aria-controls="cityOptions" aria-autocomplete="list"
@@ -195,7 +198,7 @@ function JoinForm({ refCode, onDone, defaultEmail, guessedCity }: { refCode: str
         </p>
       </div>
 
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-2">
         <span id="homeLabel" className={LABEL}>Hometown</span>
         <HomeField home={home} onChange={setHome} />
         <p className={HINT}>Where you grew up. We&apos;ll connect you with people from there.</p>
@@ -205,16 +208,16 @@ function JoinForm({ refCode, onDone, defaultEmail, guessedCity }: { refCode: str
       <label className="absolute -left-[9999px]" aria-hidden="true">Website<input tabIndex={-1} autoComplete="off" value={trap} onChange={(e) => setTrap(e.target.value)} /></label>
 
       <hr className="m-0 border-0 border-t border-teal-line" />
-      <label className="flex cursor-pointer items-center gap-4 text-[18px] md:text-[19px]">
+      <label className="flex cursor-pointer items-center gap-4 text-[17px] xl:text-[18px] short:text-[16px] short:xl:text-[16px]">
         <input type="checkbox" checked={adult} onChange={(e) => setAdult(e.target.checked)} className="m-0 h-6 w-6 flex-none accent-teal" />
         I confirm I&apos;m 18 or older
       </label>
 
       {error && <p role="alert" className="m-0 text-[15px] font-semibold text-warn">{error}</p>}
-      <button disabled={busy} className="flex h-[66px] items-center justify-center rounded-[18px] bg-teal text-[19px] font-bold text-white disabled:opacity-60 md:text-[21px]">
+      <button disabled={busy} className="flex h-14 items-center justify-center rounded-[16px] bg-teal text-[18px] font-bold text-white disabled:opacity-60 xl:h-[62px] xl:text-[19px] short:h-12 short:xl:h-12 short:text-[17px] short:xl:text-[17px]">
         {busy ? "Joining…" : "Join the waitlist"}
       </button>
-      <p className="m-0 text-center text-[15px] leading-normal text-muted md:text-[16px]">
+      <p className="m-0 text-center text-[14px] leading-normal text-muted xl:text-[15px] short:text-[13px] short:xl:text-[13px]">
         We&apos;ll only email you about Nayboro&apos;s launch. No spam, unsubscribe anytime. <Link href="/privacy" className="text-teal underline underline-offset-2">Privacy policy</Link>
       </p>
     </form>
@@ -279,7 +282,7 @@ function Joined({ done }: { done: Done }) {
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
       </span>
       <div className="flex flex-col gap-3">
-        <h2 className="m-0 font-display text-[32px] font-extrabold tracking-[-0.8px] md:text-[38px]">{done.already ? "You're already on the list." : "You're on the list."}</h2>
+        <h2 className="m-0 font-display text-[30px] font-extrabold tracking-[-0.8px] xl:text-[36px] short:text-[28px] short:xl:text-[30px]">{done.already ? "You're already on the list." : "You're on the list."}</h2>
         <p className="m-0 text-[17px] leading-relaxed text-muted md:text-[19px]">
           We&apos;ll email you when Nayboro opens in {done.metro ? <b className="font-semibold text-ink">{done.metro}</b> : "your city"}.
         </p>
@@ -288,7 +291,7 @@ function Joined({ done }: { done: Done }) {
       <hr className="m-0 border-0 border-t border-teal-line" />
 
       <div className="flex flex-col gap-3">
-        <h3 className="m-0 font-display text-[24px] font-extrabold md:text-[28px]">Want in sooner?</h3>
+        <h3 className="m-0 font-display text-[22px] font-extrabold xl:text-[26px]">Want in sooner?</h3>
         <p className="m-0 text-[17px] leading-relaxed text-muted md:text-[18px]">Share your link with friends. Every friend who joins moves you up the list.</p>
         <div className="mt-1 flex flex-col gap-3 sm:flex-row">
           <code className="flex h-16 w-full min-w-0 items-center overflow-hidden text-ellipsis whitespace-nowrap rounded-2xl border-2 border-dashed border-teal-line bg-mist px-5 font-sans text-[17px] font-medium text-ink sm:flex-1 md:text-[18px]">{shown}</code>
