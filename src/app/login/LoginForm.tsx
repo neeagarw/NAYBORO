@@ -12,12 +12,23 @@ import { Logo } from "@/components/Logo";
 const RESEND_SECONDS = 30;
 const validEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 
-export function LoginForm({ next, prelaunch = false, joinUrl = "/", betaCode = false }: { next: string; prelaunch?: boolean; joinUrl?: string; betaCode?: boolean }) {
+export function LoginForm({ next, prelaunch = false, joinUrl = "/", betaCode = false, google = false, googleFailed = false }: { next: string; prelaunch?: boolean; joinUrl?: string; betaCode?: boolean; google?: boolean; googleFailed?: boolean }) {
   const [step, setStep] = useState<"email" | "code">("email");
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(googleFailed ? "Google sign-in didn't finish. Please try again, or use your email." : null);
+
+  // "Continue with Google": Google confirms the email; /auth/callback turns that into a session.
+  // The beta tester list and the 18+ box still apply afterwards.
+  async function googleSignIn() {
+    setBusy(true); setError(null);
+    const { error: e } = await getClient().auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`, queryParams: { prompt: "select_account" } },
+    });
+    if (e) { setBusy(false); setError("Google sign-in isn't available right now. Please use your email."); }
+  }
   const [wait, setWait] = useState(0);
   const codeRef = useRef<HTMLInputElement>(null);
 
@@ -105,6 +116,17 @@ export function LoginForm({ next, prelaunch = false, joinUrl = "/", betaCode = f
               <h1 className="font-display text-[34px] font-extrabold leading-[1.05] tracking-[-0.5px]">{prelaunch ? "Beta tester sign in" : "Log in or join"}</h1>
               <p className="mt-1.5 text-[15px] leading-normal text-muted">{betaCode ? "Use the email you were invited with and the beta code we gave you." : "We\u2019ll email you a 6-digit code. No password to remember."}</p>
             </div>
+            {google && (
+              <>
+                <button type="button" onClick={googleSignIn} disabled={busy}
+                  className="flex h-14 items-center justify-center gap-3 rounded-[18px] border-2 border-line bg-surface text-[16px] font-bold text-ink disabled:opacity-60">
+                  <GoogleG /> Continue with Google
+                </button>
+                <div className="flex items-center gap-3 text-xs font-semibold text-muted" aria-hidden="true">
+                  <span className="h-px flex-1 bg-line" />or use your email<span className="h-px flex-1 bg-line" />
+                </div>
+              </>
+            )}
             <div className="flex flex-col gap-2">
               <label htmlFor="email" className="text-[13px] font-bold">Email</label>
               <input
@@ -192,6 +214,18 @@ function BackIcon() {
   return (
     <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M15 18l-6-6 6-6" />
+    </svg>
+  );
+}
+
+/** Google's "G" mark, as Google's sign-in branding guidelines ask for on "Continue with Google" buttons. */
+function GoogleG() {
+  return (
+    <svg aria-hidden="true" width="20" height="20" viewBox="0 0 48 48">
+      <path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.9 6.1C12.5 13.6 17.8 9.5 24 9.5z" />
+      <path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.2 5.3-4.6 6.9l7.4 5.7c4.3-4 6.9-9.9 6.9-17.1z" />
+      <path fill="#FBBC05" d="M10.6 28.6c-.5-1.4-.8-3-.8-4.6s.3-3.2.8-4.6l-7.9-6.1C1 16.6 0 20.2 0 24s1 7.4 2.7 10.7l7.9-6.1z" />
+      <path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.4-5.7c-2.1 1.4-4.8 2.3-8.5 2.3-6.2 0-11.5-4.1-13.4-9.9l-7.9 6.1C6.6 42.6 14.6 48 24 48z" />
     </svg>
   );
 }

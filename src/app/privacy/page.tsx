@@ -12,7 +12,7 @@ const SECTIONS: LegalSection[] = [
     "It's for people 18 and older in the United States.",
   ]},
   { title: "What we collect", items: [
-    <><b>Your account:</b> your email address, used to sign you in and to contact you.</>,
+    <><b>Your account:</b> your email address, used to sign you in and to contact you. If you choose “Continue with Google”, Google confirms your email address to us; it may also send your name and profile picture, which we don’t use or show.</>,
     <><b>Your profile:</b> your first and last name (others see only your first name and last initial), the city you live in, your hometowns, your interests, a short intro, and a photo if you add one.</>,
     <><b>What you post and do:</b> questions, answers, hellos, chat messages, events you mark as interesting, and the people you block or report.</>,
     <><b>The waitlist:</b> your email, city, hometowns, first name if you add it, and whether a friend invited you.</>,

@@ -36,6 +36,13 @@ def sign_in(browser, email, code="TEST-CODE-42"):
 with sync_playwright() as p:
     browser = p.chromium.launch(executable_path=os.environ.get("CHROME") or None)
 
+    # Google sign-in that didn't finish (no code) comes back to sign-in with a clear message, and keeps "next"
+    gpg = browser.new_context(viewport={"width": 400, "height": 860}).new_page()
+    gpg.goto(B + "/auth/callback?next=/chats")
+    expect(gpg).to_have_url(re.compile(r"/login\?error=google&next=%2Fchats$"))
+    expect(gpg.locator("form").get_by_role("alert")).to_contain_text("Google sign-in didn't finish")
+    expect(gpg.get_by_role("button", name="Continue with Google")).to_have_count(0)   # hidden until NEXT_PUBLIC_GOOGLE_SIGNIN=1
+
     # Wrong code: refused, no account made.
     w_ctx, W = sign_in(browser, "neeraj@example.com", code="nope")
     expect(W.locator("form").get_by_role("alert")).to_have_text("That beta code didn't work.")

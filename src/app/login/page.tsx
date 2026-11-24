@@ -17,8 +17,9 @@ export default function LoginPage({ searchParams }: PageProps<"/login">) {
 }
 
 async function WithNext({ searchParams }: { searchParams: PageProps<"/login">["searchParams"] }) {
-  const [{ next }, supabase] = await Promise.all([searchParams, createClient()]);
+  const [{ next, error }, supabase] = await Promise.all([searchParams, createClient()]);
   // Before launch only beta testers can get in, so the screen says so.
   const { data: mode } = await supabase.rpc("site_mode");
-  return <LoginForm next={safeNext(typeof next === "string" ? next : undefined)} prelaunch={mode !== "open"} joinUrl={isBetaSite() ? publicSiteUrl() : "/"} betaCode={isBetaSite() && !!process.env.BETA_LOGIN_CODE} />;
+  return <LoginForm next={safeNext(typeof next === "string" ? next : undefined)} prelaunch={mode !== "open"} joinUrl={isBetaSite() ? publicSiteUrl() : "/"} betaCode={isBetaSite() && !!process.env.BETA_LOGIN_CODE}
+    google={process.env.NEXT_PUBLIC_GOOGLE_SIGNIN === "1"} googleFailed={error === "google"} />;
 }
