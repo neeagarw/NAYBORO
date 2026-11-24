@@ -37,7 +37,7 @@ async function Explore({ searchParams }: { searchParams: PageProps<"/explore">["
   const a = area as { name: string; metro: string } | null;
 
   return (
-    <AppShell tab="explore" title="Explore" sub={<span className="inline-flex items-center gap-1"><PinIcon />Around {a?.name ?? "you"}</span>}>
+    <AppShell tab="explore" scrollAll title="Explore" sub={<span className="inline-flex items-center gap-1"><PinIcon />Around {a?.name ?? "you"}</span>}>
       <ExploreClient
         key={listKey(questions, (q) => `${q.id}:${q.answer_count}`)}
         initialTab={tab === "events" ? "e" : "q"}

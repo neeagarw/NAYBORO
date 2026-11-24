@@ -163,7 +163,7 @@ export function ExploreClient({ initialTab, questions: firstQs, answers: firstAn
         </ChipRow>
       </div>
 
-      <main className="flex flex-1 flex-col gap-3.5 overflow-y-auto px-5 pb-[110px] pt-1.5">
+      <main className="flex flex-1 flex-col gap-3.5 px-5 pb-[110px] pt-1.5">
         {tab === "q" && (
           <>
             {qList.length === 0 && !loadingQs && (

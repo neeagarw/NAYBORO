@@ -5,8 +5,10 @@ import { createClient } from "@/lib/supabase/server";
 type Tab = "explore" | "people" | "chats";
 
 /** Header (logo, account button, title) + scrolling body + bottom nav with the Chats badge. */
-export async function AppShell({ tab, title, sub, head, children, overlay }: {
+export async function AppShell({ tab, title, sub, head, children, overlay, scrollAll }: {
   tab: Tab; title: string; sub?: React.ReactNode; head?: React.ReactNode; children: React.ReactNode; overlay?: React.ReactNode;
+  /** Scroll the header with the content (nothing pinned at the top). */
+  scrollAll?: boolean;
 }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -16,9 +18,8 @@ export async function AppShell({ tab, title, sub, head, children, overlay }: {
     supabase.rpc("is_admin"),
   ]);
 
-  return (
-    <div className="app-frame">
-      {/* Compact header: title + place on the left, account on the right, so content starts high on a phone. */}
+  // Compact header: title + place on the left, account on the right, so content starts high on a phone.
+  const header = (
       <div className="flex flex-col gap-2.5 px-5 pb-2 pt-3">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
@@ -29,7 +30,21 @@ export async function AppShell({ tab, title, sub, head, children, overlay }: {
         </div>
         {head}
       </div>
-      {children}
+  );
+
+  return (
+    <div className="app-frame">
+      {scrollAll ? (
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+          {header}
+          {children}
+        </div>
+      ) : (
+        <>
+          {header}
+          {children}
+        </>
+      )}
       {overlay}
       <BottomNav tab={tab} badge={badge ?? 0} />
     </div>
