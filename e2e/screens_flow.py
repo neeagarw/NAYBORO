@@ -134,6 +134,9 @@ with sync_playwright() as p:
     A.locator(box).evaluate("el => el.scrollTo(0, 400)"); A.wait_for_timeout(400)
     assert A.locator(box).evaluate("el => el.scrollTop") > 100, "explore column should scroll"
     assert title.evaluate("h => h.getBoundingClientRect().bottom") <= 0, "top bar should hide on scroll down"
+    A.locator(box).evaluate("el => el.scrollTo(0, 380)"); A.wait_for_timeout(30)
+    part = title.evaluate("h => h.closest('.sticky').getBoundingClientRect().bottom")
+    assert part > 0, "top bar should start sliding back with the first pixels of scrolling up"
     A.locator(box).evaluate("el => el.scrollTo(0, 300)"); A.wait_for_timeout(400)
     assert title.evaluate("h => h.getBoundingClientRect().top") >= 0, "top bar should come back on scroll up"
     A.locator(box).evaluate("el => el.scrollTo(0, 0)")
