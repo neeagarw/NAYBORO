@@ -58,7 +58,7 @@ export function ComingSoon({ refCode, signedInEmail, guessedCity, year, showLogi
             <Link href="/privacy" className="underline decoration-1 underline-offset-4 text-teal">Privacy policy</Link>
             <Link href="/terms" className="underline decoration-1 underline-offset-4 text-teal">Terms</Link>
             <Link href="/guidelines" className="underline decoration-1 underline-offset-4 text-teal">Guidelines</Link>
-            <a href={`mailto:${APP.contactEmail}`} className="underline decoration-1 underline-offset-4 text-teal">Contact</a>
+            <a href={`mailto:${APP.contactEmail}`} className="underline decoration-1 underline-offset-4 text-teal">Contact: {APP.contactEmail}</a>
             {showLogin && <Link href="/login" className="underline decoration-1 underline-offset-4 text-muted">Beta tester log in</Link>}
           </nav>
         </footer>
@@ -138,6 +138,21 @@ const HINT = "m-0 text-[14px] text-muted xl:text-[15px] short:text-[13px] short:
 const OPTIONS = "mt-2 flex flex-col gap-1 rounded-2xl border border-teal-line bg-white p-1.5 shadow-[0_10px_30px_rgba(23,32,27,.08)]";
 const OPTION = "flex min-h-12 flex-col items-start justify-center rounded-xl px-4 py-2 text-left hover:bg-mist focus:bg-mist focus:outline-none";
 
+/** Keyboard for a suggestion list: ↓/↑ move, Enter picks, Escape closes. The input keeps focus (aria-activedescendant). */
+function useListKeys<T>(items: T[], pick: (item: T) => void, close: () => void) {
+  const [active, setActive] = useState(-1);
+  const [seen, setSeen] = useState(items);
+  if (seen !== items) { setSeen(items); setActive(-1); }   // new results: nothing highlighted yet
+  function onKeyDown(e: React.KeyboardEvent) {
+    if (!items.length) return;
+    if (e.key === "ArrowDown") { e.preventDefault(); setActive((a) => (a + 1) % items.length); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); setActive((a) => (a <= 0 ? items.length - 1 : a - 1)); }
+    else if (e.key === "Enter" && active >= 0) { e.preventDefault(); pick(items[active]); }
+    else if (e.key === "Escape") { close(); }
+  }
+  return { active, onKeyDown };
+}
+
 // "Dallas–Fort Worth" (data) and "Dallas-Fort Worth" (copy) are the same place.
 const sameMetro = (a: string, b: string) => a.replace(/[\u2013\u2014-]/g, "-").toLowerCase() === b.replace(/[\u2013\u2014-]/g, "-").toLowerCase();
 
@@ -175,9 +190,27 @@ function JoinForm({ refCode, onDone, defaultEmail, guessedCity }: { refCode: str
   const [first, setFirst] = useState("");
   const [email, setEmail] = useState(defaultEmail);
   const [city, setCity] = useState<City | null>(guessedCity);
-  const [cityText, setCityText] = useState(guessedCity ? cityLabel(guessedCity, true) : "");
-  const [guessed, setGuessed] = useState(!!guessedCity);
+  const [cityText, setCityText] = useState(guessedCity ? cityLabel(guessedCity, false) : "");
+  // "Use my location": the phone's position, sent once to find the city (same as the app's setup). Never stored.
+  const [locating, setLocating] = useState(false);
+  const [locNote, setLocNote] = useState<string | null>(null);
+  function findMyCity() {
+    if (!("geolocation" in navigator)) { setLocNote("Your browser can't share a location. Type your city or ZIP instead."); return; }
+    setLocating(true); setLocNote(null);
+    navigator.geolocation.getCurrentPosition(
+      async ({ coords }) => {
+        const [hit] = await geo<City>({ kind: "locate", lat: String(coords.latitude), lng: String(coords.longitude) });
+        setLocating(false);
+        if (hit) { setCity(hit); setCityText(cityLabel(hit, false)); setCityHits([]); }
+        else setLocNote("We couldn't match your location to a US city. Type your city or ZIP instead.");
+      },
+      () => { setLocating(false); setLocNote("We couldn't get your location. Type your city or ZIP instead."); },
+      { maximumAge: 600000, timeout: 10000 },
+    );
+  }
   const [cityHits, setCityHits] = useState<City[]>([]);
+  const pickCity = (c: City) => { setCity(c); setCityText(cityLabel(c, false)); setCityHits([]); };
+  const cityKeys = useListKeys(cityHits, pickCity, () => setCityHits([]));
   const [home, setHome] = useState<Home>({ text: "", place: null });
   const [adult, setAdult] = useState(false);
   const [trap, setTrap] = useState("");
@@ -198,6 +231,7 @@ function JoinForm({ refCode, onDone, defaultEmail, guessedCity }: { refCode: str
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     const em = email.trim();
+    if (!EMAIL.test(em) && !adult) return setError("Please check your email address and confirm you're 18 or older.");
     if (!EMAIL.test(em)) return setError("Please check your email address.");
     if (!adult) return setError("Please confirm you're 18 or older.");
     setBusy(true); setError(null);
@@ -238,13 +272,15 @@ function JoinForm({ refCode, onDone, defaultEmail, guessedCity }: { refCode: str
         <label htmlFor="city" className={LABEL}>Current city</label>
         <div>
           <input id="city" className={INPUT} autoComplete="off" role="combobox" aria-expanded={cityHits.length > 0} aria-controls="cityOptions" aria-autocomplete="list"
-            value={cityText} placeholder="City or ZIP"
-            onChange={(e) => { setCity(null); setGuessed(false); setCityText(e.target.value); if (e.target.value.trim().length < 2) setCityHits([]); }} />
+            aria-activedescendant={cityKeys.active >= 0 ? `cityOptions-${cityKeys.active}` : undefined}
+            value={cityText} placeholder="City or ZIP" onKeyDown={cityKeys.onKeyDown} onBlur={() => setCityHits([])}
+            onChange={(e) => { setCity(null); setCityText(e.target.value); if (e.target.value.trim().length < 2) setCityHits([]); }} />
           {cityHits.length > 0 && (
             <div id="cityOptions" role="listbox" aria-label="Cities" className={OPTIONS}>
-              {cityHits.map((c) => (
-                <button type="button" role="option" aria-selected="false" key={`${c.id}-${c.zip ?? ""}`} className={OPTION}
-                  onClick={() => { setCity(c); setCityText(cityLabel(c, false)); setCityHits([]); }}>
+              {cityHits.map((c, i) => (
+                <button type="button" role="option" id={`cityOptions-${i}`} aria-selected={i === cityKeys.active} tabIndex={-1} key={`${c.id}-${c.zip ?? ""}`}
+                  className={`${OPTION} ${i === cityKeys.active ? "bg-mist" : ""}`}
+                  onMouseDown={(e) => e.preventDefault()} onClick={() => pickCity(c)}>
                   <b className="text-[16px]">{c.name}, {c.state}{c.zip ? ` ${c.zip}` : ""}</b><span className="text-[13px] text-muted">{c.metro_name}</span>
                 </button>
               ))}
@@ -252,10 +288,12 @@ function JoinForm({ refCode, onDone, defaultEmail, guessedCity }: { refCode: str
           )}
         </div>
         <p className={HINT}>
-          {/* The guess comes from the internet connection (rough: VPNs and mobile networks can be far off), so say so. */}
-          {guessed ? "Our best guess from your internet connection. Change it if it's not right."
-            : city ? <>Part of <b className="font-semibold text-ink">{city.metro_name}</b>. We only use your city, never your address.</>
-            : "Type your city or ZIP. We only use your city, never your address."}
+          {city ? <>Part of <b className="font-semibold text-ink">{city.metro_name}</b>. We only use your city, never your address.</>
+            : locNote ?? "Type your city or ZIP. We only use your city, never your address."}
+          {!city && (
+            <> <button type="button" onClick={findMyCity} disabled={locating} className="font-semibold text-teal underline underline-offset-2 disabled:opacity-60">
+              {locating ? "Finding your city…" : "Use my location"}</button></>
+          )}
         </p>
         {city && !sameMetro(city.metro_name, APP.launchMetro) && (
           <p className="m-0 rounded-xl bg-mist px-3.5 py-2.5 text-[14px] leading-snug text-ink short:py-2 short:text-[13px]">
@@ -265,7 +303,7 @@ function JoinForm({ refCode, onDone, defaultEmail, guessedCity }: { refCode: str
       </div>
 
       <div className="flex flex-col gap-2 tiny:gap-1.5">
-        <span id="homeLabel" className={LABEL}>Hometown</span>
+        <label htmlFor="home" className={LABEL}>Hometown</label>
         <HomeField home={home} onChange={setHome} />
         <p className={HINT}>Where you grew up. We&apos;ll connect you with people from there.</p>
       </div>
@@ -275,7 +313,7 @@ function JoinForm({ refCode, onDone, defaultEmail, guessedCity }: { refCode: str
 
       <hr className="m-0 border-0 border-t border-teal-line" />
       <label className="flex cursor-pointer items-center gap-4 text-[17px] xl:text-[18px] short:text-[16px] short:xl:text-[16px] tiny:text-[15px] tiny:xl:text-[15px]">
-        <input type="checkbox" checked={adult} onChange={(e) => setAdult(e.target.checked)} className="m-0 h-6 w-6 flex-none accent-teal" />
+        <input type="checkbox" required aria-required="true" checked={adult} onChange={(e) => setAdult(e.target.checked)} className="m-0 h-6 w-6 flex-none accent-teal" />
         I confirm I&apos;m 18 or older
       </label>
 
@@ -294,6 +332,8 @@ function HomeField({ home, onChange }: { home: Home; onChange: (h: Home) => void
   const [hits, setHits] = useState<Place[]>([]);
   const id = useId();
   const text = home.place ? `${home.place.city}, ${home.place.region}` : home.text;
+  const pick = (p: Place) => { onChange({ ...home, place: p }); setHits([]); };
+  const keys = useListKeys(hits, pick, () => setHits([]));
 
   useEffect(() => {
     const q = home.text.trim();
@@ -306,15 +346,18 @@ function HomeField({ home, onChange }: { home: Home; onChange: (h: Home) => void
     return () => { live = false; clearTimeout(t); };
   }, [home.text, home.place]);
 
+  const open = !home.place && hits.length > 0;
   return (
     <div>
-      <input className={INPUT} autoComplete="off" role="combobox" aria-expanded={hits.length > 0} aria-controls={`${id}-opts`} aria-autocomplete="list"
-        aria-labelledby="homeLabel" value={text}
+      <input id="home" className={INPUT} autoComplete="off" role="combobox" aria-expanded={open} aria-controls={`${id}-opts`} aria-autocomplete="list"
+        aria-activedescendant={open && keys.active >= 0 ? `${id}-opt-${keys.active}` : undefined}
+        placeholder="City or town you grew up in" value={text} onKeyDown={keys.onKeyDown} onBlur={() => setHits([])}
         onChange={(e) => { onChange({ text: e.target.value, place: null }); if (e.target.value.trim().length < 2) setHits([]); }} />
-      {!home.place && hits.length > 0 && (
+      {open && (
         <div id={`${id}-opts`} role="listbox" aria-label="Places" className={OPTIONS}>
-          {hits.map((p) => (
-            <button type="button" role="option" aria-selected="false" key={p.id} className={OPTION} onClick={() => { onChange({ ...home, place: p }); setHits([]); }}>
+          {hits.map((p, i) => (
+            <button type="button" role="option" id={`${id}-opt-${i}`} aria-selected={i === keys.active} tabIndex={-1} key={p.id}
+              className={`${OPTION} ${i === keys.active ? "bg-mist" : ""}`} onMouseDown={(e) => e.preventDefault()} onClick={() => pick(p)}>
               <b className="text-[16px]">{p.city}</b><span className="text-[13px] text-muted">{p.region}, {p.country}</span>
             </button>
           ))}

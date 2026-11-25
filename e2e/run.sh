@@ -36,9 +36,12 @@ python3 e2e/setup_flow.py
 python3 e2e/screens_flow.py
 python3 e2e/quality_check.py
 
-# Private beta site (BETA_SITE=1): same build, restarted with the flag, site back in pre-launch mode.
+# Private beta site (BETA_SITE=1): built with its own settings, like Vercel's beta deployment (static pages
+# such as /login are made at build time), site back in pre-launch mode.
 pkill -P $NEXT 2>/dev/null; kill $NEXT 2>/dev/null
 for i in $(seq 20); do curl -s -o /dev/null localhost:3123 || break; pkill -f "next-server" 2>/dev/null; sleep 1; done
-BETA_SITE=1 BETA_LOGIN_CODE=TEST-CODE-42 PUBLIC_SITE_URL=https://nayboro.example npx next start -p 3123 > e2e/out/next-beta.log 2>&1 & NEXT=$!
+export BETA_SITE=1 BETA_LOGIN_CODE=TEST-CODE-42 WAITLIST_SITE_URL=https://nayboro.example
+npm run build > e2e/out/build-beta.log 2>&1 || { tail -30 e2e/out/build-beta.log; exit 1; }
+npx next start -p 3123 > e2e/out/next-beta.log 2>&1 & NEXT=$!
 sleep 5
 python3 e2e/beta_flow.py

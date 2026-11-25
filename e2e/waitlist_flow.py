@@ -69,7 +69,7 @@ with sync_playwright() as p:
     pg.screenshot(path=f"{OUT}/waitlist-phone.png", full_page=True)
 
     pg.get_by_role("button", name="Join the waitlist").click()
-    expect(pg.locator("form p[role=alert]")).to_have_text("Please check your email address.")
+    expect(pg.locator("form p[role=alert]")).to_have_text("Please check your email address and confirm you're 18 or older.")   # both problems at once
     pg.get_by_label("Email", exact=True).fill("priya@example.com")
     pg.get_by_role("button", name="Join the waitlist").click()
     expect(pg.locator("form p[role=alert]")).to_have_text(re.compile("18 or older"))
@@ -137,15 +137,23 @@ with sync_playwright() as p:
     expect(pg.get_by_role("heading", name="You've left the list")).to_be_visible()
     assert psql("select count(*) from waitlist where email='priya@example.com'") == "0"
 
-    # Laptop layout, with "Your city" filled in from the visitor's location (Vercel's IP headers; here Frisco, TX)
-    wide = browser.new_context(viewport={"width": 1600, "height": 1250}, extra_http_headers={"x-vercel-ip-latitude": "33.1507", "x-vercel-ip-longitude": "-96.8236"}).new_page()
+    # Laptop layout. One location method (same as the app's setup): nothing is guessed from the network;
+    # "Use my location" asks the browser once (here Frisco, TX).
+    wide = browser.new_context(viewport={"width": 1600, "height": 1250}, geolocation={"latitude": 33.1507, "longitude": -96.8236}, permissions=["geolocation"],
+                               extra_http_headers={"x-vercel-ip-latitude": "33.5779", "x-vercel-ip-longitude": "-101.8552"}).new_page()
     wide.goto(B + "/")
     expect(wide.get_by_role("heading", name="Join the waitlist")).to_be_visible()
-    expect(wide.get_by_label("Current city")).to_have_value(re.compile(r"^Dallas.Fort Worth, TX$"))
-    expect(wide.get_by_text("Our best guess from your internet connection")).to_be_visible()
+    expect(wide.get_by_label("Current city")).to_have_value("")                      # no Lubbock guess from the network
+    wide.get_by_role("button", name="Use my location").click()
+    expect(wide.get_by_label("Current city")).to_have_value("Frisco, TX")
     expect(wide.get_by_text("We're starting in")).to_have_count(0)        # Dallas area: no "not here yet" note
-    far = browser.new_context(viewport={"width": 1440, "height": 900}, extra_http_headers={"x-vercel-ip-latitude": "33.5779", "x-vercel-ip-longitude": "-101.8552"}).new_page()
-    far.goto(B + "/")
+    # Keyboard: ↓ then Enter picks a hometown suggestion
+    wide.get_by_label("Hometown").fill("Bangalore"); expect(wide.get_by_role("option").first).to_be_visible()
+    wide.get_by_label("Hometown").press("ArrowDown"); wide.get_by_label("Hometown").press("Enter")
+    expect(wide.get_by_label("Hometown")).to_have_value("Bengaluru, Karnataka")
+    wide.get_by_label("Hometown").fill("")
+    far = browser.new_context(viewport={"width": 1440, "height": 900}, geolocation={"latitude": 33.5779, "longitude": -101.8552}, permissions=["geolocation"]).new_page()
+    far.goto(B + "/"); far.get_by_role("button", name="Use my location").click()
     expect(far.get_by_text(re.compile("We're starting in Dallas-Fort Worth. Join anyway"))).to_be_visible()   # Lubbock visitor
     far.context.close()
     wide.wait_for_load_state("networkidle")

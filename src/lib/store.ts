@@ -1,3 +1,5 @@
+import { APP } from "@/config/app";
+
 /**
  * Where waitlist sign-ups are kept.
  * - "sheet": a Google Sheet, through the Apps Script web app in apps-script/Code.gs. Pre-launch only:
@@ -22,5 +24,6 @@ export function isBetaSite(): boolean {
 
 /** The public site, where people join the waitlist. */
 export function publicSiteUrl(): string {
-  return (process.env.PUBLIC_SITE_URL || "https://nayboro.vercel.app").replace(/\/$/, "");
+  // WAITLIST_SITE_URL only for tests; the real address is product config (nayboro.com is canonical).
+  return (process.env.WAITLIST_SITE_URL || APP.publicUrl).replace(/\/$/, "");
 }

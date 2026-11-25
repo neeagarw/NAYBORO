@@ -131,6 +131,12 @@ body {
     box-shadow: 0 10px 40px rgba(23, 32, 27, 0.08);
   }
 }
+/* Laptops: a comfortable reading column instead of a phone (the tab screens add a sidebar next to it). */
+@media (min-width: 1024px) {
+  .app-frame {
+    max-width: 600px;
+  }
+}
 
 /* Visible keyboard focus everywhere (mouse and touch users don't see it).
    In the base layer so a field that shows focus with its own border (`outline-none focus:border-green`)

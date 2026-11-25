@@ -1,6 +1,6 @@
 // Loading placeholders shaped like each screen, so nothing flashes blank while data loads. Screens with a
 // title and tab show the real title and the real bottom nav right away; only the content pulses.
-import { BottomNav, type Tab } from "@/components/BottomNav";
+import { BottomNav, DesktopLayout, type Tab } from "@/components/BottomNav";
 
 const Bar = ({ w = "100%", h = 14, r = 8, className = "" }: { w?: string | number; h?: number; r?: number; className?: string }) => (
   <div className={`animate-pulse bg-line-soft ${className}`} style={{ width: w, height: h, borderRadius: r }} />
@@ -44,7 +44,7 @@ function Header({ tabs, title }: { tabs?: boolean; title?: string }) {
 
 function Nav() {
   return (
-    <div className="grid grid-cols-3 border-t border-line-soft bg-surface px-2 pb-5 pt-3">
+    <div className="grid grid-cols-3 border-t border-line-soft bg-surface px-2 pb-5 pt-3 lg:hidden">
       {[0, 1, 2].map((i) => <div key={i} className="flex flex-col items-center gap-1.5"><Bar w={24} h={22} r={6} /><Bar w={44} h={10} /></div>)}
     </div>
   );
@@ -52,7 +52,7 @@ function Nav() {
 
 export function ScreenSkeleton({ kind = "list", title, tab }: { kind?: "list" | "feed" | "profile" | "chat" | "form"; title?: string; tab?: Tab }) {
   const nav = tab ? <BottomNav tab={tab} badge={0} /> : <Nav />;
-  return (
+  const screen = (
     <div className="app-frame" aria-busy="true" aria-label="Loading">
       {kind === "list" && (
         <>
@@ -96,4 +96,5 @@ export function ScreenSkeleton({ kind = "list", title, tab }: { kind?: "list" | 
       )}
     </div>
   );
+  return tab ? <DesktopLayout tab={tab} badge={0}>{screen}</DesktopLayout> : screen;
 }

@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { safeNext } from "@/lib/safe-next";
 import Link from "next/link";
 import { getClient } from "@/lib/supabase/client";
 import { Logo } from "@/components/Logo";
@@ -12,12 +13,27 @@ import { Logo } from "@/components/Logo";
 const RESEND_SECONDS = 30;
 const validEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 
-export function LoginForm({ next, prelaunch = false, joinUrl = "/", betaCode = false, google = false, googleFailed = false }: { next: string; prelaunch?: boolean; joinUrl?: string; betaCode?: boolean; google?: boolean; googleFailed?: boolean }) {
+const noSubscribe = () => () => {};
+const readParam = (k: string) => () => new URLSearchParams(window.location.search).get(k) ?? "";
+
+// The page around this form is static (it shows instantly). The few request-time details come from the browser:
+// where to go after signing in (?next=), a failed Google sign-in (?error=google), and whether Nayboro is open yet.
+export function LoginForm({ joinUrl = "/", betaCode = false, google = false }: { joinUrl?: string; betaCode?: boolean; google?: boolean }) {
+  const next = safeNext(useSyncExternalStore(noSubscribe, readParam("next"), () => ""));
+  const googleFailed = useSyncExternalStore(noSubscribe, readParam("error"), () => "") === "google";
+  // Pre-launch wording by default (that's today); switches if the site reports it's open.
+  const [prelaunch, setPrelaunch] = useState(true);
+  useEffect(() => {
+    let live = true;
+    void getClient().rpc("site_mode").then(({ data }) => { if (live && data === "open") setPrelaunch(false); });
+    return () => { live = false; };
+  }, []);
   const [step, setStep] = useState<"email" | "code">("email");
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(googleFailed ? "Google sign-in didn't finish. Please try again, or use your email." : null);
+  const [error, setError] = useState<string | null>(null);
+  const shownError = error ?? (googleFailed ? "Google sign-in didn't finish. Please try again, or use your email." : null);
 
   // "Continue with Google": Google confirms the email; /auth/callback turns that into a session.
   // The beta tester list and the 18+ box still apply afterwards.
@@ -140,7 +156,7 @@ export function LoginForm({ next, prelaunch = false, joinUrl = "/", betaCode = f
                 placeholder="you@example.com"
                 className="h-[52px] w-full rounded-2xl border-2 border-line bg-surface px-4 text-base outline-none focus:border-green"
               />
-              {!betaCode && error && <span role="alert" className="text-[13px] font-semibold text-warn">{error}</span>}
+              {!betaCode && shownError && <span role="alert" className="text-[13px] font-semibold text-warn">{shownError}</span>}
             </div>
             {betaCode && (
               <div className="flex flex-col gap-2">
@@ -154,7 +170,7 @@ export function LoginForm({ next, prelaunch = false, joinUrl = "/", betaCode = f
                   onChange={(e) => { setBeta(e.target.value); setError(null); }}
                   className="h-[52px] w-full rounded-2xl border-2 border-line bg-surface px-4 text-base uppercase tracking-[2px] outline-none focus:border-green"
                 />
-                {error && <span role="alert" className="text-[13px] font-semibold text-warn">{error}</span>}
+                {shownError && <span role="alert" className="text-[13px] font-semibold text-warn">{shownError}</span>}
               </div>
             )}
             <div className="flex-1" />

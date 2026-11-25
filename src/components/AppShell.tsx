@@ -1,7 +1,7 @@
 import { AccountMenu } from "@/components/AccountMenu";
 import { ScrollHeader } from "@/components/ScrollHeader";
 import { createClient } from "@/lib/supabase/server";
-import { BottomNav, type Tab } from "@/components/BottomNav";
+import { BottomNav, DesktopLayout, type Tab } from "@/components/BottomNav";
 
 /** Header (title, account button) + body, scrolling together, + bottom nav with the Chats badge. */
 export async function AppShell({ tab, title, sub, head, children, overlay }: {
@@ -30,6 +30,7 @@ export async function AppShell({ tab, title, sub, head, children, overlay }: {
   );
 
   return (
+    <DesktopLayout tab={tab} badge={badge ?? 0}>
     <div className="app-frame">
       {/* Like Instagram: everything scrolls; the top bar slides back when you scroll up. Only the bottom nav is fixed. */}
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
@@ -39,5 +40,6 @@ export async function AppShell({ tab, title, sub, head, children, overlay }: {
       {overlay}
       <BottomNav tab={tab} badge={badge ?? 0} />
     </div>
+    </DesktopLayout>
   );
 }

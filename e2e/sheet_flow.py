@@ -31,13 +31,15 @@ assert s == 200 and len(friend["refCode"]) == 8 and not friend["already"], frien
 
 with sync_playwright() as p:
     browser = p.chromium.launch(executable_path=os.environ.get("CHROME") or None)
-    ctx = browser.new_context(viewport={"width": 1440, "height": 1100}, extra_http_headers={"x-vercel-ip-latitude": "32.9126", "x-vercel-ip-longitude": "-96.6389"})
+    ctx = browser.new_context(viewport={"width": 1440, "height": 1100}, geolocation={"latitude": 32.9126, "longitude": -96.6389}, permissions=["geolocation"])
     pg = ctx.new_page(); errs = []
     pg.on("pageerror", lambda e: errs.append(str(e)))
     pg.goto(B + "/r/" + friend["refCode"])
     expect(pg.get_by_role("heading", name="Join the waitlist")).to_be_visible()
     pg.wait_for_load_state("networkidle")
-    expect(pg.get_by_label("Current city")).to_have_value(re.compile(r"^Dallas.Fort Worth, TX$"))
+    expect(pg.get_by_label("Current city")).to_have_value("")
+    pg.get_by_role("button", name="Use my location").click()                     # works without a database too
+    expect(pg.get_by_label("Current city")).to_have_value("Garland, TX")
     expect(pg.get_by_role("link", name="Beta tester log in")).to_have_count(0)   # no app to log in to yet
 
     pg.get_by_label("Email", exact=True).fill("priya@example.com")

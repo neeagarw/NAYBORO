@@ -88,7 +88,7 @@ records Vercel shows at your domain registrar. Update `NEXT_PUBLIC_SITE_URL` and
 
 The `test` branch is deployed as a Vercel Preview at its own address, using Supabase. Preview env vars:
 `WAITLIST_STORE=supabase`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`,
-`BETA_SITE=1`, `PUBLIC_SITE_URL` (the public waitlist site) and `NEXT_PUBLIC_SITE_URL` (the beta address).
+`BETA_SITE=1` and `NEXT_PUBLIC_SITE_URL` (the beta address). The public site address is `APP.publicUrl` in `src/config/app.ts` (nayboro.com); `PUBLIC_SITE_URL` is no longer read.
 
 - With `BETA_SITE=1` the home page is a tester sign-in page (no waitlist form, `/api/waitlist` is off) and every
   response carries `X-Robots-Tag: noindex`.

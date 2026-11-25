@@ -15,6 +15,8 @@ export const APP = {
   /** Shown as "Last updated" on the legal pages. */
   termsUpdated: "November 24, 2026",
   instagramUrl: "https://www.instagram.com/nayborohq/",
+  /** The public site (waitlist now, the app later). The beta links here for "Join the waitlist" and invites. */
+  publicUrl: "https://nayboro.com",
   /** Shown as "Coming soon to …" on the coming-soon page: the first metro we open. */
   launchMetro: "Dallas-Fort Worth",
 } as const;

@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import { getClient } from "@/lib/supabase/client";
 import { Avatar, Sheet, MenuItem, Tag, ago, friendly, useToast, signPhotosClient, TONE_CLASS, PlusIcon, PinIcon, MaskIcon, MoreIcon, ChipRow } from "@/components/ui";
 import { REPORT_REASONS, UI } from "@/config/app";
@@ -29,7 +28,6 @@ export function ExploreClient({ initialTab, questions: firstQs, answers: firstAn
   const [photos, setPhotos] = useState(firstPhotos);
   const [moreQs, setMoreQs] = useState(firstQs.length === UI.questionsPage);
   const [loadingQs, setLoadingQs] = useState(false);
-  const router = useRouter();
   const [toast, toastNode] = useToast();
   const [tab, setTab] = useState(initialTab);
   // The Ask button shrinks to a round "+" while scrolling down (covers less), and opens up again on the way up.
@@ -114,7 +112,8 @@ export function ExploreClient({ initialTab, questions: firstQs, answers: firstAn
 
   function switchTab(t: "q" | "e") {
     setTab(t);
-    router.replace(t === "e" ? "/explore?tab=events" : "/explore", { scroll: false });
+    // Update the address without a server round trip (no reload flash); Next keeps it in sync.
+    window.history.replaceState(null, "", t === "e" ? "/explore?tab=events" : "/explore");
   }
   async function postAnswer() {
     if (!answering) return;
@@ -229,7 +228,7 @@ export function ExploreClient({ initialTab, questions: firstQs, answers: firstAn
                           {a.helpful_count > 0 && <span>{a.helpful_count} found this helpful</span>}
                           {!a.is_mine && (reported.includes(a.id)
                             ? <span>Reported</span>
-                            : <button onClick={() => setReporting({ type: "answer", id: a.id })} className="min-h-6 font-semibold underline">Report</button>)}
+                            : <button onClick={() => setReporting({ type: "answer", id: a.id })} className="min-h-6 font-semibold underline">Report answer</button>)}
                         </span>
                       </div>
                     </div>

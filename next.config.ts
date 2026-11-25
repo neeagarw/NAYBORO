@@ -18,6 +18,9 @@ const nextConfig: NextConfig = {
   },
   /* config options here */
   cacheComponents: true,
+  // Switching back to a screen seen in the last 30 s shows it instantly (no loading placeholder).
+  // Actions (send, accept, answer…) still refresh at once.
+  experimental: { staleTimes: { dynamic: 30 } },
   partialPrefetching: true,
   turbopack: {
     rules: {

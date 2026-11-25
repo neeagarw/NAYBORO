@@ -168,7 +168,7 @@ export function ChipRow({ label, className = "", wrapClass = "", children }: { l
   }, []);
   return (
     <div className={`relative ${wrapClass}`}>
-      <div ref={ref} role={label ? "toolbar" : undefined} aria-label={label} className={`chip-row flex gap-2 overflow-x-auto ${more ? "chip-row-more" : ""} ${className}`}>{children}</div>
+      <div ref={ref} role={label ? "toolbar" : undefined} aria-label={label} className={`chip-row flex gap-2 overflow-x-auto ${more ? "chip-row-more" : ""} ${className}`}>{children}<span aria-hidden="true" className="w-9 flex-none" /></div>
       {more && (
         <button type="button" aria-label="Scroll to see more filters" title="Scroll to see more filters" onClick={() => ref.current?.scrollBy({ left: ref.current.clientWidth * 0.7, behavior: "smooth" })}
           className="absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-line bg-surface text-ink shadow-md">
