@@ -35,8 +35,10 @@ function whyLine(p: Person, area: string, verbs: Verbs) {
 
 const noSubscribe = () => () => {};
 
-export function PeopleClient({ initial, hellos, counts, area, metro, myInterests, photos: initialPhotos, verbs, hasPhoto }: {
+export function PeopleClient({ initial, hellos, counts, area, metro, myInterests, photos: initialPhotos, verbs, hasPhoto, inviteBase }: {
   initial: Person[]; hellos: Hello[]; counts: Counts | null; area: string; metro: string; myInterests: string[]; photos: Record<string, string>; verbs: Verbs; hasPhoto: boolean;
+  /** Where invites point (the public site when this is the private beta); empty = this site. */
+  inviteBase: string;
 }) {
   const router = useRouter();
   const [toast, toastNode] = useToast();
@@ -115,8 +117,10 @@ export function PeopleClient({ initial, hellos, counts, area, metro, myInterests
     router.refresh();
   }
   // One invite action everywhere: the link is shown, and Copy / Share are separate, labelled choices.
+  // Invites always go to the public site (the beta site is private: friends couldn't get in there).
   const origin = useSyncExternalStore(noSubscribe, () => location.origin, () => "");
-  const inviteUrl = origin ? `${origin}/?ref=invite` : "";
+  const base = inviteBase || origin;
+  const inviteUrl = base ? `${base}/?ref=invite` : "";
   const inviteText = `Join me on Nayboro to meet people from ${counts?.city ?? "home"} around ${metro}: ${inviteUrl}`;
   async function copyInvite() {
     try { await navigator.clipboard.writeText(inviteText); toast("Link copied"); } catch { toast("Couldn't copy. Press and hold the link to copy it."); }
@@ -182,7 +186,7 @@ export function PeopleClient({ initial, hellos, counts, area, metro, myInterests
           </section>
         )}
 
-        {chip === "foryou" && (
+        {chip === "foryou" && (suggestions.length > 0 || !showInviteCard) && (
           <section aria-label="Suggested for you" className="flex flex-col gap-2.5">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold tracking-[1px] text-muted">SUGGESTED FOR YOU</span>

@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { isBetaSite, publicSiteUrl } from "@/lib/store";
 import { ScreenSkeleton } from "@/components/Skeleton";
 import { createClient } from "@/lib/supabase/server";
 import { getAppConfig } from "@/lib/config";
@@ -41,7 +42,8 @@ async function People() {
     .sort((x, y) => x.sort - y.sort)
     .map((i) => i.label);
   const metro = cfg.metro?.name ?? "";
-  const sub = `Near ${area?.name ?? "you"}${c?.city_count ? ` · ${c.city_count} from ${c.city} around ${metro}` : ""}`;
+  // The metro name never splits across lines ("Dallas–" / "Fort Worth").
+  const sub = <>Near {area?.name ?? "you"}{c?.city_count ? <> · {c.city_count} from {c.city} around <span className="whitespace-nowrap">{metro}</span></> : null}</>;
 
   return (
     <AppShell tab="people" title="People" sub={sub}>
@@ -56,6 +58,7 @@ async function People() {
         photos={photos}
         verbs={cfg.verbs}
         hasPhoto={!!me?.photo_path}
+        inviteBase={isBetaSite() ? publicSiteUrl() : ""}
       />
     </AppShell>
   );

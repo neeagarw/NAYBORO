@@ -114,7 +114,7 @@ export function LoginForm({ next, prelaunch = false, joinUrl = "/", betaCode = f
           <form onSubmit={betaCode ? betaSignIn : sendCode} className="flex flex-1 flex-col gap-5" noValidate>
             <div>
               <h1 className="font-display text-[34px] font-extrabold leading-[1.05] tracking-[-0.5px]">{prelaunch ? "Beta tester sign in" : "Log in or join"}</h1>
-              <p className="mt-1.5 text-[15px] leading-normal text-muted">{betaCode ? "Use the email you were invited with and the beta code we gave you." : "We\u2019ll email you a 6-digit code. No password to remember."}</p>
+              <p className="mt-1.5 text-[15px] leading-normal text-muted">{betaCode ? (google ? "Continue with Google, or use the email you were invited with and your beta code." : "Use the email you were invited with and the beta code we gave you.") : "We\u2019ll email you a 6-digit code. No password to remember."}</p>
             </div>
             {google && (
               <>

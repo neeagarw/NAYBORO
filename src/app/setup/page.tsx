@@ -73,5 +73,10 @@ async function Setup() {
       first: r.first_name ?? "",
     };
   }
-  return <SetupFlow key={key} userId={user.id} initialArea={initialArea ?? prefill?.area ?? null} prefillRoot={prefill?.root ?? null} prefillFirst={prefill?.first ?? ""} groups={groups} initial={initial} minInterests={setting("min_interests", 3)} maxHometowns={setting("max_hometowns", 3)} />;
+  // Signed in with Google: start from the name on the Google account (the person can change it).
+  const meta = (initial ? {} : user.user_metadata ?? {}) as { given_name?: string; family_name?: string; full_name?: string; name?: string };
+  const full = (meta.full_name ?? meta.name ?? "").trim();
+  const gFirst = (meta.given_name ?? full.split(/\s+/)[0] ?? "").slice(0, 40);
+  const gLast = (meta.family_name ?? (full.includes(" ") ? full.slice(full.indexOf(" ") + 1) : "")).slice(0, 40);
+  return <SetupFlow key={key} userId={user.id} initialArea={initialArea ?? prefill?.area ?? null} prefillRoot={prefill?.root ?? null} prefillFirst={prefill?.first || gFirst} prefillLast={gLast} groups={groups} initial={initial} minInterests={setting("min_interests", 3)} maxHometowns={setting("max_hometowns", 3)} />;
 }

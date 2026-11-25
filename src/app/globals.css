@@ -132,11 +132,15 @@ body {
   }
 }
 
-/* Visible keyboard focus everywhere (mouse and touch users don't see it). */
-:focus-visible {
-  outline: 3px solid var(--orange);
-  outline-offset: 2px;
-  border-radius: 8px;
+/* Visible keyboard focus everywhere (mouse and touch users don't see it).
+   In the base layer so a field that shows focus with its own border (`outline-none focus:border-green`)
+   doesn't get a second ring. */
+@layer base {
+  :focus-visible {
+    outline: 3px solid var(--orange);
+    outline-offset: 2px;
+    border-radius: 8px;
+  }
 }
 
 /* Respect "reduce motion" in phone settings. */

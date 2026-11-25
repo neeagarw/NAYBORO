@@ -27,7 +27,7 @@ function newPhotoPath(userId: string) {
 const STEPS = ["Roots", "Interests", "Now", "You"];
 const VISIBLE = UI.interestsVisible;
 
-export function SetupFlow({ userId, initialArea, prefillRoot = null, prefillFirst = "", groups, initial, minInterests: MIN_INTERESTS, maxHometowns }: { userId: string; initialArea: Area | null; prefillRoot?: Place | null; prefillFirst?: string; groups: InterestGroup[]; initial: Initial | null; minInterests: number; maxHometowns: number }) {
+export function SetupFlow({ userId, initialArea, prefillRoot = null, prefillFirst = "", prefillLast = "", groups, initial, minInterests: MIN_INTERESTS, maxHometowns }: { userId: string; initialArea: Area | null; prefillRoot?: Place | null; prefillFirst?: string; prefillLast?: string; groups: InterestGroup[]; initial: Initial | null; minInterests: number; maxHometowns: number }) {
   const router = useRouter();
   const editing = !!initial;
 
@@ -50,7 +50,7 @@ export function SetupFlow({ userId, initialArea, prefillRoot = null, prefillFirs
   // you
   const [photo, setPhoto] = useState<{ blob: Blob; url: string } | null>(null);
   const [first, setFirst] = useState(initial?.first ?? prefillFirst);
-  const [last, setLast] = useState(initial?.last ?? "");
+  const [last, setLast] = useState(initial?.last ?? prefillLast);
   const [intro, setIntro] = useState(initial?.intro ?? "");
   const [adult, setAdult] = useState(editing);
   const [saving, setSaving] = useState(false);
@@ -156,7 +156,10 @@ export function SetupFlow({ userId, initialArea, prefillRoot = null, prefillFirs
   else if (step === 2)
     next = now
       ? { label: "Continue", disabled: false, onClick: () => go(3) }
-      : { label: locating ? "Finding your city..." : <><PinIcon />Find my city</>, disabled: locating, onClick: findCity };
+      // While typing a city, the main button waits for a pick (it doesn't switch to GPS).
+      : typing
+        ? { label: "Continue", disabled: true, onClick: () => {} }
+        : { label: locating ? "Finding your city..." : <><PinIcon />Find my city</>, disabled: locating, onClick: findCity };
   else if (step === 3) next = { label: saving ? "Saving..." : editing ? "Save" : "Finish", disabled: saving || !first.trim() || !adult, onClick: finish };
   // Full page load: the profile just changed, so every screen (and this one, if reopened) starts fresh.
   // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- deliberate fresh load
