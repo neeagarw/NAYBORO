@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useMemo, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { getClient } from "@/lib/supabase/client";
-import { Avatar, Tag, XIcon, PlusIcon, useToast, doesLine, signPhotosClient , ChipRow } from "@/components/ui";
+import { useDismissed, Avatar, Tag, XIcon, PlusIcon, useToast, doesLine, signPhotosClient , ChipRow } from "@/components/ui";
 import { UI } from "@/config/app";
 
 export type Person = {
@@ -51,7 +51,9 @@ export function PeopleClient({ initial, hellos, counts, area, metro, myInterests
   const [lastHidden, setLastHidden] = useState<string | null>(null);
   const [hello, setHello] = useState<{ state: "pending" | "accepted" | "hidden"; conv?: string }>({ state: "pending" });
   const [busy, setBusy] = useState(false);
-  const [photoTip, setPhotoTip] = useState(!hasPhoto);
+  // Closing the photo tip keeps it closed on this device.
+  const [photoTipHidden, hidePhotoTip] = useDismissed("photo-tip");
+  const photoTip = !hasPhoto && !photoTipHidden;
   // People who already said hi show only in the "Said hi to you" box, not again below.
   const helloFrom = useMemo(() => new Set(chip === "foryou" ? hellos.map((x) => x.from_id) : []), [hellos, chip]);
 
@@ -169,8 +171,8 @@ export function PeopleClient({ initial, hellos, counts, area, metro, myInterests
         {chip === "foryou" && photoTip && (
           <section aria-label="Add a photo" className="flex items-center gap-3 rounded-[18px] border border-line-soft bg-surface px-4 py-3">
             <span className="flex-1 text-sm leading-[1.4]"><b>Add a photo.</b> People with a clear face photo get many more replies.</span>
-            <Link href="/setup" className="flex h-10 flex-none items-center rounded-xl bg-green px-3.5 text-sm font-bold text-white">Add</Link>
-            <button onClick={() => setPhotoTip(false)} aria-label="Hide photo tip" className="flex h-10 w-10 flex-none items-center justify-center rounded-xl text-muted"><XIcon /></button>
+            <Link href="/setup?step=photo" className="flex h-10 flex-none items-center rounded-xl bg-green px-3.5 text-sm font-bold text-white">Add</Link>
+            <button onClick={hidePhotoTip} aria-label="Hide photo tip" className="flex h-10 w-10 flex-none items-center justify-center rounded-xl text-muted"><XIcon /></button>
           </section>
         )}
 

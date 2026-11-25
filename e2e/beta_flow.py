@@ -60,6 +60,12 @@ with sync_playwright() as p:
 
     G = browser.new_context(viewport={"width": 400, "height": 860}).new_page()
     G.goto(B + "/"); expect(G.get_by_role("heading", name="You're early.")).to_be_visible(); G.screenshot(path=f"{OUT}/beta-home.png")
+    # Laptop: the front page explains Nayboro and how to become a tester (not a lone phone card)
+    L = browser.new_context(viewport={"width": 1440, "height": 800}).new_page()
+    L.goto(B + "/"); expect(L.get_by_role("heading", name="Your people are closer than you think.")).to_be_visible()
+    expect(L.get_by_text("Want to help test?")).to_be_visible()
+    expect(L.get_by_role("link", name="Beta tester sign in")).to_be_in_viewport()
+    L.screenshot(path=f"{OUT}/beta-home-laptop.png")
     browser.close()
 
 # Too many wrong tries from one network: locked out for a while.

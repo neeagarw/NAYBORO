@@ -8,7 +8,8 @@ export const APP = {
   description: "Meet people from your hometown who live nearby, get answers from people who have been there, and find things to do together.",
   emergency: "In immediate danger? Call 911 first.",
   /** Public links on the coming-soon page. Change these to the real ones before launch. */
-  contactEmail: "hello@nayboro.com",
+  // A real inbox. Switch to hello@nayboro.com once that address receives mail (no inbox there yet).
+  contactEmail: "nayboro.support@gmail.com",
   /** Bump when the Terms or Privacy policy change in a way people must agree to again (stored per profile). */
   termsVersion: "2026-11-24",
   /** Shown as "Last updated" on the legal pages. */

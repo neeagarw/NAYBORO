@@ -49,7 +49,7 @@ export function AdminClient({ reports, contact, paused, events, waitlist }: { re
           <Link href="/people" aria-label="Back" className="flex h-11 w-11 items-center justify-center rounded-[14px] border border-line bg-surface"><BackIcon /></Link>
           <h1 className="m-0 font-display text-[28px] font-extrabold">Admin</h1>
         </div>
-        <div className="-mx-5 flex gap-2 chip-row overflow-x-auto px-5">
+        <div className="flex flex-wrap gap-2">
           {tabs.map(([k, label]) => (
             <button key={k} aria-pressed={tab === k} onClick={() => setTab(k)} className={`inline-flex h-10 flex-none items-center whitespace-nowrap rounded-full border px-4 text-sm font-bold ${tab === k ? "border-ink bg-ink text-white" : "border-line bg-surface"}`}>{label}</button>
           ))}

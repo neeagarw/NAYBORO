@@ -77,6 +77,9 @@ with sync_playwright() as p:
     # First name up front (optional), one hometown picked from the list
     pg.get_by_label("First name").fill("Priya")
     home1 = pg.get_by_role("combobox", name="Hometown")
+    # Worldwide hometowns: a US city and an old Indian city name both work
+    home1.fill("Chicago"); expect(pg.get_by_role("option", name=re.compile("^Chicago.*Illinois")).first).to_be_visible()
+    home1.fill("Bangalore"); expect(pg.get_by_role("option", name=re.compile("^Bengaluru")).first).to_be_visible()
     home1.fill("Jai")
     pg.get_by_role("option", name=re.compile("^Jaipur")).first.click()
     expect(home1).to_have_value(re.compile("^Jaipur"))
@@ -139,7 +142,12 @@ with sync_playwright() as p:
     wide.goto(B + "/")
     expect(wide.get_by_role("heading", name="Join the waitlist")).to_be_visible()
     expect(wide.get_by_label("Current city")).to_have_value(re.compile(r"^Dallas.Fort Worth, TX$"))
-    expect(wide.get_by_text("Detected from your location")).to_be_visible()
+    expect(wide.get_by_text("Our best guess from your internet connection")).to_be_visible()
+    expect(wide.get_by_text("We're starting in")).to_have_count(0)        # Dallas area: no "not here yet" note
+    far = browser.new_context(viewport={"width": 1440, "height": 900}, extra_http_headers={"x-vercel-ip-latitude": "33.5779", "x-vercel-ip-longitude": "-101.8552"}).new_page()
+    far.goto(B + "/")
+    expect(far.get_by_text(re.compile("We're starting in Dallas-Fort Worth. Join anyway"))).to_be_visible()   # Lubbock visitor
+    far.context.close()
     wide.wait_for_load_state("networkidle")
     wide.screenshot(path=f"{OUT}/waitlist-laptop.png", full_page=True)
     wide.get_by_role("link", name="Privacy policy").first.click()
@@ -147,7 +155,7 @@ with sync_playwright() as p:
 
     # ── Before launch, a stranger who signs in is sent back to the waitlist ──
     status, _ = api_join({"email": "stranger@example.com", "hometown": "Jaipur", "adult": True}, ip="203.0.113.77"); assert status == 200, status
-    psql("update waitlist set place_id = (select id from places where city = 'Jaipur' limit 1), area_id = (select id from areas where name = 'Garland' and state = 'TX'), first_name = 'Sam' where email = 'stranger@example.com'")
+    psql("update waitlist set place_id = (select id from places where city = 'Jaipur' and country = 'India'), area_id = (select id from areas where name = 'Garland' and state = 'TX'), first_name = 'Sam' where email = 'stranger@example.com'")
     s_ctx, S = sign_in(browser, "stranger@example.com", heading="Beta tester sign in")
     # (sign_in typed the code already; the login screen said "Beta tester sign in" before launch)
     expect(S).to_have_url(re.compile(r"/\?notyet=1$"))

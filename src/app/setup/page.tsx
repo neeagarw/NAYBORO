@@ -7,15 +7,17 @@ import { SetupFlow, type Area, type InterestGroup, type Place, type Initial } fr
 export const metadata = { title: "Set up your profile" };
 
 
-export default function SetupPage() {
+export default function SetupPage({ searchParams }: { searchParams: Promise<{ step?: string }> }) {
   return (
     <Suspense fallback={<ScreenSkeleton kind="form" />}>
-      <Setup />
+      <Setup searchParams={searchParams} />
     </Suspense>
   );
 }
 
-async function Setup() {
+async function Setup({ searchParams }: { searchParams: Promise<{ step?: string }> }) {
+  // ?step=photo (the "Add a photo" tip) opens straight on the photo step, for people who already have a profile.
+  const { step } = await searchParams;
   const supabase = await createClient();
   const {
     data: { user },
@@ -60,7 +62,8 @@ async function Setup() {
 
   // The key remounts the flow whenever saved data changes, so "Edit profile" always opens
   // on step 1 with fresh values (Next.js otherwise restores the last visit's screen).
-  const key = JSON.stringify(initial);
+  const startStep = step === "photo" && initial ? 3 : 0;
+  const key = JSON.stringify(initial) + startStep;
 
   // A new profile starts with what this person gave when they joined the waitlist (same email).
   let prefill: { area: Area | null; root: Place | null; first: string } | null = null;
@@ -78,5 +81,5 @@ async function Setup() {
   const full = (meta.full_name ?? meta.name ?? "").trim();
   const gFirst = (meta.given_name ?? full.split(/\s+/)[0] ?? "").slice(0, 40);
   const gLast = (meta.family_name ?? (full.includes(" ") ? full.slice(full.indexOf(" ") + 1) : "")).slice(0, 40);
-  return <SetupFlow key={key} userId={user.id} initialArea={initialArea ?? prefill?.area ?? null} prefillRoot={prefill?.root ?? null} prefillFirst={prefill?.first || gFirst} prefillLast={gLast} groups={groups} initial={initial} minInterests={setting("min_interests", 3)} maxHometowns={setting("max_hometowns", 3)} />;
+  return <SetupFlow key={key} startStep={startStep} userId={user.id} initialArea={initialArea ?? prefill?.area ?? null} prefillRoot={prefill?.root ?? null} prefillFirst={prefill?.first || gFirst} prefillLast={gLast} groups={groups} initial={initial} minInterests={setting("min_interests", 3)} maxHometowns={setting("max_hometowns", 3)} />;
 }

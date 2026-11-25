@@ -1,4 +1,6 @@
-// Loading placeholders shaped like each screen, so nothing flashes blank while data loads.
+// Loading placeholders shaped like each screen, so nothing flashes blank while data loads. Screens with a
+// title and tab show the real title and the real bottom nav right away; only the content pulses.
+import { BottomNav, type Tab } from "@/components/BottomNav";
 
 const Bar = ({ w = "100%", h = 14, r = 8, className = "" }: { w?: string | number; h?: number; r?: number; className?: string }) => (
   <div className={`animate-pulse bg-line-soft ${className}`} style={{ width: w, height: h, borderRadius: r }} />
@@ -17,7 +19,19 @@ function Row() {
   );
 }
 
-function Header({ tabs }: { tabs?: boolean }) {
+function Header({ tabs, title }: { tabs?: boolean; title?: string }) {
+  if (title) return (
+    <div className="flex flex-col gap-2.5 px-5 pb-2 pt-3">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-col gap-1.5">
+          <h1 className="m-0 font-display text-[28px] font-extrabold leading-[1.05] tracking-[-0.5px]">{title}</h1>
+          <Bar w={170} h={12} />
+        </div>
+        <Bar w={40} h={40} r={13} />
+      </div>
+      {tabs && <div className="flex gap-2"><Bar w={80} h={42} r={999} /><Bar w={90} h={42} r={999} /><Bar w={100} h={42} r={999} /></div>}
+    </div>
+  );
   return (
     <div className="flex flex-col gap-3 px-5 pb-2 pt-[18px]">
       <div className="flex items-center justify-between"><Bar w={110} h={24} /><Bar w={40} h={40} r={13} /></div>
@@ -36,23 +50,24 @@ function Nav() {
   );
 }
 
-export function ScreenSkeleton({ kind = "list" }: { kind?: "list" | "feed" | "profile" | "chat" | "form" }) {
+export function ScreenSkeleton({ kind = "list", title, tab }: { kind?: "list" | "feed" | "profile" | "chat" | "form"; title?: string; tab?: Tab }) {
+  const nav = tab ? <BottomNav tab={tab} badge={0} /> : <Nav />;
   return (
     <div className="app-frame" aria-busy="true" aria-label="Loading">
       {kind === "list" && (
         <>
-          <Header tabs />
+          <Header tabs title={title} />
           <div className="flex flex-1 flex-col gap-3.5 overflow-hidden px-5 pt-1.5"><Card><Bar w="35%" /><Bar w="80%" /><Bar h={44} r={14} /></Card><Row /><Row /><Row /></div>
-          <Nav />
+          {nav}
         </>
       )}
       {kind === "feed" && (
         <>
-          <Header tabs />
+          <Header tabs title={title} />
           <div className="flex flex-1 flex-col gap-3.5 overflow-hidden px-5 pt-1.5">
             {[0, 1].map((i) => <Card key={i}><Bar w="40%" h={12} /><Bar w="90%" h={18} /><Bar w="70%" h={18} /><Bar h={64} r={16} /></Card>)}
           </div>
-          <Nav />
+          {nav}
         </>
       )}
       {kind === "profile" && (

@@ -15,7 +15,7 @@ export const metadata = { title: "People" };
 // "Show more" fetch further pages in the browser.
 export default function PeoplePage() {
   return (
-    <Suspense fallback={<ScreenSkeleton kind="list" />}>
+    <Suspense fallback={<ScreenSkeleton kind="list" title="People" tab="people" />}>
       <People />
     </Suspense>
   );

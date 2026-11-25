@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { getClient } from "@/lib/supabase/client";
 import { UI } from "@/config/app";
 
@@ -170,11 +170,29 @@ export function ChipRow({ label, className = "", wrapClass = "", children }: { l
     <div className={`relative ${wrapClass}`}>
       <div ref={ref} role={label ? "toolbar" : undefined} aria-label={label} className={`chip-row flex gap-2 overflow-x-auto ${more ? "chip-row-more" : ""} ${className}`}>{children}</div>
       {more && (
-        <button type="button" aria-label="More filters" onClick={() => ref.current?.scrollBy({ left: ref.current.clientWidth * 0.7, behavior: "smooth" })}
+        <button type="button" aria-label="Scroll to see more filters" title="Scroll to see more filters" onClick={() => ref.current?.scrollBy({ left: ref.current.clientWidth * 0.7, behavior: "smooth" })}
           className="absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-line bg-surface text-ink shadow-md">
           <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 6l6 6-6 6" /></svg>
         </button>
       )}
     </div>
   );
+}
+// ───────── "Don't show this again" for tips (kept on this device) ─────────
+const hideListeners = new Set<() => void>();
+function isHidden(key: string) {
+  try { return localStorage.getItem(`nayboro.hide.${key}`) === "1"; } catch { return false; }
+}
+/** [hidden, hide]: a tip the person closed stays closed on this device. */
+export function useDismissed(key: string): [boolean, () => void] {
+  const hidden = useSyncExternalStore(
+    (cb) => { hideListeners.add(cb); return () => { hideListeners.delete(cb); }; },
+    () => isHidden(key),
+    () => false,
+  );
+  const hide = useCallback(() => {
+    try { localStorage.setItem(`nayboro.hide.${key}`, "1"); } catch { /* private mode: hide for now only */ }
+    hideListeners.forEach((l) => l());
+  }, [key]);
+  return [hidden, hide];
 }

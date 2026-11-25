@@ -68,13 +68,15 @@ export function ChatClient({ conv, me, header: h, photoUrl, initial }: { conv: s
   }
 
   // Mark read on open and whenever a message arrives; listen for new messages live.
+  // Supabase only sends a request once it is awaited or .then() is called: a bare rpc() call does nothing.
   useEffect(() => {
     const sb = getClient();
-    sb.rpc("mark_read", { conv });
+    const markRead = () => { void sb.rpc("mark_read", { conv }).then(({ error }) => { if (error) console.error("mark_read", error.message); }); };
+    markRead();
     const ch = sb.channel(`chat-${conv}`)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `conversation_id=eq.${conv}` }, (p) => {
         add(p.new as Msg);
-        sb.rpc("mark_read", { conv });
+        markRead();
       })
       .subscribe();
     return () => { sb.removeChannel(ch); };

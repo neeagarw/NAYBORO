@@ -109,6 +109,13 @@ with sync_playwright() as p:
     A.locator("main:visible").get_by_role("link", name=re.compile("Aman K\\.")).click()
     expect(A.get_by_text("You both play tennis in Garland")).to_be_visible()
     expect(A.locator("main:visible")).to_contain_text("Tennis next Saturday at 8?")
+    # Opening a chat really marks it read in the database (the badge counts from there)
+    unread_sql = f"""select count(*) from conversation_members m where m.profile_id='{uid('neeraj@example.com')}'
+      and exists (select 1 from messages x where x.conversation_id=m.conversation_id and x.sender_id<>m.profile_id and x.created_at>m.last_read_at)"""
+    for _ in range(20):
+        if psql(unread_sql) == "0": break
+        A.wait_for_timeout(250)
+    assert psql(unread_sql) == "0", "opening a chat should mark it read"
     A.get_by_label("Message").fill("Sounds good, see you at 8!"); A.get_by_role("button", name="Send").click()
     expect(A.locator("main:visible").get_by_text("Sounds good, see you at 8!")).to_be_visible()
     shot(A, "s05_chat")

@@ -14,7 +14,7 @@ export const metadata = { title: "Explore" };
 // Port of design/mockups/explore.html (Questions and Events tabs).
 export default function ExplorePage({ searchParams }: PageProps<"/explore">) {
   return (
-    <Suspense fallback={<ScreenSkeleton kind="feed" />}>
+    <Suspense fallback={<ScreenSkeleton kind="feed" title="Explore" tab="explore" />}>
       <Explore searchParams={searchParams} />
     </Suspense>
   );

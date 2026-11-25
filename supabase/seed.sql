@@ -13,7 +13,8 @@ insert into places (city, region, country) values
   ('Lucknow','Uttar Pradesh','India'),('Kanpur','Uttar Pradesh','India'),('Amritsar','Punjab','India'),('Chandigarh','Chandigarh','India'),
   ('Indore','Madhya Pradesh','India'),('Bhopal','Madhya Pradesh','India'),('Patna','Bihar','India'),('Guwahati','Assam','India'),
   ('Bhubaneswar','Odisha','India'),('Kathmandu','Bagmati','Nepal'),('Dhaka','Dhaka','Bangladesh'),('Colombo','Western Province','Sri Lanka'),
-  ('Manila','Metro Manila','Philippines'),('Lagos','Lagos','Nigeria'),('Nairobi','Nairobi','Kenya'),('Mexico City','CDMX','Mexico');
+  ('Manila','Metro Manila','Philippines'),('Lagos','Lagos','Nigeria'),('Nairobi','Nairobi','Kenya'),('Mexico City','CDMX','Mexico')
+on conflict (city, region, country) do nothing;
 
 insert into interests (label, group_name, group_sort, sort, verb)
 select label, grp, gs, ord,

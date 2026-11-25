@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getClient } from "@/lib/supabase/client";
 import { Avatar, Sheet, MenuItem, Tag, ago, friendly, useToast, signPhotosClient, TONE_CLASS, PlusIcon, PinIcon, MaskIcon, MoreIcon, ChipRow } from "@/components/ui";
@@ -32,6 +32,22 @@ export function ExploreClient({ initialTab, questions: firstQs, answers: firstAn
   const router = useRouter();
   const [toast, toastNode] = useToast();
   const [tab, setTab] = useState(initialTab);
+  // The Ask button shrinks to a round "+" while scrolling down (covers less), and opens up again on the way up.
+  const mainRef = useRef<HTMLElement>(null);
+  const [compactAsk, setCompactAsk] = useState(false);
+  useEffect(() => {
+    const box = mainRef.current?.parentElement;
+    if (!box) return;
+    let last = box.scrollTop;
+    const onScroll = () => {
+      const y = box.scrollTop;
+      if (Math.abs(y - last) < 8) return;
+      setCompactAsk(y > last && y > 40);
+      last = y;
+    };
+    box.addEventListener("scroll", onScroll, { passive: true });
+    return () => box.removeEventListener("scroll", onScroll);
+  }, []);
   const [qChip, setQChip] = useState("All");
   const [eChip, setEChip] = useState("All");
   const [open, setOpen] = useState<Record<string, boolean>>({});
@@ -163,7 +179,7 @@ export function ExploreClient({ initialTab, questions: firstQs, answers: firstAn
         </ChipRow>
       </div>
 
-      <main className="flex flex-1 flex-col gap-3.5 px-5 pb-[110px] pt-1.5">
+      <main ref={mainRef} className="flex flex-1 flex-col gap-3.5 px-5 pb-[110px] pt-1.5">
         {tab === "q" && (
           <>
             {qList.length === 0 && !loadingQs && (
@@ -173,9 +189,12 @@ export function ExploreClient({ initialTab, questions: firstQs, answers: firstAn
                     : qChip === "All" ? "No questions here yet. Be the first to ask."
                     : `No questions about ${qChip} yet. Be the first to ask.`}
                 </p>
-                {qChip !== "All" && (
-                  <button onClick={() => pickChip("All")} className="flex min-h-11 items-center rounded-[14px] border border-line bg-surface px-4 font-bold text-green">See all questions</button>
-                )}
+                <div className="flex flex-wrap justify-center gap-2">
+                  <Link href="/explore/ask" className="flex min-h-11 items-center gap-1.5 rounded-[14px] bg-green px-4 font-bold text-white"><PlusIcon />Ask a question</Link>
+                  {qChip !== "All" && (
+                    <button onClick={() => pickChip("All")} className="flex min-h-11 items-center rounded-[14px] border border-line bg-surface px-4 font-bold text-green">See all questions</button>
+                  )}
+                </div>
               </div>
             )}
             {qList.map((q) => {
@@ -287,9 +306,10 @@ export function ExploreClient({ initialTab, questions: firstQs, answers: firstAn
         )}
       </main>
 
-      {tab === "q" && (
-        <Link href="/explore/ask" className="absolute bottom-[92px] right-5 z-[2] flex h-14 items-center gap-2 rounded-full bg-green pl-[18px] pr-[22px] text-base font-bold text-white shadow-[0_8px_20px_rgba(30,107,74,.35)]">
-          <PlusIcon />Ask a question
+      {tab === "q" && qList.length > 0 && (
+        <Link href="/explore/ask" aria-label="Ask a question"
+          className={`absolute bottom-[92px] right-5 z-[2] flex h-14 items-center justify-center gap-2 overflow-hidden rounded-full bg-green text-base font-bold text-white shadow-[0_8px_20px_rgba(30,107,74,.35)] transition-[width,padding] duration-200 motion-reduce:transition-none ${compactAsk ? "w-14 px-0" : "w-[188px] pl-[18px] pr-[22px]"}`}>
+          <PlusIcon /><span className={compactAsk ? "sr-only" : "whitespace-nowrap"}>Ask a question</span>
         </Link>
       )}
 

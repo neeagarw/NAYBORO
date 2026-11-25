@@ -43,6 +43,9 @@ with sync_playwright() as p:
     pg.get_by_label("Email", exact=True).fill("priya@example.com")
     pg.get_by_label("First name").fill("Priya")
     home = pg.get_by_role("combobox", name="Hometown")
+    # Worldwide hometowns: a US city and an old Indian city name both work
+    home.fill("Chicago"); expect(pg.get_by_role("option", name=re.compile("^Chicago.*Illinois")).first).to_be_visible()
+    home.fill("Bangalore"); expect(pg.get_by_role("option", name=re.compile("^Bengaluru")).first).to_be_visible()
     home.fill("Jai"); pg.get_by_role("option", name=re.compile("^Jaipur")).first.click()
     pg.get_by_role("checkbox").check()
     pg.get_by_role("button", name="Join the waitlist").click()

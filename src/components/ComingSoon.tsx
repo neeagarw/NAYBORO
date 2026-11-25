@@ -28,20 +28,14 @@ function cityLabel(c: City, preferMetro: boolean) {
   return `${c.name}, ${c.state}`;
 }
 
-export function ComingSoon({ refCode, signedInEmail, guessedCity, year, showLogin }: { refCode: string | null; signedInEmail: string | null; guessedCity: City | null; year: number; showLogin: boolean }) {
+/** `beta` turns this into the private beta's front page: same story on the left, tester sign-in on the right. */
+export function ComingSoon({ refCode, signedInEmail, guessedCity, year, showLogin, beta }: { refCode: string | null; signedInEmail: string | null; guessedCity: City | null; year: number; showLogin: boolean; beta?: { notListedEmail: string | null; joinUrl: string } }) {
   const [done, setDone] = useState<Done | null>(null);
 
   return (
     <div className="min-h-dvh bg-mist text-ink">
       <div className="mx-auto max-w-[1480px] px-5 md:px-8 xl:px-10">
-        <header className="flex items-center justify-between py-5 xl:py-6 short:py-3 tiny:py-2">
-          <span className="inline-flex items-center gap-2.5 font-display text-[26px] font-extrabold tracking-[-0.5px] md:text-[30px]">
-            <LogoMark size={46} left={CORAL} right={TEAL} label={null} />nayboro
-          </span>
-          <a href={APP.instagramUrl} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center text-[16px] font-bold text-teal md:text-[19px]">
-            Follow on Instagram
-          </a>
-        </header>
+        <SiteHeader />
 
         {signedInEmail && (
           <div role="status" className="mb-5 rounded-2xl bg-teal-tint px-5 py-3 text-[15px] text-ink">
@@ -51,9 +45,10 @@ export function ComingSoon({ refCode, signedInEmail, guessedCity, year, showLogi
         )}
 
         <main className="grid items-stretch gap-6 md:grid-cols-[723fr_647fr] md:gap-5 xl:gap-[30px]">
-          <Hero />
+          <Hero beta={!!beta} />
           <div id="join" className="rounded-[32px] border border-teal-line bg-white p-6 sm:p-9 md:rounded-[36px] md:p-8 xl:rounded-[44px] xl:p-10 short:p-7 short:xl:px-9 tiny:p-6 tiny:xl:px-8">
-            {done ? <Joined done={done} /> : <JoinForm refCode={refCode} onDone={setDone} defaultEmail={signedInEmail ?? ""} guessedCity={guessedCity} />}
+            {beta ? <BetaPanel {...beta} />
+              : done ? <Joined done={done} /> : <JoinForm refCode={refCode} onDone={setDone} defaultEmail={signedInEmail ?? ""} guessedCity={guessedCity} />}
           </div>
         </main>
 
@@ -72,24 +67,56 @@ export function ComingSoon({ refCode, signedInEmail, guessedCity, year, showLogi
   );
 }
 
-function Hero() {
+function SiteHeader() {
+  return (
+    <header className="flex items-center justify-between py-5 xl:py-6 short:py-3 tiny:py-2">
+      <span className="inline-flex items-center gap-2.5 font-display text-[26px] font-extrabold tracking-[-0.5px] md:text-[30px]">
+        <LogoMark size={46} left={CORAL} right={TEAL} label={null} />nayboro
+      </span>
+      <a href={APP.instagramUrl} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center text-[16px] font-bold text-teal md:text-[19px]">
+        Follow on Instagram
+      </a>
+    </header>
+  );
+}
+
+/** What the home page shows while it loads: the real header and story, with the form area pulsing. */
+export function ComingSoonShell({ beta }: { beta: boolean }) {
+  return (
+    <div className="min-h-dvh bg-mist text-ink" aria-busy="true">
+      <div className="mx-auto max-w-[1480px] px-5 md:px-8 xl:px-10">
+        <SiteHeader />
+        <main className="grid items-stretch gap-6 md:grid-cols-[723fr_647fr] md:gap-5 xl:gap-[30px]">
+          <Hero beta={beta} />
+          <div className="flex flex-col gap-5 rounded-[32px] border border-teal-line bg-white p-6 sm:p-9 md:rounded-[36px] md:p-8 xl:rounded-[44px] xl:p-10" aria-label="Loading">
+            {[60, 30, 100, 100, 100, 100].map((w, i) => <div key={i} className="animate-pulse rounded-2xl bg-line-soft" style={{ width: `${w}%`, height: i < 2 ? 22 : 52 }} />)}
+          </div>
+        </main>
+      </div>
+    </div>
+  );
+}
+
+function Hero({ beta }: { beta: boolean }) {
   return (
     <section aria-labelledby="hero" className="relative flex flex-col overflow-hidden rounded-[32px] bg-teal px-7 pb-32 pt-8 text-white md:rounded-[36px] md:px-9 md:pb-40 md:pt-10 xl:rounded-[44px] xl:px-[60px] xl:pt-[52px] short:pb-28 short:pt-8 short:xl:pt-10 tiny:pb-24 tiny:pt-6 tiny:xl:pt-7">
       <span aria-hidden="true" className="absolute -right-[142px] -top-[125px] h-[300px] w-[300px] rounded-full bg-teal-dark md:h-[380px] md:w-[380px]" />
       <span aria-hidden="true" className="absolute -bottom-[200px] -left-[150px] h-[340px] w-[340px] rounded-full bg-teal-dark md:-bottom-[290px] md:-left-[165px] md:h-[480px] md:w-[480px]" />
 
       <div className="relative flex flex-col gap-6 xl:gap-7 short:gap-5 tiny:gap-4">
-        <span className="self-start rounded-full bg-coral px-5 py-2 text-[15px] font-semibold text-coral-ink md:text-[17px]">Coming soon to {APP.launchMetro}</span>
+        <span className="self-start rounded-full bg-coral px-5 py-2 text-[15px] font-semibold text-coral-ink md:text-[17px]">{beta ? "Private beta" : `Coming soon to ${APP.launchMetro}`}</span>
         <h1 id="hero" className="m-0 font-display text-[44px] font-extrabold leading-[1.02] tracking-[-1.5px] sm:text-[54px] md:text-[46px] lg:text-[58px] xl:text-[68px] xl:tracking-[-2.5px] short:lg:text-[50px] short:xl:text-[56px] tiny:text-[40px] tiny:lg:text-[44px] tiny:xl:text-[48px]">
           Your people are closer than you think.
         </h1>
         <p className="m-0 max-w-[36rem] text-[19px] leading-[1.55] text-on-teal-muted xl:text-[21px] short:xl:text-[19px] tiny:text-[16px] tiny:xl:text-[17px]">
-          Something new is on the way. Join the waitlist to get early access when we open in your city.
+          {beta
+            ? "Nayboro helps you meet people from your hometown who live near you, ask locals real questions, and find events worth showing up to. This is the test version."
+            : "Something new is on the way. Join the waitlist to get early access when we open in your city."}
         </p>
         <div className="mt-1 flex flex-col gap-4 xl:mt-3 tiny:mt-0 tiny:gap-3 tiny:xl:mt-0">
           <h2 className="m-0 text-[14px] font-bold uppercase tracking-[1.5px] text-on-teal-muted md:text-[15px]">A sneak peek</h2>
           <ul className="m-0 flex list-none flex-col gap-3 p-0 tiny:gap-2">
-            {["People from your hometown, closer than you think", "Real answers from people nearby", "And much more"].map((t) => (
+            {["People from your hometown, closer than you think", "Real answers from people nearby", "Local events, picked by our team"].map((t) => (
               <li key={t} className="flex items-center gap-4 text-[17px] font-semibold xl:text-[19px]">
                 <span aria-hidden="true" className="h-2.5 w-2.5 flex-none rounded-full bg-coral" />{t}
               </li>
@@ -110,6 +137,39 @@ const LABEL = "text-[16px] font-semibold xl:text-[17px] short:text-[15px] short:
 const HINT = "m-0 text-[14px] text-muted xl:text-[15px] short:text-[13px] short:xl:text-[13px]";
 const OPTIONS = "mt-2 flex flex-col gap-1 rounded-2xl border border-teal-line bg-white p-1.5 shadow-[0_10px_30px_rgba(23,32,27,.08)]";
 const OPTION = "flex min-h-12 flex-col items-start justify-center rounded-xl px-4 py-2 text-left hover:bg-mist focus:bg-mist focus:outline-none";
+
+// "Dallas–Fort Worth" (data) and "Dallas-Fort Worth" (copy) are the same place.
+const sameMetro = (a: string, b: string) => a.replace(/[\u2013\u2014-]/g, "-").toLowerCase() === b.replace(/[\u2013\u2014-]/g, "-").toLowerCase();
+
+function BetaPanel({ notListedEmail, joinUrl }: { notListedEmail: string | null; joinUrl: string }) {
+  return (
+    <div className="flex h-full flex-col gap-6">
+      <div className="flex flex-col gap-2">
+        <h2 className="m-0 font-display text-[30px] font-extrabold tracking-[-0.8px] xl:text-[36px]">You&apos;re early.</h2>
+        <p className="m-0 text-[16px] leading-relaxed text-muted xl:text-[17px]">This test version is open to invited beta testers. Sign in with Google or with the email you were invited with.</p>
+      </div>
+      {notListedEmail && (
+        <div role="alert" className="rounded-2xl border border-teal-line bg-mist p-4 text-[15px] leading-normal">
+          <b>{notListedEmail}</b> isn&apos;t on the beta tester list yet. If you were invited, ask us to add this exact email.
+        </div>
+      )}
+      <Link href="/login" className="flex h-14 items-center justify-center rounded-[16px] bg-teal text-[18px] font-bold text-white">
+        {notListedEmail ? "Try another email" : "Beta tester sign in"}
+      </Link>
+      <hr className="m-0 border-0 border-t border-teal-line" />
+      <div className="flex flex-col gap-2">
+        <h3 className="m-0 text-[17px] font-bold">Want to help test?</h3>
+        <p className="m-0 text-[15px] leading-relaxed text-muted">
+          Email <a href={`mailto:${APP.contactEmail}?subject=Nayboro%20beta`} className="font-semibold text-teal underline underline-offset-2">{APP.contactEmail}</a> with
+          your city. We&apos;re adding testers in {APP.launchMetro} first.
+        </p>
+      </div>
+      <p className="m-0 mt-auto text-[15px] text-muted">
+        Not ready to test? <a href={joinUrl} className="font-bold text-teal underline underline-offset-2">Join the waitlist</a> and we&apos;ll email you when we open.
+      </p>
+    </div>
+  );
+}
 
 function JoinForm({ refCode, onDone, defaultEmail, guessedCity }: { refCode: string | null; onDone: (d: Done) => void; defaultEmail: string; guessedCity: City | null }) {
   const [first, setFirst] = useState("");
@@ -192,10 +252,16 @@ function JoinForm({ refCode, onDone, defaultEmail, guessedCity }: { refCode: str
           )}
         </div>
         <p className={HINT}>
-          {guessed ? "Detected from your location. Edit if it's not right."
+          {/* The guess comes from the internet connection (rough: VPNs and mobile networks can be far off), so say so. */}
+          {guessed ? "Our best guess from your internet connection. Change it if it's not right."
             : city ? <>Part of <b className="font-semibold text-ink">{city.metro_name}</b>. We only use your city, never your address.</>
             : "Type your city or ZIP. We only use your city, never your address."}
         </p>
+        {city && !sameMetro(city.metro_name, APP.launchMetro) && (
+          <p className="m-0 rounded-xl bg-mist px-3.5 py-2.5 text-[14px] leading-snug text-ink short:py-2 short:text-[13px]">
+            We&apos;re starting in {APP.launchMetro}. Join anyway and we&apos;ll email you when Nayboro reaches {city.metro_name || "your area"}.
+          </p>
+        )}
       </div>
 
       <div className="flex flex-col gap-2 tiny:gap-1.5">

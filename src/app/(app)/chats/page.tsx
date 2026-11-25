@@ -12,7 +12,7 @@ export const metadata = { title: "Chats" };
 // Port of design/mockups/chats.html.
 export default function ChatsPage() {
   return (
-    <Suspense fallback={<ScreenSkeleton kind="list" />}>
+    <Suspense fallback={<ScreenSkeleton kind="list" title="Chats" tab="chats" />}>
       <Chats />
     </Suspense>
   );

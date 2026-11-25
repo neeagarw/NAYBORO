@@ -2,16 +2,17 @@ import { Suspense } from "react";
 import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { Welcome } from "@/components/Welcome";
-import { ComingSoon, type City } from "@/components/ComingSoon";
+import { ComingSoon, ComingSoonShell, type City } from "@/components/ComingSoon";
 import { waitlistStore, isBetaSite, publicSiteUrl } from "@/lib/store";
 import { BetaGate } from "@/components/BetaGate";
 import { locateArea } from "@/lib/places";
 
 // Home page. Before launch (site_mode = 'waitlist') it's the coming-soon waitlist page;
 // after launch (Admin → Waitlist → Open Nayboro) it's the normal welcome.
+// Before launch the home page is the waitlist (or the beta front page): its real story shows while it loads.
 export default function Home({ searchParams }: PageProps<"/">) {
   return (
-    <Suspense fallback={<div className="min-h-dvh bg-mist" />}>
+    <Suspense fallback={<ComingSoonShell beta={isBetaSite()} />}>
       <HomeInner searchParams={searchParams} />
     </Suspense>
   );
@@ -38,7 +39,7 @@ async function HomeInner({ searchParams }: { searchParams: PageProps<"/">["searc
     </div>
   ) : null;
   if (mode === "open") return <>{deleted}<Welcome /></>;
-  if (isBetaSite()) return <>{deleted}<BetaGate notListedEmail={sp.notyet ? user?.email ?? null : null} joinUrl={publicSiteUrl()} /></>;
+  if (isBetaSite()) return <>{deleted}<BetaGate notListedEmail={sp.notyet ? user?.email ?? null : null} joinUrl={publicSiteUrl()} year={year} /></>;
 
   // Prefill "Your city" from the visitor's approximate location. Vercel adds these headers from the
   // network address (no browser prompt). Used once to find the metro; never stored.

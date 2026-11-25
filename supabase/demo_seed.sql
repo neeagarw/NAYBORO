@@ -14,7 +14,7 @@ begin
           now() - make_interval(days => p_days_old), now() - make_interval(days => p_days_old))
   on conflict (id) do nothing;
   insert into profile_roots (profile_id, place_id, position)
-  values (uid, (select id from places where city = p_city), 1) on conflict do nothing;
+  values (uid, (select id from places where city = p_city order by (country = 'India') desc, population desc limit 1), 1) on conflict do nothing;
   insert into profile_interests (profile_id, interest_id)
   select uid, id from interests where label = any(p_interests) on conflict do nothing;
   return uid;

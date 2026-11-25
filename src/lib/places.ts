@@ -1,5 +1,6 @@
 import "server-only";
 import geo from "@/data/geo.json";
+import world from "@/data/places.json";
 
 // City / ZIP / hometown lookups from the bundled place data (src/data/geo.json, made by
 // scripts/export_geo_json.py from the same source as the database). Same rules as the SQL
@@ -46,10 +47,24 @@ export function locateArea(lat: number, lng: number): City | null {
 }
 
 /** Hometown suggestions (city name prefix). People can also type anything. */
+// Worldwide hometowns (src/data/places.json, made by scripts/build_world_places.py), biggest first:
+// [city, region, country, population, search name (no accents), older names]. Ids here are list positions;
+// the no-database setup only keeps the place's name.
+type WorldRow = [city: string, region: string, country: string, population: number, search: string, aliases: string[]];
+const W = world as unknown as WorldRow[];
+
+/** Hometown search: same rules as the SQL search_places (prefix on the name or an older name, exact name first, biggest first). */
 export function searchPlaces(q: string, limit = 6): Place[] {
   const p = q.trim().toLowerCase();
   if (!p) return [];
-  return G.places.filter((r) => r[1].toLowerCase().startsWith(p)).slice(0, clamp(limit)).map(([id, c, r, co]) => ({ id, city: c, region: r, country: co }));
+  const out: { i: number; exact: boolean }[] = [];
+  for (let i = 0; i < W.length && out.length < 200; i++) {
+    const [c, , , , s, al] = W[i];
+    const lc = c.toLowerCase();
+    if (s.startsWith(p) || lc.startsWith(p) || al.some((a) => a.toLowerCase().startsWith(p))) out.push({ i, exact: lc === p || s === p });
+  }
+  out.sort((a, b) => Number(b.exact) - Number(a.exact) || a.i - b.i);
+  return out.slice(0, clamp(limit)).map(({ i }) => ({ id: i + 1, city: W[i][0], region: W[i][1], country: W[i][2] }));
 }
 
 export function areaById(id: number): City | null {

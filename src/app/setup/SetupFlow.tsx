@@ -27,11 +27,11 @@ function newPhotoPath(userId: string) {
 const STEPS = ["Roots", "Interests", "Now", "You"];
 const VISIBLE = UI.interestsVisible;
 
-export function SetupFlow({ userId, initialArea, prefillRoot = null, prefillFirst = "", prefillLast = "", groups, initial, minInterests: MIN_INTERESTS, maxHometowns }: { userId: string; initialArea: Area | null; prefillRoot?: Place | null; prefillFirst?: string; prefillLast?: string; groups: InterestGroup[]; initial: Initial | null; minInterests: number; maxHometowns: number }) {
+export function SetupFlow({ startStep = 0, userId, initialArea, prefillRoot = null, prefillFirst = "", prefillLast = "", groups, initial, minInterests: MIN_INTERESTS, maxHometowns }: { startStep?: number; userId: string; initialArea: Area | null; prefillRoot?: Place | null; prefillFirst?: string; prefillLast?: string; groups: InterestGroup[]; initial: Initial | null; minInterests: number; maxHometowns: number }) {
   const router = useRouter();
   const editing = !!initial;
 
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(startStep);
   // roots
   const [roots, setRoots] = useState<Place[]>(initial?.roots ?? (prefillRoot ? [prefillRoot] : []));
   const [adding, setAdding] = useState(false);
@@ -65,14 +65,14 @@ export function SetupFlow({ userId, initialArea, prefillRoot = null, prefillFirs
   const [cityResults, setCityResults] = useState<Area[] | null>(null);
   const labels = useMemo(() => new Map(groups.flatMap((g) => g.items.map((i) => [i.id, i.label] as const))), [groups]);
 
-  // Hometown search: prefix match on places, up to 5.
+  // Hometown search: the shared search_places (worldwide, older names like "Bangalore", biggest places first), up to 5.
   useEffect(() => {
     const q = query.trim();
     if (!q) return;
     let live = true;
     const t = setTimeout(async () => {
-      const { data } = await getClient().from("places").select("id,city,region,country").ilike("city", `${q.replace(/[%_]/g, "")}%`).order("city").limit(UI.hometownResults + 3);
-      if (live) setResults((data ?? []).filter((p) => !roots.some((r) => r.id === p.id)).slice(0, UI.hometownResults));
+      const { data } = await getClient().rpc("search_places", { p_q: q, p_limit: UI.hometownResults + 3 });
+      if (live) setResults(((data ?? []) as Place[]).filter((p) => !roots.some((r) => r.id === p.id)).slice(0, UI.hometownResults));
     }, 150);
     return () => { live = false; clearTimeout(t); };
   }, [query, roots]);
