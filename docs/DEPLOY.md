@@ -1,5 +1,11 @@
 # Go live with the waitlist (Google Sheet setup)
 
+> **Status (Nov 25, 2026):** production has moved to the database (`WAITLIST_STORE=supabase`, with the
+> Supabase URL and keys set for Production in Vercel). The 8 sheet sign-ups were copied in with their
+> invite codes. The sheet below is now an archive; this guide stays for reference. Emails need
+> `RESEND_API_KEY` + `EMAIL_FROM` (Resend) in Production; keep `SHEET_WEBHOOK_SECRET` so unsubscribe links
+> in emails already sent keep working.
+
 Before launch, Nayboro needs **no database**: the coming-soon page runs on Vercel and every sign-up
 becomes a row in a Google Sheet. About 20 minutes, all free.
 
