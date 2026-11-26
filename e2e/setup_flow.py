@@ -28,6 +28,11 @@ with sync_playwright() as p:
     pg.get_by_label('Hometown').fill('Jai'); expect(pg.get_by_role('button', name='Jaipur Rajasthan, India')).to_be_visible(); shot(pg,'03_roots_search')
     pg.get_by_role('button', name='Jaipur Rajasthan, India').click()
     expect(pg.get_by_text('Others will see:')).to_contain_text('You · Jaipur → your city'); shot(pg,'04_roots_picked')
+    # Adding another: a search that only finds a hometown already picked says so (not "No match")
+    pg.get_by_role('button', name=re.compile('Add another')).click()
+    pg.get_by_label('Another place you call home').fill('Jaipur, Rajasthan')
+    expect(pg.get_by_text("That's Jaipur, which is already on your list.")).to_be_visible()
+    pg.get_by_label('Another place you call home').fill('')
     pg.get_by_role('button', name='Continue').click()
     # Interests
     expect(pg.get_by_role('button', name='Continue')).to_be_disabled()

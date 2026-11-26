@@ -38,6 +38,7 @@ export function SetupFlow({ startStep = 0, userId, initialArea, prefillRoot = nu
   const [level, setLevel] = useState<Level>(initial?.level ?? "city");
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Place[] | null>(null);
+  const [alreadyHave, setAlreadyHave] = useState<string | null>(null);   // the search only found a hometown already picked
   // interests
   const [picked, setPicked] = useState<number[]>(initial?.interests ?? []);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
@@ -72,7 +73,11 @@ export function SetupFlow({ startStep = 0, userId, initialArea, prefillRoot = nu
     let live = true;
     const t = setTimeout(async () => {
       const { data } = await getClient().rpc("search_places", { p_q: q, p_limit: UI.hometownResults + 3 });
-      if (live) setResults(((data ?? []) as Place[]).filter((p) => !roots.some((r) => r.id === p.id)).slice(0, UI.hometownResults));
+      if (!live) return;
+      const all = (data ?? []) as Place[];
+      const fresh = all.filter((p) => !roots.some((r) => r.id === p.id));
+      setResults(fresh.slice(0, UI.hometownResults));
+      setAlreadyHave(fresh.length === 0 && all.length > 0 ? all[0].city : null);
     }, 150);
     return () => { live = false; clearTimeout(t); };
   }, [query, roots]);
@@ -214,7 +219,7 @@ export function SetupFlow({ startStep = 0, userId, initialArea, prefillRoot = nu
                 </div>
                 <div className="flex flex-col gap-0.5 rounded-[18px] border border-line-soft bg-surface p-1.5">
                   {!query.trim() && <div className="p-3.5 text-sm text-muted">Type a city, a neighbourhood or a PIN code. Pick the place you feel you are from.</div>}
-                  {query.trim() && results && results.length === 0 && <div className="p-3.5 text-sm text-muted">No match yet. Try your PIN code or a nearby bigger city.</div>}
+                  {query.trim() && results && results.length === 0 && <div className="p-3.5 text-sm text-muted">{alreadyHave ? `That's ${alreadyHave}, which is already on your list.` : "No match yet. Try your PIN code or a nearby bigger city."}</div>}
                   {query.trim() && results?.map((p) => (
                     <button key={`${p.id}-${p.via ?? ""}`} onClick={() => { setRoots([...roots, { ...p, via: null }]); setAdding(false); setQuery(""); }} className="flex min-h-[60px] w-full items-center gap-3.5 rounded-[14px] px-3.5 py-2.5 text-left hover:bg-ground">
                       <span className="h-[22px] w-[22px] flex-none rounded-full border-2 border-radio" />
