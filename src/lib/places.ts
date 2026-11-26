@@ -61,7 +61,8 @@ export function searchPlaces(q: string, limit = 6): Place[] {
   for (let i = 0; i < W.length && out.length < 200; i++) {
     const [c, , , , s, al] = W[i];
     const lc = c.toLowerCase();
-    if (s.startsWith(p) || lc.startsWith(p) || al.some((a) => a.toLowerCase().startsWith(p))) out.push({ i, exact: lc === p || s === p });
+    if (s.startsWith(p) || lc.startsWith(p) || al.some((a) => a.toLowerCase().startsWith(p)))
+      out.push({ i, exact: lc === p || s === p || al.some((a) => a.toLowerCase() === p) });   // an older name counts as exact
   }
   out.sort((a, b) => Number(b.exact) - Number(a.exact) || a.i - b.i);
   return out.slice(0, clamp(limit)).map(({ i }) => ({ id: i + 1, city: W[i][0], region: W[i][1], country: W[i][2] }));

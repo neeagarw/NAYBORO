@@ -10,6 +10,7 @@ Sources (in data/geo/):
 
 Refresh cities5000.csv:  pip install geonamescache && python3 scripts/build_world_places.py --refresh
 Then:                    python3 scripts/build_world_places.py
+Note: search_places was later refined in 20261125140000_search_places_alias_rank.sql (older names rank as exact).
 """
 import csv, json, math, os, re, sys, unicodedata
 

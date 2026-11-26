@@ -48,6 +48,7 @@ with sync_playwright() as p:
     # Worldwide hometowns: a US city and an old Indian city name both work
     home.fill("Chicago"); expect(pg.get_by_role("option", name=re.compile("^Chicago.*Illinois")).first).to_be_visible()
     home.fill("Bangalore"); expect(pg.get_by_role("option", name=re.compile("^Bengaluru")).first).to_be_visible()
+    home.fill("Calcutta"); expect(pg.get_by_role("option").first).to_contain_text("Kolkata")   # old name of a big city ranks first
     home.fill("Jai"); pg.get_by_role("option", name=re.compile("^Jaipur")).first.click()
     pg.get_by_role("checkbox").check()
     pg.get_by_role("button", name="Join the waitlist").click()
