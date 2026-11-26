@@ -52,6 +52,7 @@ async function Explore({ searchParams }: { searchParams: PageProps<"/explore">["
         tz={cfg.metro?.timezone ?? "UTC"}
         unanswered={unanswered ?? 0}
         roots={roots}
+        place={a?.name ?? ""}
       />
     </AppShell>
   );

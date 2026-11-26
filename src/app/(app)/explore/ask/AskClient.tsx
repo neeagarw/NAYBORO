@@ -18,10 +18,10 @@ function guess(t: string, topics: TopicCfg[]) {
   return null;
 }
 
-export function AskClient({ userId, name, roots, area, metro, otherAreas, topics }: { userId: string; name: string; roots: string; area: string; metro: string; otherAreas: string[]; topics: TopicCfg[] }) {
+export function AskClient({ userId, name, roots, area, metro, otherAreas, topics, initialText = "" }: { userId: string; name: string; roots: string; area: string; metro: string; otherAreas: string[]; topics: TopicCfg[]; initialText?: string }) {
   const router = useRouter();
   const [toast, toastNode] = useToast();
-  const [text, setText] = useState("");
+  const [text, setText] = useState(initialText);
   const [details, setDetails] = useState<string | null>(null);
   const [anon, setAnon] = useState(false);
   const [manual, setManual] = useState<string | null>(null);

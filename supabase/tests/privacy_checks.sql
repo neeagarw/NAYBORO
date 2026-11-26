@@ -314,7 +314,11 @@ where profile_id = '22222222-2222-2222-2222-222222222222' and position = 1;
 set role authenticated;
 select kind, detail = (select pl.region from profile_roots r join places pl on pl.id = r.place_id where r.profile_id = auth.uid() and r.position = 1) as my_state, n
 from activity_for_me() where kind = 'new_people';
-\echo '55. A blocked person never shows in Activity (Aman, expect 0):'
+\echo '55. A blocked person never shows in Activity (Neeraj blocks Aman, who has an alert waiting for him; expect 0):'
+reset role;
+insert into blocks values ('11111111-1111-1111-1111-111111111111','33333333-3333-3333-3333-333333333333') on conflict do nothing;
+insert into notifications (recipient_id, kind, actor_id, sent_at) values ('11111111-1111-1111-1111-111111111111', 'accepted', '33333333-3333-3333-3333-333333333333', now());
+set role authenticated;
 select count(*) from activity_for_me() where actor_id = '33333333-3333-3333-3333-333333333333';
 \echo '56. The weekly email list is server-only (expect permission denied):'
 \set ON_ERROR_STOP 0
@@ -326,3 +330,16 @@ update profiles set alert_answers = false where id = '11111111-1111-1111-1111-11
 insert into notifications (recipient_id, kind, actor_id, ref_id) values ('11111111-1111-1111-1111-111111111111', 'answer', '22222222-2222-2222-2222-222222222222', null);
 select count(*) from claim_notifications(100) where recipient_id = '11111111-1111-1111-1111-111111111111' and kind = 'answer';
 update profiles set alert_answers = true where id = '11111111-1111-1111-1111-111111111111';
+\echo '58. Search never matches words from a hidden answer or a blocked person''s answer (expect 1 | 0 | 0):'
+set role authenticated;
+select set_config('request.jwt.claim.sub','11111111-1111-1111-1111-111111111111',false);
+create temporary table _q as select id from questions_for_me(null, false, null, 1);
+reset role;
+insert into answers (question_id, author_id, body, hidden) select id, '22222222-2222-2222-2222-222222222222', 'zebracornvisible tip', false from _q;
+insert into answers (question_id, author_id, body, hidden) select id, '22222222-2222-2222-2222-222222222222', 'quokkahidden tip', true from _q;
+insert into answers (question_id, author_id, body) select id, '33333333-3333-3333-3333-333333333333', 'narwhalblocked tip' from _q;
+set role authenticated;
+select (select count(*) from questions_for_me(null, false, null, 50, 'zebracorn')),
+       (select count(*) from questions_for_me(null, false, null, 50, 'quokkahidden')),
+       (select count(*) from questions_for_me(null, false, null, 50, 'narwhal'));
+reset role;

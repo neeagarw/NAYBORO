@@ -139,6 +139,7 @@ export function ago(iso: string) {
 const svg = { "aria-hidden": true, fill: "none", stroke: "currentColor", strokeLinecap: "round", strokeLinejoin: "round" } as const;
 export const BackIcon = () => <svg {...svg} width="20" height="20" viewBox="0 0 24 24" strokeWidth="2"><path d="M15 18l-6-6 6-6" /></svg>;
 export const MoreIcon = () => <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8" /><circle cx="12" cy="12" r="1.8" /><circle cx="19" cy="12" r="1.8" /></svg>;
+export const SearchIcon = ({ size = 20 }: { size?: number }) => <svg {...svg} width={size} height={size} viewBox="0 0 24 24" strokeWidth="2"><circle cx="11" cy="11" r="6.5" /><path d="M16 16l4.5 4.5" /></svg>;
 export const XIcon = ({ size = 18 }: { size?: number }) => <svg {...svg} width={size} height={size} viewBox="0 0 24 24" strokeWidth="2.2"><path d="M7 7l10 10M17 7L7 17" /></svg>;
 export const PlusIcon = ({ size = 18 }: { size?: number }) => <svg {...svg} width={size} height={size} viewBox="0 0 24 24" strokeWidth="2.4"><path d="M12 5v14M5 12h14" /></svg>;
 export const ArrowIcon = ({ size = 20 }: { size?: number }) => <svg {...svg} width={size} height={size} viewBox="0 0 24 24" strokeWidth="2.2"><path d="M5 12h14M13 6l6 6-6 6" /></svg>;

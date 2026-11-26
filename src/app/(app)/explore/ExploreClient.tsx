@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getClient } from "@/lib/supabase/client";
-import { Avatar, Sheet, MenuItem, Tag, ago, friendly, useToast, signPhotosClient, TONE_CLASS, PlusIcon, PinIcon, MaskIcon, MoreIcon, ChipRow } from "@/components/ui";
+import { Avatar, Sheet, MenuItem, Tag, ago, friendly, useToast, signPhotosClient, TONE_CLASS, PlusIcon, PinIcon, MaskIcon, MoreIcon, ChipRow, SearchIcon, XIcon } from "@/components/ui";
 import { REPORT_REASONS, UI } from "@/config/app";
 import { fmtIn, isThisWeekend } from "@/lib/time";
 import { RootsCard, type Roots } from "./RootsCard";
@@ -14,9 +14,9 @@ export type Event = { id: string; title: string; starts_at: string; ends_at: str
 
 export type TopicCfg = { name: string; tone: string };
 
-export function ExploreClient({ initialTab, questions: firstQs, answers: firstAns, events, photos: firstPhotos, topics, tz, unanswered: firstUnanswered, roots }: {
+export function ExploreClient({ initialTab, questions: firstQs, answers: firstAns, events, photos: firstPhotos, topics, tz, unanswered: firstUnanswered, roots, place }: {
   initialTab: "q" | "e"; questions: Question[]; answers: Answer[]; events: Event[]; photos: Record<string, string>;
-  topics: TopicCfg[]; tz: string; unanswered: number; roots: Roots | null;
+  topics: TopicCfg[]; tz: string; unanswered: number; roots: Roots | null; place: string;
 }) {
   const fmt = (iso: string, o: Intl.DateTimeFormatOptions) => fmtIn(iso, tz, o);
   const timeRange = (e: Event) => {
@@ -64,16 +64,33 @@ export function ExploreClient({ initialTab, questions: firstQs, answers: firstAn
   }, [answers]);
   const qList = questions;
 
+  // Search: questions (or any of their answers) with these words, within the same chip. Typing waits a moment
+  // before asking the server; an older reply that arrives late is ignored.
+  const [search, setSearch] = useState("");
+  const [searched, setSearched] = useState("");
+  const reqId = useRef(0);
+  useEffect(() => {
+    const words = search.trim().length >= 2 ? search.trim() : "";   // one letter isn't a search yet
+    if (words === searched) return;
+    const t = setTimeout(() => { setQuestions([]); setAnswers([]); void loadQs(qChip, undefined, words); }, 300);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only when the words change
+  }, [search]);
+
   /** Loads a page of questions (and their answers) for the chosen chip; `before` = load more. */
-  async function loadQs(chipName: string, before?: string) {
+  async function loadQs(chipName: string, before?: string, words = searched) {
+    const id = ++reqId.current;
     setLoadingQs(true);
     const sb = getClient();
     const { data } = await sb.rpc("questions_for_me", {
       p_topic: chipName === "All" || chipName === "Unanswered" ? null : chipName,
-      p_unanswered: chipName === "Unanswered", p_before: before ?? null, p_limit: UI.questionsPage,
+      p_unanswered: chipName === "Unanswered", p_before: before ?? null, p_limit: UI.questionsPage, p_q: words || null,
     });
+    if (id !== reqId.current) return;
+    setSearched(words);
     const qs = (data ?? []) as Question[];
     const { data: ans } = qs.length ? await sb.rpc("answers_for", { qids: qs.map((q) => q.id) }) : { data: [] };
+    if (id !== reqId.current) return;
     const signed = await signPhotosClient(((ans ?? []) as Answer[]).map((a) => a.photo_path));
     setPhotos((p) => ({ ...p, ...signed }));
     setQuestions((prev) => (before ? [...prev, ...qs] : qs));
@@ -164,6 +181,18 @@ export function ExploreClient({ initialTab, questions: firstQs, answers: firstAn
             </button>
           ))}
         </div>
+        {tab === "q" && (
+          <div role="search" className="relative">
+            <span aria-hidden="true" className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted"><SearchIcon /></span>
+            <input type="search" value={search} onChange={(e) => setSearch(e.target.value)} enterKeyHint="search"
+              onKeyDown={(e) => { if (e.key === "Escape") setSearch(""); }}
+              aria-label={`Search questions around ${place || "you"}`} placeholder={`Search questions around ${place || "you"}`}
+              className="h-[52px] w-full rounded-[16px] border border-line bg-surface pl-12 pr-12 text-[16px] placeholder:text-muted [&::-webkit-search-cancel-button]:hidden" />
+            {search && (
+              <button onClick={() => setSearch("")} aria-label="Clear search" className="absolute right-1 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full text-muted"><XIcon /></button>
+            )}
+          </div>
+        )}
         <ChipRow label={tab === "q" ? "Filter questions" : "Filter events"} wrapClass="-mx-5" className="px-5 pb-0.5">
           {tab === "q"
             ? ["All", "Unanswered", ...topics.filter((t) => t.name !== "General").map((t) => t.name)].map((n) => (
@@ -182,17 +211,21 @@ export function ExploreClient({ initialTab, questions: firstQs, answers: firstAn
       <main ref={mainRef} className="flex flex-1 flex-col gap-3.5 px-5 pb-[110px] pt-1.5">
         {tab === "q" && (
           <>
-            {roots && qChip === "All" && <RootsCard roots={roots} photos={firstPhotos} />}
+            {roots && qChip === "All" && !searched && <RootsCard roots={roots} photos={firstPhotos} />}
             {qList.length === 0 && !loadingQs && (
               <div className="flex flex-col items-center gap-3 px-2.5 py-8 text-center text-sm text-muted">
                 <p>
-                  {qChip === "Unanswered" ? "Every question here has an answer. Nice!"
+                  {searched ? `No questions about “${searched}” around ${place || "you"} yet. Ask it and people nearby will answer.`
+                    : qChip === "Unanswered" ? "Every question here has an answer. Nice!"
                     : qChip === "All" ? "No questions here yet. Be the first to ask."
                     : `No questions about ${qChip} yet. Be the first to ask.`}
                 </p>
                 <div className="flex flex-wrap justify-center gap-2">
-                  <Link href="/explore/ask" className="flex min-h-11 items-center gap-1.5 rounded-[14px] bg-green px-4 font-bold text-white"><PlusIcon />Ask a question</Link>
-                  {qChip !== "All" && (
+                  <Link href={searched ? `/explore/ask?q=${encodeURIComponent(searched)}` : "/explore/ask"} className="flex min-h-11 items-center gap-1.5 rounded-[14px] bg-green px-4 font-bold text-white"><PlusIcon />{searched ? "Ask it" : "Ask a question"}</Link>
+                  {searched && (
+                    <button onClick={() => setSearch("")} className="flex min-h-11 items-center rounded-[14px] border border-line bg-surface px-4 font-bold text-green">Clear search</button>
+                  )}
+                  {qChip !== "All" && !searched && (
                     <button onClick={() => pickChip("All")} className="flex min-h-11 items-center rounded-[14px] border border-line bg-surface px-4 font-bold text-green">See all questions</button>
                   )}
                 </div>

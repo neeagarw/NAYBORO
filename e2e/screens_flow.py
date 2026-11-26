@@ -182,6 +182,22 @@ with sync_playwright() as p:
     expect(cricket.get_by_role("button", name=re.compile("Interested"))).to_have_attribute("aria-pressed", "true")
     shot(A, "s08_events")
 
+    # ── Explore search: question words, answer words, nothing found → "Ask it" starts a question with those words ──
+    A.goto(B + "/explore")
+    box = A.get_by_role("searchbox", name="Search questions around Garland")
+    box.press_sequentially("meth")
+    expect(A.locator("article").first).to_contain_text("fresh methi and curry leaves"); expect(A.locator("article")).to_have_count(1)
+    expect(A.get_by_role("region", name="Your roots, nearby")).to_have_count(0)      # the card steps aside while searching
+    box.fill("belt line")                                                              # only in an answer
+    expect(A.locator("article").first).to_contain_text("fresh methi and curry leaves"); shot(A, "s08b_search")
+    box.fill("idli batter"); expect(A.get_by_text("No questions about “idli batter” around Garland yet.", exact=False)).to_be_visible()
+    A.get_by_role("link", name="Ask it").click(); expect(A).to_have_url(re.compile(r"/explore/ask\?q=idli"))
+    expect(A.get_by_role("textbox").first).to_have_value("idli batter")
+    A.goto(B + "/explore"); box = A.get_by_role("searchbox", name="Search questions around Garland")
+    box.fill("cricket"); expect(A.locator("article").first).to_contain_text("cricket")
+    A.get_by_role("button", name="Clear search").click(); expect(box).to_have_value("")
+    expect(A.locator("article").nth(3)).to_be_visible()                                # the full list is back
+
     # Typing with real key presses keeps every space (Ask and Help once dropped the first one)
     A.goto(B + "/explore/ask")
     A.get_by_label("Your question").click(); A.keyboard.type("Test hi there friends", delay=40)

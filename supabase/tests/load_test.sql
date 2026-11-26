@@ -65,6 +65,9 @@ select count(*) from (select * from people_for_me() limit 60) x;
 select * from my_root_counts();
 \echo '== Explore (questions_for_me)'
 select count(*) from (select * from questions_for_me() limit 30) x;
+\echo '== Explore search (questions_for_me with words)'
+select count(*) from questions_for_me(null, false, null, 20, 'question number 42');
+select count(*) from questions_for_me(null, false, null, 20, 'zzzz nothing');
 \echo '== Answers for one page of questions'
 select count(*) from answers_for(array(select id from questions_for_me() limit 30));
 \echo '== Chats list (my_chats)'
