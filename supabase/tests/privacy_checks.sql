@@ -294,3 +294,11 @@ set role anon;
 select delete_my_account();
 \set ON_ERROR_STOP 1
 reset role;
+\echo '52. A neighbourhood or PIN finds only its city, never a finer place (expect: Salt Lake|Kolkata, 700091|Kolkata; then permission denied):'
+set role anon;
+select via || '|' || city from search_places('Salt Lake', 1);
+select via || '|' || city from search_places('700091', 1);
+\set ON_ERROR_STOP 0
+select count(*) from search_places_core('salt', null, 5);
+\set ON_ERROR_STOP 1
+reset role;

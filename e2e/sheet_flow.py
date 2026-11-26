@@ -49,6 +49,8 @@ with sync_playwright() as p:
     home.fill("Chicago"); expect(pg.get_by_role("option", name=re.compile("^Chicago.*Illinois")).first).to_be_visible()
     home.fill("Bangalore"); expect(pg.get_by_role("option", name=re.compile("^Bengaluru")).first).to_be_visible()
     home.fill("Calcutta"); expect(pg.get_by_role("option").first).to_contain_text("Kolkata")   # old name of a big city ranks first
+    home.fill("Salt Lake"); expect(pg.get_by_role("option").first).to_have_text(re.compile("^Salt Lake.*Kolkata, West Bengal"))
+    home.fill("700091"); expect(pg.get_by_role("option").first).to_have_text(re.compile("^700091.*Kolkata"))
     home.fill("Jai"); pg.get_by_role("option", name=re.compile("^Jaipur")).first.click()
     pg.get_by_role("checkbox").check()
     pg.get_by_role("button", name="Join the waitlist").click()

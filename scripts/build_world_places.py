@@ -58,7 +58,8 @@ def refresh():
     print("refreshed", len(cities), "cities")
 
 
-def build():
+def world_rows():
+    """Every place as (city, region, country, population, aliases), biggest first, plus {key: (lat, lng)}."""
     countries = {r["iso"]: r["name"] for r in csv.DictReader(open(os.path.join(GEO, "countries.csv"), encoding="utf-8"))}
     countries["US"] = "United States"
     states = {}
@@ -110,7 +111,7 @@ def build():
             biggest[k] = (int(r["population"] or 0), r["geonameid"])
     seed_ids = {v[1]: existing[k] for k, v in biggest.items()}
 
-    best = {}
+    best, coords = {}, {}
     for r in csv.DictReader(open(os.path.join(GEO, "cities5000.csv"), encoding="utf-8")):
         cc = r["country"]
         if cc not in countries:
@@ -122,8 +123,13 @@ def build():
         aliases = [a for a in r["aliases"].split("|") if a and a != name]
         if key not in best or pop > best[key][3]:
             best[key] = (name, region, countries[cc], pop, aliases)
+            coords[key] = (lat, lng)
 
-    rows = sorted(best.values(), key=lambda x: (-x[3], x[0]))
+    return sorted(best.values(), key=lambda x: (-x[3], x[0])), coords
+
+
+def build():
+    rows, _ = world_rows()
 
     def q(s):
         return "'" + s.replace("'", "''") + "'"

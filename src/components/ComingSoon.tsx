@@ -9,7 +9,7 @@ import { APP } from "@/config/app";
 // ("Join the waitlist" and "You're on the list").
 
 export type City = { id: number; name: string; state: string; metro_name: string; zip?: string | null };
-type Place = { id: number; city: string; region: string; country: string };
+type Place = { id: number; city: string; region: string; country: string; via?: string | null };
 type Home = { text: string; place: Place | null };
 type Done = { email: string; refCode: string; city: string | null; metro: string | null; already: boolean };
 
@@ -223,7 +223,11 @@ function JoinForm({ refCode, onDone, defaultEmail, guessedCity }: { refCode: str
     let live = true;
     const t = setTimeout(async () => {
       const data = await geo<City>({ kind: "city", q });
-      if (live) setCityHits(data);
+      if (!live) return;
+      // A full ZIP that matches one city picks it, so leaving the box without tapping the list still counts.
+      const zip = /^([0-9]{5})(-[0-9]{4})?$/.exec(q)?.[1];
+      if (zip && data.length === 1 && data[0].zip === zip) { setCity(data[0]); setCityText(cityLabel(data[0], false)); setCityHits([]); }
+      else setCityHits(data);
     }, 200);
     return () => { live = false; clearTimeout(t); };
   }, [cityText, city]);
@@ -332,7 +336,8 @@ function HomeField({ home, onChange }: { home: Home; onChange: (h: Home) => void
   const [hits, setHits] = useState<Place[]>([]);
   const id = useId();
   const text = home.place ? `${home.place.city}, ${home.place.region}` : home.text;
-  const pick = (p: Place) => { onChange({ ...home, place: p }); setHits([]); };
+  // A neighbourhood or PIN/ZIP ("Salt Lake", "700091") picks the city it's in: only the city is kept.
+  const pick = (p: Place) => { onChange({ ...home, place: { ...p, via: null } }); setHits([]); };
   const keys = useListKeys(hits, pick, () => setHits([]));
 
   useEffect(() => {
@@ -351,14 +356,14 @@ function HomeField({ home, onChange }: { home: Home; onChange: (h: Home) => void
     <div>
       <input id="home" className={INPUT} autoComplete="off" role="combobox" aria-expanded={open} aria-controls={`${id}-opts`} aria-autocomplete="list"
         aria-activedescendant={open && keys.active >= 0 ? `${id}-opt-${keys.active}` : undefined}
-        placeholder="City or town you grew up in" value={text} onKeyDown={keys.onKeyDown} onBlur={() => setHits([])}
+        placeholder="City, area or PIN code you grew up in" value={text} onKeyDown={keys.onKeyDown} onBlur={() => setHits([])}
         onChange={(e) => { onChange({ text: e.target.value, place: null }); if (e.target.value.trim().length < 2) setHits([]); }} />
       {open && (
         <div id={`${id}-opts`} role="listbox" aria-label="Places" className={OPTIONS}>
           {hits.map((p, i) => (
-            <button type="button" role="option" id={`${id}-opt-${i}`} aria-selected={i === keys.active} tabIndex={-1} key={p.id}
+            <button type="button" role="option" id={`${id}-opt-${i}`} aria-selected={i === keys.active} tabIndex={-1} key={`${p.id}-${p.via ?? ""}`}
               className={`${OPTION} ${i === keys.active ? "bg-mist" : ""}`} onMouseDown={(e) => e.preventDefault()} onClick={() => pick(p)}>
-              <b className="text-[16px]">{p.city}</b><span className="text-[13px] text-muted">{p.region}, {p.country}</span>
+              <b className="text-[16px]">{p.via ?? p.city}</b><span className="text-[13px] text-muted">{p.via ? `${p.city}, ${p.region}, ${p.country}` : `${p.region}, ${p.country}`}</span>
             </button>
           ))}
         </div>

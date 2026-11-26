@@ -81,9 +81,18 @@ with sync_playwright() as p:
     home1.fill("Chicago"); expect(pg.get_by_role("option", name=re.compile("^Chicago.*Illinois")).first).to_be_visible()
     home1.fill("Bangalore"); expect(pg.get_by_role("option", name=re.compile("^Bengaluru")).first).to_be_visible()
     home1.fill("Calcutta"); expect(pg.get_by_role("option").first).to_contain_text("Kolkata")   # old name of a big city ranks first
+    # A neighbourhood, a PIN and "City, State" all find the city (only the city is kept)
+    home1.fill("Salt Lake"); expect(pg.get_by_role("option").first).to_have_text(re.compile("^Salt Lake.*Kolkata, West Bengal"))
+    home1.fill("700091"); expect(pg.get_by_role("option").first).to_have_text(re.compile("^700091.*Kolkata"))
+    home1.fill("Mumbai, India"); expect(pg.get_by_role("option").first).to_have_text(re.compile("^Mumbai"))
+    home1.fill("Andheri"); pg.get_by_role("option").first.click(); expect(home1).to_have_value("Mumbai, Maharashtra")
     home1.fill("Jai")
     pg.get_by_role("option", name=re.compile("^Jaipur")).first.click()
     expect(home1).to_have_value(re.compile("^Jaipur"))
+    # Address-style typing: "Plano, TX" narrows by state; a full ZIP picks its city without tapping the list
+    pg.get_by_label("Current city").fill("Plano, TX"); expect(pg.get_by_role("option").first).to_have_text(re.compile("^Plano, TX"))
+    pg.get_by_label("Current city").fill("75024"); expect(pg.get_by_label("Current city")).to_have_value("Plano, TX")
+    expect(pg.get_by_text("Part of Dallas")).to_be_visible()
     pg.get_by_label("Current city").fill("Fremont")
     pg.get_by_role("option", name=re.compile(r"^Fremont, CA")).first.click()
     expect(pg.get_by_text("Part of San Francisco Bay Area")).to_be_visible()

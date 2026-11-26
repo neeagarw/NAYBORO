@@ -23,6 +23,8 @@ with sync_playwright() as p:
     # Roots: worldwide hometowns (a US city, an old Indian name), then Jaipur
     pg.get_by_label('Hometown').fill('Chicago'); expect(pg.get_by_role('button', name='Chicago Illinois, United States')).to_be_visible()
     pg.get_by_label('Hometown').fill('Calcutta'); expect(pg.get_by_role('button', name='Kolkata West Bengal, India')).to_be_visible()
+    pg.get_by_label('Hometown').fill('Koramangala'); expect(pg.get_by_role('button', name='Koramangala Bengaluru, Karnataka, India')).to_be_visible()
+    pg.get_by_label('Hometown').fill('560034'); expect(pg.get_by_role('button', name='560034 Bengaluru, Karnataka, India')).to_be_visible()
     pg.get_by_label('Hometown').fill('Jai'); expect(pg.get_by_role('button', name='Jaipur Rajasthan, India')).to_be_visible(); shot(pg,'03_roots_search')
     pg.get_by_role('button', name='Jaipur Rajasthan, India').click()
     expect(pg.get_by_text('Others will see:')).to_contain_text('You · Jaipur → your city'); shot(pg,'04_roots_picked')

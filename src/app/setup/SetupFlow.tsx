@@ -9,7 +9,7 @@ import { APP, UI } from "@/config/app";
 
 // Port of design/mockups/profile-setup.html: Roots → Interests → Now → You → Done.
 
-export type Place = { id: number; city: string; region: string; country: string };
+export type Place = { id: number; city: string; region: string; country: string; via?: string | null };
 /** A US city and the metro area it belongs to (e.g. Fremont, CA · San Francisco Bay Area). */
 export type Area = { id: number; name: string; state: string; metro_name: string; zip?: string | null };
 export type InterestGroup = { title: string; items: { id: number; label: string }[] };
@@ -210,15 +210,15 @@ export function SetupFlow({ startStep = 0, userId, initialArea, prefillRoot = nu
                 <label htmlFor="rootSearch" className="text-[13px] font-bold">{roots.length ? "Another place you call home" : "Hometown"}</label>
                 <div className="flex h-[52px] items-center gap-2.5 rounded-2xl border-2 border-line bg-surface px-4 text-muted focus-within:border-green">
                   <SearchIcon />
-                  <input id="rootSearch" ref={searchRef} type="text" autoComplete="off" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Start typing a city or town" className="min-w-0 flex-1 bg-transparent text-base text-ink outline-none" />
+                  <input id="rootSearch" ref={searchRef} type="text" autoComplete="off" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="City, area or PIN code" className="min-w-0 flex-1 bg-transparent text-base text-ink outline-none" />
                 </div>
                 <div className="flex flex-col gap-0.5 rounded-[18px] border border-line-soft bg-surface p-1.5">
-                  {!query.trim() && <div className="p-3.5 text-sm text-muted">Type at least one letter. Pick the place you feel you are from.</div>}
-                  {query.trim() && results && results.length === 0 && <div className="p-3.5 text-sm text-muted">No match yet. Try a nearby bigger city.</div>}
+                  {!query.trim() && <div className="p-3.5 text-sm text-muted">Type a city, a neighbourhood or a PIN code. Pick the place you feel you are from.</div>}
+                  {query.trim() && results && results.length === 0 && <div className="p-3.5 text-sm text-muted">No match yet. Try your PIN code or a nearby bigger city.</div>}
                   {query.trim() && results?.map((p) => (
-                    <button key={p.id} onClick={() => { setRoots([...roots, p]); setAdding(false); setQuery(""); }} className="flex min-h-[60px] w-full items-center gap-3.5 rounded-[14px] px-3.5 py-2.5 text-left hover:bg-ground">
+                    <button key={`${p.id}-${p.via ?? ""}`} onClick={() => { setRoots([...roots, { ...p, via: null }]); setAdding(false); setQuery(""); }} className="flex min-h-[60px] w-full items-center gap-3.5 rounded-[14px] px-3.5 py-2.5 text-left hover:bg-ground">
                       <span className="h-[22px] w-[22px] flex-none rounded-full border-2 border-radio" />
-                      <span><b className="block text-base">{p.city}</b><small className="text-[13px] text-muted">{p.region}, {p.country}</small></span>
+                      <span><b className="block text-base">{p.via ?? p.city}</b><small className="text-[13px] text-muted">{p.via ? `${p.city}, ${p.region}, ${p.country}` : `${p.region}, ${p.country}`}</small></span>
                     </button>
                   ))}
                 </div>
