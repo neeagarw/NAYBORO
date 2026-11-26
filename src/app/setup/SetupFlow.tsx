@@ -176,10 +176,11 @@ export function SetupFlow({ startStep = 0, userId, initialArea, prefillRoot = nu
     <div className="app-frame">
       {step < 4 && (
         <div className="flex items-center gap-3.5 px-5 pb-1.5 pt-[18px]">
-          {step > 0 ? (
+          {step > 0 && !(editing && step === startStep) ? (
             <button aria-label="Back" onClick={() => go(step - 1)} className="flex h-11 w-11 flex-none items-center justify-center rounded-[14px] border border-line bg-surface"><BackIcon /></button>
           ) : editing ? (
-            <button aria-label="Close" onClick={() => router.push("/people")} className="flex h-11 w-11 flex-none items-center justify-center rounded-[14px] border border-line bg-surface"><BackIcon /></button>
+            // Opened on one step ("My area" on the You tab, "Add" on the photo tip): Close goes back where you came from.
+            <button aria-label="Close" onClick={() => (startStep > 0 ? (history.length > 1 ? router.back() : router.push("/you")) : router.push("/people"))} className="flex h-11 w-11 flex-none items-center justify-center rounded-[14px] border border-line bg-surface"><BackIcon /></button>
           ) : null}
           <div className="grid flex-1 grid-cols-4 gap-1.5" aria-label="Setup progress">
             {STEPS.map((s, i) => (

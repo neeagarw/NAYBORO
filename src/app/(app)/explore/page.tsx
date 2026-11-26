@@ -8,6 +8,7 @@ import { listKey } from "@/lib/list-key";
 import { AppShell } from "@/components/AppShell";
 import { PinIcon } from "@/components/ui";
 import { ExploreClient, type Question, type Answer, type Event } from "./ExploreClient";
+import type { Roots } from "./RootsCard";
 
 export const metadata = { title: "Explore" };
 
@@ -23,17 +24,19 @@ export default function ExplorePage({ searchParams }: PageProps<"/explore">) {
 async function Explore({ searchParams }: { searchParams: PageProps<"/explore">["searchParams"] }) {
   const { tab } = await searchParams;
   const supabase = await createClient();
-  const [cfg, { data: qs }, { data: evs }, { data: area }, { data: unanswered }] = await Promise.all([
+  const [cfg, { data: qs }, { data: evs }, { data: area }, { data: unanswered }, { data: rootsRow }] = await Promise.all([
     getAppConfig(),
     supabase.rpc("questions_for_me", { p_limit: UI.questionsPage }),
     supabase.rpc("events_for_me"),
     supabase.rpc("me_area").maybeSingle(),
     supabase.rpc("unanswered_count"),
+    supabase.rpc("roots_nearby").maybeSingle(),
   ]);
+  const roots = (rootsRow ?? null) as Roots | null;
   const questions = (qs ?? []) as Question[];
   const { data: ans } = questions.length ? await supabase.rpc("answers_for", { qids: questions.map((q) => q.id) }) : { data: [] };
   const answers = (ans ?? []) as Answer[];
-  const photos = await signPhotos(answers.map((a) => a.photo_path));
+  const photos = await signPhotos([...answers.map((a) => a.photo_path), ...(roots?.faces ?? []).map((f) => f.photo)]);
   const a = area as { name: string; metro: string } | null;
 
   return (
@@ -48,6 +51,7 @@ async function Explore({ searchParams }: { searchParams: PageProps<"/explore">["
         topics={cfg.topics}
         tz={cfg.metro?.timezone ?? "UTC"}
         unanswered={unanswered ?? 0}
+        roots={roots}
       />
     </AppShell>
   );

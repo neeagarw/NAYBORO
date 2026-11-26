@@ -302,3 +302,27 @@ select via || '|' || city from search_places('700091', 1);
 select count(*) from search_places_core('salt', null, 5);
 \set ON_ERROR_STOP 1
 reset role;
+\echo '53. "Your roots, nearby" stays hidden below 5 people (Neeraj, expect 0 rows):'
+set role authenticated;
+select set_config('request.jwt.claim.sub','11111111-1111-1111-1111-111111111111',false);
+select count(*) from roots_nearby();
+\echo '54. Activity says "new people from home" without a number below 5 (Rohit moved into Neeraj''s home state; expect: new_people | t | null):'
+reset role;
+update profile_roots set place_id = (select p2.id from places p1 join places p2 on p2.region = p1.region and p2.country = p1.country and p2.id <> p1.id
+  where p1.id = (select place_id from profile_roots where profile_id = '11111111-1111-1111-1111-111111111111' and position = 1) limit 1)
+where profile_id = '22222222-2222-2222-2222-222222222222' and position = 1;
+set role authenticated;
+select kind, detail = (select pl.region from profile_roots r join places pl on pl.id = r.place_id where r.profile_id = auth.uid() and r.position = 1) as my_state, n
+from activity_for_me() where kind = 'new_people';
+\echo '55. A blocked person never shows in Activity (Aman, expect 0):'
+select count(*) from activity_for_me() where actor_id = '33333333-3333-3333-3333-333333333333';
+\echo '56. The weekly email list is server-only (expect permission denied):'
+\set ON_ERROR_STOP 0
+select count(*) from claim_weekly_digest(10);
+\set ON_ERROR_STOP 1
+reset role;
+\echo '57. Switching off "Answers to my questions" stops those emails (expect 0):'
+update profiles set alert_answers = false where id = '11111111-1111-1111-1111-111111111111';
+insert into notifications (recipient_id, kind, actor_id, ref_id) values ('11111111-1111-1111-1111-111111111111', 'answer', '22222222-2222-2222-2222-222222222222', null);
+select count(*) from claim_notifications(100) where recipient_id = '11111111-1111-1111-1111-111111111111' and kind = 'answer';
+update profiles set alert_answers = true where id = '11111111-1111-1111-1111-111111111111';

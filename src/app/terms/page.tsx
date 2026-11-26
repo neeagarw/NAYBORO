@@ -42,7 +42,7 @@ const SECTIONS: LegalSection[] = [
     "Events are run by other organizers. We list them and link out; we don't host them and aren't responsible for them.",
   ]},
   { title: "Ending your account", items: [
-    "You can delete your account any time from the account menu. That removes your profile and content.",
+    "You can delete your account any time from the You tab. That removes your profile and content.",
     "We may suspend or close accounts that break these terms, put others at risk, or harm the service.",
   ]},
   { title: "Copyright complaints", items: [

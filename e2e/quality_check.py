@@ -13,7 +13,7 @@ rohit = "d0000000-0000-0000-0000-000000000001"
 aman_conv = psql("select conversation_id from conversation_members where profile_id='d0000000-0000-0000-0000-000000000003' limit 1")
 SIGNED_IN = [("people", "/people"), ("profile", f"/p/{rohit}"), ("chats", "/chats"), ("chat", f"/chats/{aman_conv}"),
              ("explore", "/explore"), ("events", "/explore?tab=events"), ("ask", "/explore/ask"), ("help", "/help"),
-             ("admin", "/admin"), ("setup", "/setup"), ("not_found", "/p/00000000-0000-0000-0000-000000000000")]
+             ("admin", "/admin"), ("setup", "/setup"), ("activity", "/activity"), ("you", "/you"), ("blocked", "/you/blocked"), ("not_found", "/p/00000000-0000-0000-0000-000000000000")]
 SIGNED_OUT = [("welcome", "/"), ("login", "/login"), ("unsubscribed", "/unsubscribed")]
 SIZES = [("small_phone", 320, 640), ("short_window", 490, 650), ("phone", 390, 844), ("large_phone", 430, 932), ("desktop", 1280, 900)]
 

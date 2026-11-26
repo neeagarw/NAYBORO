@@ -4,7 +4,7 @@ import { APP } from "@/config/app";
 
 export const metadata: Metadata = { title: "Community guidelines" };
 
-// Plain-language rules, matching the product rules in CLAUDE.md. Linked from the account menu.
+// Plain-language rules, matching the product rules in CLAUDE.md. Linked from the You tab.
 const SECTIONS: [string, string[]][] = [
   ["Be a good neighbor", [
     "Be kind and patient. Many people here are new to the city, or new to the country.",

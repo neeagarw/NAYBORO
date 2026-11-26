@@ -82,6 +82,51 @@ export function buildEmail(items: Alert[]) {
   return { to: first.email, subject, html, text, unsubscribe: unsub };
 }
 
+// ───────── the weekly roundup: new people from home + events coming up (Settings switches) ─────────
+export type Digest = {
+  recipient_id: string; email: string; first_name: string; region: string | null; metro_name: string;
+  new_people: number | null; has_new_people: boolean; timezone: string;
+  events: { title: string; starts_at: string; place: string; url: string }[];
+};
+
+export function buildDigest(d: Digest) {
+  const unsub = `${site()}/api/unsubscribe?u=${d.recipient_id}&t=${unsubscribeToken(d.recipient_id)}`;
+  const when = (iso: string) => new Date(iso).toLocaleString("en-US", { timeZone: d.timezone, weekday: "short", hour: "numeric", minute: "2-digit" });
+  // Never a number below 5 (safe count from the database): "New people from Rajasthan joined" instead.
+  const people = d.has_new_people && d.region
+    ? (d.new_people ? `${d.new_people} new people from ${d.region} joined around ${d.metro_name} this week` : `New people from ${d.region} joined around ${d.metro_name} this week`)
+    : null;
+  const subject = people ? `${people.replace(/ this week$/, "")}` : `Coming up around ${d.metro_name} this week`;
+  const card = (title: string, body: string) => `<tr><td style="padding:12px 14px;background:#F3F7F5;border-radius:14px">
+      <div style="font-weight:700;font-size:15px;color:#17201B">${esc(title)}</div>
+      ${body ? `<div style="font-size:14px;color:#56635B;margin-top:4px">${esc(body)}</div>` : ""}
+    </td></tr><tr><td style="height:8px"></td></tr>`;
+  const rows = [
+    people ? card(people, "Say hi on Nayboro. They'll see your note before you chat.") : "",
+    ...d.events.map((e) => card(e.title, `${when(e.starts_at)} · ${e.place}`)),
+  ].join("");
+  const url = `${site()}${people ? "/people?chip=region" : "/explore?tab=events"}`;
+  const cta = people ? "See who joined" : "See events";
+  const html = `<!doctype html><html><body style="margin:0;background:#F3F7F5;font-family:Inter,Arial,sans-serif">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:24px 12px">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#fff;border-radius:24px;padding:24px">
+    <tr><td style="font-weight:800;font-size:20px;color:#1F6F6B;padding-bottom:16px">nayboro</td></tr>
+    <tr><td style="font-size:16px;color:#17201B;padding-bottom:14px">Hi ${esc(d.first_name)}, here's your week around ${esc(d.metro_name)}.</td></tr>
+    ${rows}
+    <tr><td style="padding-top:8px"><a href="${url}" style="display:block;text-align:center;background:#1F6F6B;color:#fff;text-decoration:none;font-weight:700;font-size:16px;padding:14px;border-radius:16px">${cta}</a></td></tr>
+    <tr><td style="font-size:12px;color:#56635B;padding-top:20px;line-height:1.5">A weekly roundup, never more. Change it under You → Notifications,
+      or <a href="${unsub}" style="color:#56635B">turn off all email alerts</a>.</td></tr>
+  </table></td></tr></table></body></html>`;
+  const text = [
+    `Hi ${d.first_name}, here's your week around ${d.metro_name}.`, "",
+    ...(people ? [`- ${people}`] : []),
+    ...d.events.map((e) => `- ${e.title}: ${when(e.starts_at)} · ${e.place}`), "",
+    `${cta}: ${url}`, "",
+    `Turn off email alerts: ${unsub}`,
+  ].join("\n");
+  return { to: d.email, subject, html, text, unsubscribe: unsub };
+}
+
 /** Sends through Resend's HTTP API. RESEND_API_URL can point at a test server. */
 export async function sendEmail(msg: { to: string; subject: string; html: string; text: string; unsubscribe: string }) {
   const res = await fetch(process.env.RESEND_API_URL ?? "https://api.resend.com/emails", {

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { getClient } from "@/lib/supabase/client";
 import { useDismissed, Avatar, Tag, XIcon, PlusIcon, useToast, doesLine, signPhotosClient , ChipRow } from "@/components/ui";
@@ -90,6 +90,14 @@ export function PeopleClient({ initial, hellos, counts, area, metro, myInterests
     setPeople((prev) => (offset === 0 ? rows : [...prev, ...rows]));
     setMore(rows.length === UI.peoplePage);
   }
+  // /people?chip=region (from "See them" on Explore and Activity) opens on that filter.
+  useEffect(() => {
+    const want = new URLSearchParams(window.location.search).get("chip");
+    if (!want || want === "foryou") return;
+    const t = setTimeout(() => { if (chips.some(([k]) => k === want)) pick(want); }, 0);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once, on arrival
+  }, []);
   function pick(next: string) {
     setChip(next);
     setPeople([]);
@@ -192,7 +200,7 @@ export function PeopleClient({ initial, hellos, counts, area, metro, myInterests
           <section aria-label="Suggested for you" className="flex flex-col gap-2.5">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold tracking-[1px] text-muted">SUGGESTED FOR YOU</span>
-              {suggestions.length > 1 && <span className="text-xs text-muted">{suggestions.length} picked for you · swipe</span>}
+              {suggestions.length > 1 && <span className="text-xs text-muted">Swipe for more</span>}
             </div>
             <div className="-mx-5 flex snap-x snap-mandatory gap-2.5 overflow-x-auto px-5 pb-1.5 pt-0.5">
               {suggestions.map((p) => {

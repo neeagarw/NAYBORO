@@ -147,6 +147,11 @@ export const ShieldIcon = ({ size = 18, check = true }: { size?: number; check?:
 export const ChatIcon = ({ size = 20 }: { size?: number }) => <svg {...svg} width={size} height={size} viewBox="0 0 24 24" strokeWidth="2"><path d="M4 5h16v11H9l-5 4z" /></svg>;
 export const MaskIcon = ({ size = 16 }: { size?: number }) => <svg {...svg} width={size} height={size} viewBox="0 0 24 24" strokeWidth="2"><path d="M3 10c0-1.7 2.5-3 9-3s9 1.3 9 3c0 3-2 5-4.5 5-1.8 0-2.7-1.3-4.5-1.3S9.3 15 7.5 15C5 15 3 13 3 10z" /></svg>;
 export const FlagIcon = () => <svg {...svg} width="20" height="20" viewBox="0 0 24 24" strokeWidth="2"><path d="M5 21V4h11l-1.5 4L16 12H5" /></svg>;
+export const BellIcon = ({ size = 20 }: { size?: number }) => <svg {...svg} width={size} height={size} viewBox="0 0 24 24" strokeWidth="2"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z" /><path d="M10 20.5a2.2 2.2 0 0 0 4 0" /></svg>;
+export const ChevronIcon = ({ size = 18 }: { size?: number }) => <svg {...svg} width={size} height={size} viewBox="0 0 24 24" strokeWidth="2"><path d="M9 6l6 6-6 6" /></svg>;
+export const PersonPlusIcon = ({ size = 22 }: { size?: number }) => <svg {...svg} width={size} height={size} viewBox="0 0 24 24" strokeWidth="2"><circle cx="9" cy="8" r="3.5" /><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5M19 8v6M16 11h6" /></svg>;
+export const CalendarIcon = ({ size = 22 }: { size?: number }) => <svg {...svg} width={size} height={size} viewBox="0 0 24 24" strokeWidth="2"><rect x="4" y="5.5" width="16" height="14.5" rx="2.5" /><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4" /></svg>;
+export const ThumbIcon = ({ size = 22 }: { size?: number }) => <svg {...svg} width={size} height={size} viewBox="0 0 24 24" strokeWidth="2"><path d="M7 11v9H4v-9zM7 11l4-7c1.4 0 2.3 1 2 2.4L12.4 10H18a2 2 0 0 1 2 2.3l-1.2 6A2 2 0 0 1 16.8 20H7" /></svg>;
 export const BlockIcon = () => <svg {...svg} width="20" height="20" viewBox="0 0 24 24" strokeWidth="2"><circle cx="12" cy="12" r="9" /><path d="M5.6 5.6l12.8 12.8" /></svg>;
 
 

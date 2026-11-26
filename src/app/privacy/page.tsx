@@ -51,7 +51,7 @@ const SECTIONS: LegalSection[] = [
   ]},
   { title: "Your choices and rights", items: [
     "Edit your profile any time, including what level of hometown others see.",
-    "Delete your account in the app: open the account menu and choose Delete account.",
+    "Delete your account in the app: open the You tab and choose Delete account.",
     "Turn off email alerts, or leave the waitlist, from the link in any email.",
     `To get a copy of your data, correct it, or ask anything about it, email ${APP.contactEmail}. We'll respond within 45 days. If we can't help, you can ask us to reconsider, and you can also contact your state's attorney general.`,
   ]},

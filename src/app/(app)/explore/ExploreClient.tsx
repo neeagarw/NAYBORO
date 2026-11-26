@@ -6,6 +6,7 @@ import { getClient } from "@/lib/supabase/client";
 import { Avatar, Sheet, MenuItem, Tag, ago, friendly, useToast, signPhotosClient, TONE_CLASS, PlusIcon, PinIcon, MaskIcon, MoreIcon, ChipRow } from "@/components/ui";
 import { REPORT_REASONS, UI } from "@/config/app";
 import { fmtIn, isThisWeekend } from "@/lib/time";
+import { RootsCard, type Roots } from "./RootsCard";
 
 export type Question = { id: string; body: string; details: string | null; topic: string; is_anonymous: boolean; author_id: string | null; author_name: string; area_label: string; is_mine: boolean; answer_count: number; created_at: string };
 export type Answer = { id: string; question_id: string; author_id: string; display_name: string; photo_path: string | null; area_name: string; roots_tag: string | null; body: string; helpful_count: number; i_found_helpful: boolean; is_mine: boolean };
@@ -13,9 +14,9 @@ export type Event = { id: string; title: string; starts_at: string; ends_at: str
 
 export type TopicCfg = { name: string; tone: string };
 
-export function ExploreClient({ initialTab, questions: firstQs, answers: firstAns, events, photos: firstPhotos, topics, tz, unanswered: firstUnanswered }: {
+export function ExploreClient({ initialTab, questions: firstQs, answers: firstAns, events, photos: firstPhotos, topics, tz, unanswered: firstUnanswered, roots }: {
   initialTab: "q" | "e"; questions: Question[]; answers: Answer[]; events: Event[]; photos: Record<string, string>;
-  topics: TopicCfg[]; tz: string; unanswered: number;
+  topics: TopicCfg[]; tz: string; unanswered: number; roots: Roots | null;
 }) {
   const fmt = (iso: string, o: Intl.DateTimeFormatOptions) => fmtIn(iso, tz, o);
   const timeRange = (e: Event) => {
@@ -181,6 +182,7 @@ export function ExploreClient({ initialTab, questions: firstQs, answers: firstAn
       <main ref={mainRef} className="flex flex-1 flex-col gap-3.5 px-5 pb-[110px] pt-1.5">
         {tab === "q" && (
           <>
+            {roots && qChip === "All" && <RootsCard roots={roots} photos={firstPhotos} />}
             {qList.length === 0 && !loadingQs && (
               <div className="flex flex-col items-center gap-3 px-2.5 py-8 text-center text-sm text-muted">
                 <p>

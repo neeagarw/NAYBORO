@@ -46,7 +46,7 @@ async function Setup({ searchParams }: { searchParams: Promise<{ step?: string }
   const ar = (myArea?.areas ?? null) as unknown as { id: number; name: string; state: string; metros: { name: string } } | null;
   const initialArea: Area | null = ar ? { id: ar.id, name: ar.name, state: ar.state, metro_name: ar.metros.name } : null;
 
-  // Editing an existing profile ("Edit profile" in the account menu) starts pre-filled.
+  // Editing an existing profile ("Edit profile" on the You tab) starts pre-filled.
   const initial: Initial | null = profile
     ? {
         first: profile.first_name ?? "",
@@ -62,7 +62,8 @@ async function Setup({ searchParams }: { searchParams: Promise<{ step?: string }
 
   // The key remounts the flow whenever saved data changes, so "Edit profile" always opens
   // on step 1 with fresh values (Next.js otherwise restores the last visit's screen).
-  const startStep = step === "photo" && initial ? 3 : 0;
+  // ?step=area ("My area" on the You tab) opens on the city step.
+  const startStep = !initial ? 0 : step === "photo" ? 3 : step === "area" ? 2 : 0;
   const key = JSON.stringify(initial) + startStep;
 
   // A new profile starts with what this person gave when they joined the waitlist (same email).

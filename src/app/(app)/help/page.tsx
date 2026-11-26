@@ -6,7 +6,7 @@ import { TOPICS } from "./topics";
 
 export const metadata = { title: "Contact us" };
 
-// Port of design/mockups/contact.html. Opened from the account menu and from "Tell us" on Events.
+// Port of design/mockups/contact.html. Opened from the You tab and from "Tell us" on Events.
 export default function HelpPage({ searchParams }: PageProps<"/help">) {
   return (
     <Suspense fallback={<ScreenSkeleton kind="form" />}>

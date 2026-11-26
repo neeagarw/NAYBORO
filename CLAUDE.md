@@ -17,7 +17,7 @@ other communities later (hometown data is global on purpose).
 - **Hometown search data:** `places` (world cities) comes from `scripts/build_world_places.py`; `localities` (Indian neighbourhoods and PINs, US ZIPs, each pointing at a city) from `scripts/build_localities.py`, which also copies `scripts/search_places.sql` into its migration. Both write a migration and a JSON copy for sheet mode; never hand-edit the output. Search may show a neighbourhood or code, but only the city is ever saved.
 - **No hard-coding.** Anything that varies by city, community or policy lives in the database: `metros` (name, time zone, radii), `areas`, `topics` (colour, keywords), `interests` (verb, group order), `rate_limits`, `app_settings`. The app reads them via `getAppConfig()` (`src/lib/config.ts`). Product copy and UI constants live in `src/config/app.ts`. Colours are tokens in `globals.css`, never raw hex. Dates use the metro time zone (`src/lib/time.ts`).
 - **Scale rules:** every list is paged; every new foreign key or "recent activity" lookup gets an index; live updates are always filtered to the person; check new queries with `supabase/tests/load_test.sql` (`-v n=100000`).
-- **Screens read through functions:** `people_for_me`, `profile_card`, `inbox_hellos`, `my_chats`, `chat_header`, `questions_for_me`, `answers_for`, `events_for_me`. Add privacy logic there, not in React.
+- **Screens read through functions:** `people_for_me`, `profile_card`, `inbox_hellos`, `my_chats`, `chat_header`, `questions_for_me`, `answers_for`, `events_for_me`, `activity_for_me`, `roots_nearby`, `my_blocks`. Add privacy logic there, not in React.
 - **`supabase/demo_seed.sql` is local-test data only. Never run it on the production database.**
 
 ## Stack
@@ -50,7 +50,7 @@ This Next.js version has breaking changes: read `node_modules/next/dist/docs/` b
 - Colours (since 2026-11-22): teal `#1F6F6B` (primary) and coral `#F2876B` (accent), ground `#F3F7F5`, ink `#17201B`, muted `#56635B`. The token NAMES are still `green*` (= teal) and `orange*` (= coral) so every screen follows; mockups in design/ still show the old green/orange. Use the Tailwind tokens (`bg-green`, `text-muted`, `bg-orange-tint`…), not raw hex. Text on coral is always dark (`text-ink`).
 - Fonts: Bricolage Grotesque for headings (`font-display`), Inter for body.
 - Phone-first: wrap screens in `.app-frame` (max 440px, framed on desktop). Tap targets at least 44px.
-- Bottom nav has three tabs: Explore, People, Chats. The account menu opens from the orange initial button.
+- Bottom nav has four tabs: Explore, People, Chats, You (settings: profile, notification switches, blocked people, support, log out, delete account). Every tab's header has the logo and a bell that opens Activity (coral dot = something new since you last looked).
 
 ## Next.js + Supabase gotchas in this repo (learned the hard way)
 - Cache Components is on. Anything that reads cookies, headers or searchParams must sit inside `<Suspense>` (see `src/app/(app)/layout.tsx`).

@@ -38,6 +38,20 @@ insert into messages (conversation_id, sender_id, body, created_at)
 select c.id, h.from_id, 'message ' || g, now() - g * interval '1 minute'
 from conversations c join hellos h on h.id = c.hello_id cross join generate_series(1, 20) g;
 
+-- One in five people share user #1's hometown (so "your roots, nearby" and the weekly roundup have real work to do),
+-- and user #1 has a busy Activity list (5,000 alerts, 1,000 "helpful" votes).
+update profile_roots set place_id = (select place_id from profile_roots where profile_id = '10000000-0000-0000-0000-000000000001' and position = 1)
+where position = 1 and abs(hashtext(profile_id::text)) % 5 = 0;
+insert into notifications (recipient_id, kind, actor_id, ref_id, created_at, sent_at)
+select '10000000-0000-0000-0000-000000000001', (array['hello','accepted','answer'])[1 + g % 3],
+       ('10000000-0000-0000-0000-' || lpad((2 + g % (:n - 2))::text, 12, '0'))::uuid, null, now() - g * interval '5 minutes', now()
+from generate_series(1, 5000) g;
+insert into answers (id, question_id, author_id, body)
+select gen_random_uuid(), (select id from questions limit 1), '10000000-0000-0000-0000-000000000001', 'Load test helpful answer';
+insert into answer_helpful (answer_id, profile_id)
+select (select id from answers where body = 'Load test helpful answer'), ('10000000-0000-0000-0000-' || lpad((2 + g)::text, 12, '0'))::uuid
+from generate_series(1, 1000) g;
+
 set session_replication_role = origin;
 analyze;
 
@@ -57,5 +71,11 @@ select count(*) from answers_for(array(select id from questions_for_me() limit 3
 select count(*) from my_chats();
 \echo '== Chats badge'
 select chats_badge();
+\echo '== Activity (activity_for_me)'
+select count(*) from activity_for_me();
+\echo '== Bell dot (has_new_activity)'
+select has_new_activity();
+\echo '== Your roots, nearby (roots_nearby)'
+select region, total, in_my_city from roots_nearby();
 \echo '== Profile card'
 select profile_card('10000000-0000-0000-0000-000000000002') is not null;

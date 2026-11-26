@@ -224,6 +224,30 @@ with sync_playwright() as p:
     expect(A).to_have_url(re.compile(r"/people$"))
     expect(A.locator("main:visible")).not_to_contain_text("Vikram")
     A.goto(B + "/chats"); expect(A.locator("main:visible")).not_to_contain_text("Vikram")
+    # You → Blocked people lists him; unblock works (then block again for the rest of the run)
+    A.goto(B + "/you"); A.get_by_role("link", name=re.compile("^Blocked people")).click()
+    expect(A.get_by_role("heading", name="Blocked people")).to_be_visible(); shot(A, "s10b_blocked")
+    A.get_by_role("button", name="Unblock").click(); expect(A.get_by_text("Vikram B. is unblocked")).to_be_visible()
+    assert psql("select count(*) from blocks") == "0"
+    psql(f"insert into blocks (blocker_id, blocked_id) values ('{uid('neeraj@example.com')}', 'd0000000-0000-0000-0000-000000000008')")
+
+    # ── Explore: "Your roots, nearby" (a safe count, no distances) → See them opens People on that filter ──
+    A.goto(B + "/explore")
+    card = A.get_by_role("region", name="Your roots, nearby")
+    expect(card).to_contain_text(re.compile(r"\d+ people from Rajasthan live around Dallas–Fort Worth")); expect(card).not_to_contain_text("miles")
+    shot(A, "s10c_roots_card")
+    card.get_by_role("link", name="See them").click(); expect(A).to_have_url(re.compile(r"/people\?chip=region$"))
+    expect(A.get_by_role("button", name=re.compile(r"^Rajasthan"))).to_have_attribute("aria-pressed", "true")
+
+    # ── Activity: the bell shows a dot for something new; the list splits New / Earlier; seen after a visit ──
+    psql(f"insert into notifications (recipient_id, kind, actor_id, sent_at) values ('{uid('neeraj@example.com')}', 'accepted', 'd0000000-0000-0000-0000-000000000002', now())")
+    A.goto(B + "/explore"); A.get_by_role("link", name="Activity, new items").click()
+    expect(A.get_by_role("heading", name="Activity")).to_be_visible()
+    new = A.get_by_role("region", name="New"); expect(new).to_contain_text("Kavya S. accepted your hi"); expect(new).to_contain_text("Start chatting")
+    shot(A, "s10d_activity")
+    A.get_by_role("button", name="Mark all read").click(); expect(A.get_by_role("region", name="New")).to_have_count(0)
+    A.goto(B + "/explore"); expect(A.get_by_role("link", name="Activity", exact=True)).to_be_visible()
+
     # Report Arjun
     A.goto(B + "/p/d0000000-0000-0000-0000-000000000006")
     A.get_by_role("button", name="More options for Arjun").click(); A.get_by_role("button", name="Report Arjun").click()
@@ -314,7 +338,7 @@ with sync_playwright() as p:
     Bp.goto(B + "/admin"); expect(Bp.get_by_role("heading", name="We couldn't find that")).to_be_visible()
     psql(f"insert into admins values ('{me}')")
     A.goto(B + "/people")
-    A.get_by_role("button", name="Your account").click(); A.get_by_role("link", name="Admin").click()
+    A.get_by_role("link", name="You", exact=True).click(); A.get_by_role("link", name="Admin").click()
     expect(A).to_have_url(re.compile(r"/admin$"))
     rep = A.locator("article:visible").filter(has_text="fresh jalebi")
     expect(rep).to_contain_text("Selling or advertising")

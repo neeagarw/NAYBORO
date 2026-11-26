@@ -1,6 +1,7 @@
 // Loading placeholders shaped like each screen, so nothing flashes blank while data loads. Screens with a
 // title and tab show the real title and the real bottom nav right away; only the content pulses.
 import { BottomNav, DesktopLayout, type Tab } from "@/components/BottomNav";
+import { Logo } from "@/components/Logo";
 
 const Bar = ({ w = "100%", h = 14, r = 8, className = "" }: { w?: string | number; h?: number; r?: number; className?: string }) => (
   <div className={`animate-pulse bg-line-soft ${className}`} style={{ width: w, height: h, borderRadius: r }} />
@@ -23,11 +24,12 @@ function Header({ tabs, title }: { tabs?: boolean; title?: string }) {
   if (title) return (
     <div className="flex flex-col gap-2.5 px-5 pb-2 pt-3">
       <div className="flex items-center justify-between gap-3">
-        <div className="flex flex-col gap-1.5">
-          <h1 className="m-0 font-display text-[28px] font-extrabold leading-[1.05] tracking-[-0.5px]">{title}</h1>
-          <Bar w={170} h={12} />
-        </div>
-        <Bar w={40} h={40} r={13} />
+        <span className="lg:invisible"><Logo size={30} /></span>
+        <Bar w={44} h={44} r={999} />
+      </div>
+      <div className="flex flex-col gap-1.5">
+        <h1 className="m-0 font-display text-[30px] font-extrabold leading-[1.05] tracking-[-0.5px]">{title}</h1>
+        <Bar w={170} h={12} />
       </div>
       {tabs && <div className="flex gap-2"><Bar w={80} h={42} r={999} /><Bar w={90} h={42} r={999} /><Bar w={100} h={42} r={999} /></div>}
     </div>
@@ -44,8 +46,8 @@ function Header({ tabs, title }: { tabs?: boolean; title?: string }) {
 
 function Nav() {
   return (
-    <div className="grid grid-cols-3 border-t border-line-soft bg-surface px-2 pb-5 pt-3 lg:hidden">
-      {[0, 1, 2].map((i) => <div key={i} className="flex flex-col items-center gap-1.5"><Bar w={24} h={22} r={6} /><Bar w={44} h={10} /></div>)}
+    <div className="grid grid-cols-4 border-t border-line-soft bg-surface px-2 pb-5 pt-3 lg:hidden">
+      {[0, 1, 2, 3].map((i) => <div key={i} className="flex flex-col items-center gap-1.5"><Bar w={24} h={22} r={6} /><Bar w={44} h={10} /></div>)}
     </div>
   );
 }
