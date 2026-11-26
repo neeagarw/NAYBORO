@@ -229,7 +229,9 @@ export function PeopleClient({ initial, hellos, counts, area, metro, myInterests
         <h2 className="m-0 text-xs font-bold tracking-[1px] text-muted">{title}</h2>
         {!loading && list.length === 0 && (
           <div className="rounded-[20px] border border-line-soft bg-surface p-4 text-sm leading-normal text-muted">
-            Nobody here yet. Be one of the first, and invite a friend from home.
+            {suggestions.length > 0
+              ? "That's everyone near you so far. Invite a friend from home to grow the list."
+              : "Nobody here yet. Be one of the first, and invite a friend from home."}
           </div>
         )}
         {list.map((p) => (

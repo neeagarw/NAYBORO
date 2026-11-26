@@ -87,6 +87,9 @@ with sync_playwright() as p:
     shot(A, "s03_say_hi")
     A.get_by_role("button", name="Send hello").click()
     expect(A.get_by_role("button", name="Hello sent")).to_be_visible()
+    # Said hi: Rohit is no longer suggested on People (he waits in Chats instead)
+    A.goto(B + "/people"); expect(A.locator("main:visible")).to_be_visible()
+    expect(A.locator("main:visible").get_by_text("Rohit G.")).to_have_count(0)
 
     # Chats: 3 hellos, Aman unread, Ananya + Rohit waiting
     A.goto(B + "/chats")
